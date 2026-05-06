@@ -1,0 +1,45 @@
+/* frontend/src/assets/main.css */
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --green-dark:   #1a4a1a;
+  --green-mid:    #2d7a2d;
+  --green-light:  #4caf50;
+  --green-pale:   #e8f5e9;
+  --green-soft:   #c8e6c9;
+  --green-accent: #81c784;
+  --cream:        #fafdf6;
+  --text-dark:    #1b2e1b;
+  --text-mid:     #3a5a3a;
+  --text-light:   #6a8f6a;
+  --white:        #fff;
+  --shadow:       rgba(45, 122, 45, 0.18);
+  --orange:       #e65100;
+  --radius-card:  16px;
+  --radius-btn:   20px;
+}
+
+body {
+  font-family: 'Kantumruy Pro', sans-serif;
+  background: var(--cream);
+  color: var(--text-dark);
+  min-height: 100vh;
+}
+
+button { font-family: inherit; cursor: pointer; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--green-pale); }
+::-webkit-scrollbar-thumb { background: var(--green-accent); border-radius: 10px; }
+
+/* Fade transition */
+.fade-enter-active, .fade-leave-active { transition: opacity .2s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+/* Modal pop */
+@keyframes popIn {
+  from { transform: scale(.9); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+.pop-in { animation: popIn .2s ease; }
