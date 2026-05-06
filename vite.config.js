@@ -6,9 +6,19 @@ import path from 'path';
 export default defineConfig({
   plugins: [vue()],
   resolve: {
-    alias: { '@': path.resolve(__dirname, './src') },
+    alias: { "@": path.resolve(__dirname, "./src") },
   },
   server: {
     port: 5173,
+    proxy: {
+      "/api": {
+        target: process.env.VITE_API_URL,
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, "/api"),
+      },
+    },
+  },
+  define: {
+    "process.env.VITE_API_URL": JSON.stringify(process.env.VITE_API_URL),
   },
 });
