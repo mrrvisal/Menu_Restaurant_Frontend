@@ -3,16 +3,55 @@
   <div class="page">
 
     <!-- HEADER -->
-    <div class="header">
-      <div class="header-bg-pattern"></div>
-      <div class="header-inner">
-        <img
-          src="https://res.cloudinary.com/daji2ml3y/image/upload/v1777712294/ChatGPT_Image_May_2_2026_03_39_44_PM-Picsart-BackgroundRemover_1_x4yi9t.png"
-          class="header-logo"
-          alt="restaurant logo"
-        />
-      </div>
-    </div>
+    <!-- HEADER -->
+<div class="header">
+
+  <!-- falling leaves -->
+  <span class="leaf l1">🌿</span>
+  <span class="leaf l2">🍃</span>
+  <span class="leaf l3">🌿</span>
+  <span class="leaf l4">🍃</span>
+  <span class="leaf l5">🌿</span>
+  <span class="leaf l6">🍃</span>
+  <span class="leaf l7">🌿</span>
+  <span class="leaf l8">🍃</span>
+
+  <!-- sparkles -->
+  <span class="sparkle s1"></span>
+  <span class="sparkle s2"></span>
+  <span class="sparkle s3"></span>
+  <span class="sparkle s4"></span>
+  <span class="sparkle s5"></span>
+
+  <!-- logo (floats up/down) -->
+  <img
+    src="https://res.cloudinary.com/daji2ml3y/image/upload/v1777712294/ChatGPT_Image_May_2_2026_03_39_44_PM-Picsart-BackgroundRemover_1_x4yi9t.png"
+    class="header-logo"
+    alt="restaurant logo"
+  />
+
+  <!-- animated wave bottom edge -->
+  <div class="wave-divider">
+    <svg viewBox="0 0 1440 28" fill="none"
+         xmlns="http://www.w3.org/2000/svg"
+         preserveAspectRatio="none"
+         style="height:28px">
+      <path
+        d="M0 14 C180 0 360 28 540 14
+           C720 0 900 28 1080 14
+           C1260 0 1440 28 1440 14
+           L1440 28 L0 28 Z"
+        fill="#f4faf6"/>
+      <path
+        d="M1440 14 C1620 0 1800 28 1980 14
+           C2160 0 2340 28 2520 14
+           C2700 0 2880 28 2880 14
+           L2880 28 L1440 28 Z"
+        fill="#f4faf6"/>
+    </svg>
+  </div>
+
+</div>
 
     <!-- TABS -->
     <div class="tabs-wrap">
@@ -259,13 +298,6 @@ function goAdmin() {
 /* ============================================================
    HEADER
    ============================================================ */
-.header {
-  background: linear-gradient(150deg, #064e3b 0%, #065f46 40%, #047857 70%, #059669 100%);
-  padding: 28px 20px 24px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
 .header-bg-pattern {
   position: absolute;
   inset: 0;
@@ -576,7 +608,7 @@ function goAdmin() {
 }
 .detail-img-wrap {
   width: 100%;
-  height: 260px;
+  height: 400px;
   overflow: hidden;
   background: #f0fdf4;
   display: flex;
@@ -648,5 +680,100 @@ function goAdmin() {
 @keyframes popIn {
   from { transform: translateY(30px) scale(0.96); opacity: 0; }
   to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
+
+.header {
+  background: linear-gradient(135deg, #0f766e, #22c55e, #86efac);
+  padding: 36px 20px 32px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  width: 220px; height: 220px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.06);
+  top: -60px; right: -50px;
+  pointer-events: none;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  width: 140px; height: 140px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.04);
+  bottom: -40px; left: -30px;
+  pointer-events: none;
+}
+.header-logo {
+  width: 150px;
+  position: relative; z-index: 2;
+  filter: drop-shadow(0 6px 18px rgba(0,0,0,0.35));
+  animation: logoFloat 3.6s ease-in-out infinite;
+}
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-8px); }
+}
+.leaf {
+  position: absolute;
+  opacity: 0;
+  animation: leafFall linear infinite;
+  pointer-events: none;
+  z-index: 3;
+  user-select: none;
+}
+.l1 { left:  8%; font-size: 26px; animation-duration: 6.0s; animation-delay: 0.0s; }
+.l2 { left: 18%; font-size: 18px; animation-duration: 7.5s; animation-delay: 1.2s; }
+.l3 { left: 32%; font-size: 20px; animation-duration: 5.8s; animation-delay: 2.5s; }
+.l4 { left: 55%; font-size: 14px; animation-duration: 8.0s; animation-delay: 0.6s; }
+.l5 { left: 68%; font-size: 22px; animation-duration: 6.5s; animation-delay: 3.0s; }
+.l6 { left: 80%; font-size: 16px; animation-duration: 7.0s; animation-delay: 1.8s; }
+.l7 { left: 90%; font-size: 20px; animation-duration: 5.5s; animation-delay: 4.0s; }
+.l8 { left: 44%; font-size: 12px; animation-duration: 9.0s; animation-delay: 0.3s; }
+@keyframes leafFall {
+  0%   { top: -5%;  opacity: 0;   transform: rotate(0deg)   translateX(0); }
+  8%   {             opacity: .55; }
+  85%  {             opacity: .4;  }
+  100% { top: 105%; opacity: 0;   transform: rotate(360deg) translateX(24px); }
+}
+.sparkle {
+  position: absolute;
+  width: 4px; height: 4px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.7);
+  animation: sparklePop ease-in-out infinite;
+  pointer-events: none; z-index: 3;
+}
+.s1 { top: 20%; left: 15%; animation-duration: 2.4s; animation-delay: 0.0s; }
+.s2 { top: 60%; left: 25%; animation-duration: 3.1s; animation-delay: 0.8s; }
+.s3 { top: 30%; left: 72%; animation-duration: 2.8s; animation-delay: 1.5s; }
+.s4 { top: 70%; left: 82%; animation-duration: 2.2s; animation-delay: 0.4s; }
+.s5 { top: 50%; left: 48%; animation-duration: 3.5s; animation-delay: 2.1s; }
+@keyframes sparklePop {
+  0%, 100% { transform: scale(0);   opacity: 0; }
+  40%       { transform: scale(1.6); opacity: 1; }
+  60%       { transform: scale(0.8); opacity: .7; }
+}
+.wave-divider {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 28px; overflow: hidden;
+  pointer-events: none; z-index: 4;
+}
+.wave-divider svg {
+  position: absolute; bottom: 0;
+  width: 200%; left: 0;
+  animation: waveDrift 8s linear infinite;
+}
+@keyframes waveDrift {
+  0%   { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 </style>
