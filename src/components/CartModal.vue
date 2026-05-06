@@ -66,7 +66,7 @@
                 <input
                   v-model="tableNo"
                   class="field-input"
-                  placeholder="🪑 លេខតុ / Table Number (ចាំបាច់)"
+                  placeholder="🪑 លេខតុ (ចាំបាច់)"
                 />
               </div>
 

@@ -1,33 +1,35 @@
 <!-- frontend/src/views/MenuView.vue -->
 <template>
-  <div>
+  <div class="page">
+
     <!-- HEADER -->
     <div class="header">
-      <span class="header-leaf">🌿</span>
-      <span class="header-leaf2">🍃</span>
-      <div class="restaurant-logo">
+      <div class="header-bg-pattern"></div>
+      <div class="header-inner">
         <img
           src="https://res.cloudinary.com/daji2ml3y/image/upload/v1777712294/ChatGPT_Image_May_2_2026_03_39_44_PM-Picsart-BackgroundRemover_1_x4yi9t.png"
-          style="width: 150px"
-          alt=""
+          class="header-logo"
+          alt="restaurant logo"
         />
       </div>
     </div>
 
     <!-- TABS -->
     <div class="tabs-wrap">
-      <div class="tabs">
+      <!-- Skeleton tabs while loading -->
+      <div v-if="!foods.categories.length" class="tabs">
+        <div v-for="n in 5" :key="n" class="sk tab-sk"></div>
+      </div>
+      <div v-else class="tabs">
         <button
           v-for="cat in foods.categories"
           :key="cat.slug"
           class="tab"
           :class="{ active: curCat === cat.slug }"
-          @click="
-            curCat = cat.slug;
-            load();
-          "
+          @click="curCat = cat.slug; load();"
         >
-          {{ cat.icon }} {{ cat.label_km }}
+          <span class="tab-icon">{{ cat.icon }}</span>
+          {{ cat.label_km }}
         </button>
       </div>
     </div>
@@ -35,25 +37,37 @@
     <!-- SEARCH -->
     <div class="search-bar">
       <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input
-          v-model="searchQ"
-          placeholder="ស្វែងរកម្ហូប..."
-          @input="load()"
-        />
+        <svg class="search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
+          <circle cx="8.5" cy="8.5" r="5.5"/><path d="M15 15l-3-3"/>
+        </svg>
+        <input v-model="searchQ" placeholder="ស្វែងរកម្ហូប..." @input="load()" />
+        <button v-if="searchQ" class="search-clear" @click="searchQ = ''; load()">✕</button>
       </div>
     </div>
 
     <!-- GRID -->
     <div class="menu-section">
-      <div v-if="foods.loading" class="empty">
-        <div class="empty-icon">⏳</div>
-        កំពុងទាញយក...
+      <!-- Skeleton loading cards -->
+      <div v-if="foods.loading " class="food-grid">
+        <div v-for="n in 10" :key="n" class="card-sk">
+          <div class="sk card-img-sk"></div>
+          <div class="card-body-sk">
+            <!-- <div class="sk line-sk"></div> -->
+            <div class="sk line-sk short"></div>
+            <div class="sk line-sk price"></div>
+            <!-- <div class="sk btn-sk"></div> -->
+          </div>
+        </div>
       </div>
+
+      <!-- Empty state -->
       <div v-else-if="!filteredFoods.length" class="empty">
-        <div class="empty-icon">🔍</div>
-        រកមិនឃើញម្ហូប
+        <div class="empty-illustration">🍽️</div>
+        <p class="empty-title">រកមិនឃើញម្ហូប</p>
+        <p class="empty-sub">សូមសាកល្បងស្វែងរកពាក្យផ្សេង</p>
       </div>
+
+      <!-- Food grid -->
       <div v-else class="food-grid">
         <FoodCard
           v-for="food in filteredFoods"
@@ -67,71 +81,63 @@
     </div>
 
     <!-- CART FAB -->
-    <button v-if="cart.count > 0" class="cart-fab" @click="showCart = true">
-      <div class="cart-fab-images">
-        <template v-for="(item, index) in cartPreviewItems" :key="item.id">
-          <img
-            v-if="item.img_url"
-            :src="item.img_url"
-            :alt="item.name"
-            class="cart-fab-img"
-            :style="{ zIndex: cartPreviewItems.length - index, marginLeft: index > 0 ? '-8px' : '0' }"
-          />
-          <span
-            v-else
-            class="cart-fab-img cart-fab-img--emoji"
-            :style="{ zIndex: cartPreviewItems.length - index, marginLeft: index > 0 ? '-8px' : '0' }"
-          >{{ getCategoryEmoji(item.category) }}</span>
-        </template>
-      </div>
-      <span class="cart-fab-badge">{{ cart.count }}</span>
-      {{ cart.total.toFixed(0) }}៛
-    </button>
+    <Transition name="fab-pop">
+      <button v-if="cart.count > 0" class="cart-fab" @click="showCart = true">
+        <div class="cart-fab-images">
+          <template v-for="(item, index) in cartPreviewItems" :key="item.id">
+            <img
+              v-if="item.img_url"
+              :src="item.img_url"
+              :alt="item.name"
+              class="cart-fab-img"
+              :style="{ zIndex: cartPreviewItems.length - index, marginLeft: index > 0 ? '-8px' : '0' }"
+            />
+            <span
+              v-else
+              class="cart-fab-img cart-fab-img--emoji"
+              :style="{ zIndex: cartPreviewItems.length - index, marginLeft: index > 0 ? '-8px' : '0' }"
+            >{{ getCategoryEmoji(item.category) }}</span>
+          </template>
+        </div>
+        <span class="cart-fab-label">
+          <span class="cart-fab-badge">{{ cart.count }}</span>
+          {{ cart.total.toFixed(0) }}៛
+        </span>
+      </button>
+    </Transition>
 
     <!-- ADMIN FAB -->
-    <button class="fab" @click="goAdmin">🔐 Admin</button>
+    <button class="fab-admin" @click="goAdmin">
+      <span>🔐</span> Admin
+    </button>
 
     <!-- MODALS -->
     <CartModal :show="showCart" @close="showCart = false" />
 
-    <!-- Food Detail -->
+    <!-- Food Detail Modal -->
     <Teleport to="body">
       <Transition name="fade">
-        <div
-          v-if="selectedFood"
-          class="modal-overlay"
-          @click.self="selectedFood = null"
-        >
+        <div v-if="selectedFood" class="modal-overlay" @click.self="selectedFood = null">
           <div class="modal-card pop-in">
-            <div class="modal-header">
-              <span class="modal-header-title">{{ selectedFood.name }}</span>
-              <button class="close-btn" @click="selectedFood = null">✕</button>
-            </div>
+            <button class="modal-close" @click="selectedFood = null">✕</button>
+
             <div class="detail-img-wrap">
-              <img
-                v-if="selectedFood.img_url"
-                :src="selectedFood.img_url"
-                :alt="selectedFood.name"
-              />
-              <span v-else class="detail-img-placeholder">{{
-                getCategoryEmoji(selectedFood.category)
-              }}</span>
+              <img v-if="selectedFood.img_url" :src="selectedFood.img_url" :alt="selectedFood.name" />
+              <span v-else class="detail-img-placeholder">{{ getCategoryEmoji(selectedFood.category) }}</span>
+              <div class="detail-img-gradient"></div>
             </div>
+
             <div class="detail-body">
-              <div class="detail-name">{{ selectedFood.name }}</div>
-              <div class="detail-price">
-                {{ Number(selectedFood.price).toFixed(0) }}៛
-              </div>
-              <span class="detail-status" :class="selectedFood.status">
-                {{ selectedFood.status === "available" ? "✅ មាន" : "❌ អស់" }}
+              <span class="detail-status-chip" :class="selectedFood.status">
+                {{ selectedFood.status === 'available' ? '✅ មាន' : '❌ អស់' }}
               </span>
+              <div class="detail-name">{{ selectedFood.name }}</div>
+              <div class="detail-price">{{ Number(selectedFood.price).toFixed(0) }}៛</div>
+
               <button
                 v-if="selectedFood.status === 'available'"
                 class="add-cart-big"
-                @click="
-                  cart.add(selectedFood);
-                  selectedFood = null;
-                "
+                @click="cart.add(selectedFood); selectedFood = null;"
               >
                 + ដាក់ក្នុងកញ្ចប់
               </button>
@@ -161,19 +167,15 @@ const showCart = ref(false);
 const selectedFood = ref(null);
 
 const filteredFoods = computed(() => foods.foods);
-
-// Show up to 3 item images stacked in the FAB
-const cartPreviewItems = computed(() =>
-  Object.values(cart.items).slice(0, 3)
-);
+const cartPreviewItems = computed(() => Object.values(cart.items).slice(0, 3));
 
 function getCategoryEmoji(category) {
   const emojis = {
-    'made-to-order': '🍽️',
-    'ready-cooked': '🍱',
-    'dessert': '🍰'
+    "made-to-order": "🍽️",
+    "ready-cooked": "🍱",
+    dessert: "🍰",
   };
-  return emojis[category] || '🍽️';
+  return emojis[category] || "🍽️";
 }
 
 async function load() {
@@ -197,80 +199,118 @@ function goAdmin() {
 </script>
 
 <style scoped>
+/* ============================================================
+   CSS VARIABLES
+   ============================================================ */
+.page {
+  --green-pale: #f0fdf4;
+  --green-soft: #bbf7d0;
+  --green-light: #4ade80;
+  --green-mid: #16a34a;
+  --green-dark: #14532d;
+  --orange: #ea580c;
+  --white: #ffffff;
+  --text-dark: #111827;
+  --text-light: #6b7280;
+  --radius: 16px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.09);
+  --shadow-lg: 0 12px 40px rgba(0,0,0,0.14);
+
+  min-height: 100vh;
+  background: #f4faf6;
+  font-family: "Hanuman", "Noto Sans Khmer", system-ui, sans-serif;
+}
+
+/* ============================================================
+   SKELETON SHIMMER
+   ============================================================ */
+@keyframes shimmer {
+  0%   { background-position: -700px 0 }
+  100% { background-position:  700px 0 }
+}
+.sk {
+  background: linear-gradient(90deg, #dff0e6 25%, #c5e3cf 50%, #dff0e6 75%);
+  background-size: 700px 100%;
+  animation: shimmer 1.5s infinite linear;
+  border-radius: 8px;
+}
+.tab-sk {
+  height: 36px;
+  width: 84px;
+  flex-shrink: 0;
+  border-radius: 20px;
+  margin: 7px 4px;
+}
+.card-sk {
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  border: 1px solid #e2f0e6;
+}
+.card-img-sk  { height: 268px; border-radius: 0; }
+.card-body-sk { padding: 12px; display: flex; flex-direction: column; gap: 9px; }
+.line-sk      { height: 12px; width: 100%; }
+.line-sk.short { width: 60%; }
+.line-sk.price { width: 40%; height: 16px; }
+.btn-sk       { height: 34px; border-radius: 10px; margin-top: 2px; }
+
+/* ============================================================
+   HEADER
+   ============================================================ */
 .header {
-  background: linear-gradient(135deg, #0f766e 0%, #22c55e 60%, #86efac 100%);
-  padding: 22px 16px 18px;
+  background: linear-gradient(150deg, #064e3b 0%, #065f46 40%, #047857 70%, #059669 100%);
+  padding: 28px 20px 24px;
   text-align: center;
   position: relative;
   overflow: hidden;
 }
-.header::before {
-  content: "";
+.header-bg-pattern {
   position: absolute;
-  top: -30px;
-  right: -30px;
-  width: 130px;
-  height: 130px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.05);
+  inset: 0;
+  background-image:
+    radial-gradient(circle at 15% 60%, rgba(255,255,255,0.05) 0%, transparent 50%),
+    radial-gradient(circle at 85% 20%, rgba(255,255,255,0.07) 0%, transparent 45%);
+  pointer-events: none;
 }
-.header::after {
-  content: "";
-  position: absolute;
-  bottom: -20px;
-  left: -20px;
-  width: 90px;
-  height: 90px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
+.header-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
-.header-leaf {
-  position: absolute;
-  top: 10px;
-  left: 12px;
-  font-size: 26px;
-  opacity: 0.3;
-}
-.header-leaf2 {
-  position: absolute;
-  top: 10px;
-  right: 12px;
-  font-size: 26px;
-  opacity: 0.3;
-}
-.restaurant-logo {
-  font-size: 42px;
-  display: block;
-  margin-bottom: 6px;
-}
-.restaurant-name {
-  font-family: "Hanuman", serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: #fff;
-}
-.restaurant-sub {
-  font-size: 12px;
-  color: var(--green-accent);
-  margin-top: 3px;
+.header-logo {
+  width: 150px;
+  filter: drop-shadow(0 4px 16px rgba(0,0,0,0.3));
 }
 
+/* ============================================================
+   TABS
+   ============================================================ */
 .tabs-wrap {
   background: var(--white);
-  border-bottom: 2px solid var(--green-soft);
+  border-bottom: 1.5px solid #e2f0e6;
   overflow-x: auto;
   scrollbar-width: none;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
 }
-.tabs-wrap::-webkit-scrollbar {
-  display: none;
-}
+.tabs-wrap::-webkit-scrollbar { display: none; }
 .tabs {
   display: flex;
   min-width: max-content;
-  padding: 0 8px;
+  padding: 0 12px;
+  gap: 2px;
 }
 .tab {
-  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 13px 16px 11px;
   font-size: 13px;
   font-family: inherit;
   font-weight: 500;
@@ -280,128 +320,155 @@ function goAdmin() {
   cursor: pointer;
   white-space: nowrap;
   border-bottom: 3px solid transparent;
-  transition: all 0.2s;
+  transition: all 0.18s;
   position: relative;
-  top: 2px;
+  top: 1.5px;
+  letter-spacing: 0.01em;
 }
+.tab-icon { font-size: 15px; }
 .tab.active {
   color: var(--green-mid);
   border-bottom-color: var(--green-mid);
-  font-weight: 600;
+  font-weight: 700;
 }
-.tab:hover {
-  color: var(--green-light);
+.tab:hover:not(.active) {
+  color: #374151;
+  background: #f0fdf4;
+  border-radius: 8px 8px 0 0;
 }
 
+/* ============================================================
+   SEARCH
+   ============================================================ */
 .search-bar {
   padding: 12px 16px;
   background: var(--white);
-  border-bottom: 1px solid var(--green-soft);
+  border-bottom: 1px solid #e2f0e6;
 }
 .search-wrap {
   position: relative;
-}
-.search-bar input {
-  width: 100%;
-  padding: 9px 14px 9px 38px;
-  border: 1.5px solid var(--green-soft);
-  border-radius: 24px;
-  font-size: 13px;
-  font-family: inherit;
-  background: var(--green-pale);
-  color: var(--text-dark);
-  outline: none;
-  transition: border 0.2s;
-}
-.search-bar input:focus {
-  border-color: var(--green-light);
+  max-width: 100%;
+  margin: 0 auto;
 }
 .search-icon {
   position: absolute;
-  left: 12px;
+  left: 13px;
   top: 50%;
   transform: translateY(-50%);
-  font-size: 15px;
+  width: 17px;
+  height: 17px;
+  color: #9ca3af;
   pointer-events: none;
 }
+.search-bar input {
+  width: 100%;
+  padding: 10px 38px 10px 40px;
+  border: 1.5px solid #d1fae5;
+  border-radius: 26px;
+  font-size: 13.5px;
+  font-family: inherit;
+  background: #f0fdf4;
+  color: var(--text-dark);
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-bar input:focus {
+  border-color: var(--green-light);
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+}
+.search-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #d1d5db;
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
 
+/* ============================================================
+   MENU SECTION & GRID
+   ============================================================ */
 .menu-section {
-  padding: 12px 12px 100px;
+  padding: 16px 14px 120px;
 }
 .food-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
+  gap: 14px;
 }
-@media (max-width: 1100px) {
-  .food-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-@media (max-width: 800px) {
-  .food-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-@media (max-width: 560px) {
-  .food-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-@media (max-width: 360px) {
-  .food-grid {
-    grid-template-columns: repeat(1, 1fr);
-  }
-}
+@media (max-width: 1100px) { .food-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (max-width: 800px)  { .food-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 560px)  { .food-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 360px)  { .food-grid { grid-template-columns: 1fr; } }
 
+/* ============================================================
+   EMPTY STATE
+   ============================================================ */
 .empty {
   text-align: center;
-  padding: 50px 20px;
+  padding: 60px 20px 40px;
+}
+.empty-illustration {
+  font-size: 56px;
+  margin-bottom: 14px;
+  opacity: 0.35;
+}
+.empty-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+}
+.empty-sub {
+  font-size: 13px;
   color: var(--text-light);
 }
-.empty-icon {
-  font-size: 46px;
-  margin-bottom: 10px;
-}
 
-/* CART FAB */
+/* ============================================================
+   CART FAB
+   ============================================================ */
 .cart-fab {
   position: fixed;
-  bottom: 24px;
+  bottom: 26px;
   left: 16px;
   background: var(--orange);
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 50px;
-  padding: 8px 18px 8px 8px;
-  font-size: 13px;
+  padding: 7px 16px 7px 7px;
+  font-size: 14px;
   font-family: inherit;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(230, 81, 0, 0.4);
+  box-shadow: 0 4px 20px rgba(234, 88, 12, 0.45);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   z-index: 100;
-  transition: all 0.2s;
+  transition: transform 0.2s, box-shadow 0.2s;
 }
 .cart-fab:hover {
-  background: #bf360c;
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 28px rgba(234, 88, 12, 0.5);
 }
-
-/* Stacked food images inside FAB */
-.cart-fab-images {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
+.cart-fab:active { transform: scale(0.97); }
+.cart-fab-images { display: flex; align-items: center; flex-shrink: 0; }
 .cart-fab-img {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid var(--orange);
+  border: 2px solid rgba(255,255,255,0.45);
   background: #fff3e0;
   display: inline-flex;
   align-items: center;
@@ -409,184 +476,177 @@ function goAdmin() {
   flex-shrink: 0;
   position: relative;
 }
-.cart-fab-img--emoji {
-  font-size: 16px;
-  line-height: 32px;
-  text-align: center;
-}
-
+.cart-fab-img--emoji { font-size: 16px; line-height: 34px; text-align: center; }
+.cart-fab-label     { display: flex; align-items: center; gap: 7px; }
 .cart-fab-badge {
-  background: white;
+  background: #fff;
   color: var(--orange);
   border-radius: 50%;
-  width: 20px;
-  height: 20px;
+  width: 22px;
+  height: 22px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
+.fab-pop-enter-active { animation: fabIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+.fab-pop-leave-active { animation: fabIn 0.18s reverse ease-in; }
+@keyframes fabIn {
+  from { transform: translateY(18px) scale(0.85); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+}
 
-/* ADMIN FAB */
-.fab {
+/* ============================================================
+   ADMIN FAB
+   ============================================================ */
+.fab-admin {
   position: fixed;
-  bottom: 24px;
+  bottom: 26px;
   right: 16px;
-  background: #455a64;
-  color: white;
+  background: #1f2937;
+  color: #e5e7eb;
   border: none;
   border-radius: 50px;
-  padding: 13px 20px;
+  padding: 13px 18px;
   font-size: 13px;
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 6px;
   z-index: 100;
   transition: all 0.2s;
 }
-.fab:hover {
-  background: #263238;
+.fab-admin:hover {
+  background: #111827;
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
 }
 
-/* MODALS */
+/* ============================================================
+   FOOD DETAIL MODAL
+   ============================================================ */
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(0,0,0,0.6);
   z-index: 200;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  padding: 20px;
+  padding: 0;
+}
+@media (min-width: 560px) {
+  .modal-overlay { align-items: center; padding: 20px; }
 }
 .modal-card {
-  background: white;
-  border-radius: 22px;
+  background: #fff;
+  border-radius: 24px 24px 0 0;
   width: 100%;
-  max-width: 420px;
-  max-height: 88vh;
+  max-width: 480px;
+  max-height: 92vh;
   overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+  position: relative;
 }
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 18px 0;
+@media (min-width: 560px) {
+  .modal-card { border-radius: 24px; box-shadow: var(--shadow-lg); }
 }
-.modal-header-title {
-  font-family: "Hanuman", serif;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--green-dark);
-}
-.close-btn {
+.modal-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 10;
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: var(--green-pale);
+  background: rgba(0,0,0,0.35);
+  color: #fff;
   border: none;
   cursor: pointer;
-  font-size: 17px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--green-dark);
-}
-.detail-img-wrap {
-  width: 100%;
-  height: 400px;
-  overflow: hidden;
-  background: var(--green-pale);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 14px;
+}
+.detail-img-wrap {
+  width: 100%;
+  height: 260px;
+  overflow: hidden;
+  background: #f0fdf4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
 }
 .detail-img-wrap img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.detail-img-placeholder {
-  font-size: 80px;
+.detail-img-gradient {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 80px;
+  background: linear-gradient(to top, rgba(0,0,0,0.16), transparent);
+  pointer-events: none;
 }
-.detail-body {
-  padding: 16px 18px 22px;
-}
-.detail-name {
-  font-family: "Hanuman", serif;
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-.detail-price {
-  font-size: 20px;
-  font-weight: 700;
-  color: var(--green-dark);
-  margin-bottom: 10px;
-}
-.detail-status {
+.detail-img-placeholder { font-size: 80px; }
+.detail-body { padding: 18px 20px 28px; }
+.detail-status-chip {
   display: inline-block;
   font-size: 12px;
-  padding: 4px 14px;
+  padding: 4px 12px;
   border-radius: 20px;
   font-weight: 600;
+  margin-bottom: 10px;
 }
-.detail-status.available {
-  background: #e8f5e9;
-  color: #2d7a2d;
-  border: 1px solid #a5d6a7;
+.detail-status-chip.available   { background: #dcfce7; color: #166534; }
+.detail-status-chip.unavailable { background: #fee2e2; color: #991b1b; }
+.detail-name {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 6px;
+  line-height: 1.3;
 }
-.detail-status.unavailable {
-  background: #fbe9e7;
-  color: #bf360c;
-  border: 1px solid #ffccbc;
+.detail-price {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--green-mid);
+  margin-bottom: 18px;
 }
 .add-cart-big {
   display: block;
   width: 100%;
-  margin-top: 16px;
-  padding: 13px;
+  padding: 15px;
   background: var(--green-mid);
-  color: white;
+  color: #fff;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   font-size: 15px;
   font-family: inherit;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s;
+  transition: background 0.2s, transform 0.15s;
+  letter-spacing: 0.02em;
 }
-.add-cart-big:hover {
-  background: var(--green-dark);
-}
+.add-cart-big:hover  { background: var(--green-dark); }
+.add-cart-big:active { transform: scale(0.98); }
 
-/* TRANSITIONS */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-.pop-in {
-  animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
+/* ============================================================
+   TRANSITIONS
+   ============================================================ */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.22s ease; }
+.fade-enter-from,  .fade-leave-to      { opacity: 0; }
+.pop-in { animation: popIn 0.26s cubic-bezier(0.34, 1.56, 0.64, 1); }
 @keyframes popIn {
-  from {
-    transform: scale(0.85);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+  from { transform: translateY(30px) scale(0.96); opacity: 0; }
+  to   { transform: translateY(0)    scale(1);    opacity: 1; }
 }
 </style>
