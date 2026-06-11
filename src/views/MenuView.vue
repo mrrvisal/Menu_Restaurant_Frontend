@@ -141,7 +141,7 @@
     </button>
 
     <!-- MODALS -->
-    <CartModal :show="showCart" @close="showCart = false" />
+    <CartModal :show="showCart" :table-from-qr="tableFromQR" @close="showCart = false" />
 
     <!-- Food Detail Modal -->
     <Teleport to="body">
@@ -180,12 +180,13 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { useFoodsStore } from "@/stores/foods";
 import { useCartStore } from "@/stores/cart";
 import FoodCard from "@/components/FoodCard.vue";
 import CartModal from "@/components/CartModal.vue";
 
+const route = useRoute();
 const router = useRouter();
 const foods = useFoodsStore();
 const cart = useCartStore();
@@ -195,6 +196,13 @@ const searchQ = ref("");
 const showCart = ref(false);
 const selectedFood = ref(null);
 const initialized = ref(false); // true after the very first successful fetch
+
+// Read table number from URL parameter ?table=X
+const tableFromQR = computed(() => {
+  const t = route.query.table;
+  return t && !isNaN(t) ? parseInt(t) : null;
+});
+const tableBadge = ref(null);
 
 // Debounce timer for search input
 let searchTimer = null;

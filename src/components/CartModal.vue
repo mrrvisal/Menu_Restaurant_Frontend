@@ -109,16 +109,26 @@
 </template>
 
 <script setup>
-import { ref, reactive } from 'vue';
+import { ref, reactive, watch } from 'vue';
 import { useCartStore } from '@/stores/cart';
 
-defineProps({ show: Boolean });
+const props = defineProps({ 
+  show: Boolean,
+  tableFromQr: { type: Number, default: null }
+});
 defineEmits(['close']);
 
 const cart = useCartStore();
 
 const tableNo = ref('');
 const note    = ref('');
+
+// Auto-fill table number from QR code when modal opens
+watch(() => props.show, (newVal) => {
+  if (newVal && props.tableFromQr) {
+    tableNo.value = String(props.tableFromQr);
+  }
+});
 const sending = ref(false);
 const feedback = reactive({ success: false, error: false, errorMsg: '' });
 
