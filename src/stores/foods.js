@@ -11,8 +11,8 @@ export const useFoodsStore = defineStore("foods", () => {
   const loading = ref(false);
   const error = ref(null);
 
-  async function fetchCategories() {
-    const res = await axios.get(`${API_BASE_URL}/api/categories`);
+  async function fetchCategories(params = {}) {
+    const res = await axios.get(`${API_BASE_URL}/api/categories`, { params });
     categories.value = res.data;
   }
 
@@ -58,6 +58,24 @@ export const useFoodsStore = defineStore("foods", () => {
     if (idx !== -1) foods.value[idx].status = res.data.status;
   }
 
+  async function addCategory(data) {
+    const res = await axios.post(`${API_BASE_URL}/api/categories`, data);
+    categories.value.push(res.data);
+    return res.data;
+  }
+
+  async function updateCategory(id, data) {
+    const res = await axios.patch(`${API_BASE_URL}/api/categories/${id}`, data);
+    const idx = categories.value.findIndex((c) => c.id === id);
+    if (idx !== -1) categories.value[idx] = res.data;
+    return res.data;
+  }
+
+  async function deleteCategory(id) {
+    await axios.delete(`${API_BASE_URL}/api/categories/${id}`);
+    categories.value = categories.value.filter((c) => c.id !== id);
+  }
+
   async function deleteFood(id) {
     await axios.delete(`${API_BASE_URL}/api/foods/${id}`);
     foods.value = foods.value.filter((f) => f.id !== id);
@@ -74,5 +92,8 @@ export const useFoodsStore = defineStore("foods", () => {
     updateFood,
     toggleStatus,
     deleteFood,
+    addCategory,
+    updateCategory,
+    deleteCategory,
   };
 });

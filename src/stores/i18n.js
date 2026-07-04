@@ -1,0 +1,174 @@
+// frontend/src/stores/i18n.js
+import { defineStore } from "pinia";
+import { ref, reactive, watch } from "vue";
+
+const translations = {
+  km: {
+    app_name: "ម៉ឺនុយឌីជីថល", loading: "កំពុងផ្ទុក...", save: "រក្សាទុក", cancel: "បោះបង់",
+    delete: "លុប", edit: "កែប្រែ", add: "បន្ថែម", search: "ស្វែងរក", close: "បិទ",
+    confirm: "បញ្ជាក់", success: "ជោគជ័យ", error: "កំហុស", back: "ត្រឡប់ក្រោយ", no_data: "គ្មានទិន្នន័យ",
+    login: "ចូលប្រើ", register: "ចុះឈ្មោះ", logout: "ចេញ", email: "អ៊ីមែល", password: "ពាក្យសម្ងាត់",
+    username: "ឈ្មោះអ្នកប្រើ", full_name: "ឈ្មោះពេញ", phone: "លេខទូរស័ព្ទ",
+    forgot_password: "ភ្លេចពាក្យសម្ងាត់?", reset_password: "កំណត់ពាក្យសម្ងាត់ឡើងវិញ",
+    send_reset_link: "ផ្ញើតំណភ្ជាប់", verify_email: "សូមផ្ទៀងផ្ទាត់អ៊ីមែល",
+    login_title: "ចូលទៅកាន់គណនីរបស់អ្នក", register_title: "ចុះឈ្មោះភោជនីយដ្ឋាន",
+    no_account: "មិនទាន់មានគណនី?", have_account: "មានគណនីរួចហើយ?",
+    restaurant_name: "ឈ្មោះភោជនីយដ្ឋាន", restaurant_name_en: "ឈ្មោះភោជនីយដ្ឋាន (អង់គ្លេស)",
+    slug: "SLUG", logo: "Logo", description: "ការពិពណ៌នា", address: "អាសយដ្ឋាន", language: "ភាសា",
+    khmer: "ភាសាខ្មែរ", english: "English", menu: "ម៉ឺនុយ", foods: "ម្ហូប", categories: "ប្រភេទ",
+    orders: "ការកុម្ម៉ង់", add_food: "បន្ថែមម្ហូប", add_category: "បន្ថែមប្រភេទ",
+    food_name: "ឈ្មោះម្ហូប", food_name_en: "ឈ្មោះម្ហូប (អង់គ្លេស)", price: "តម្លៃ", image: "រូបភាព",
+    available: "មាន", unavailable: "អស់", status: "ស្ថានភាព", category: "ប្រភេទ", sort_order: "លំដាប់",
+    cart: "កញ្ចប់", table: "តុ", table_no: "លេខតុ", order_now: "បញ្ជាទិញ",
+    order_success: "ការបញ្ជាទិញបានជោគជ័យ!", total: "សរុប", note: "កំណត់ចំណាំ",
+    customer_name: "ឈ្មោះអតិថិជន", items: "មុខម្ហូប", qty: "ចំនួន", empty_cart: "កញ្ចប់ទទេ",
+    admin_panel: "ផ្ទាំងគ្រប់គ្រង", telegram: "Telegram", telegram_settings: "ការកំណត់ Telegram",
+    link_code: "លេខកូដភ្ជាប់", copy: "ចម្លង", copied: "ចម្លងរួច!", linked: "ភ្ជាប់រួចរាល់",
+    not_linked: "មិនទាន់ភ្ជាប់", unlink: "លែងភ្ជាប់", qr_code: "QR Code",
+    generate_qr: "បង្កើត QR", download_qr: "ទាញយក QR",
+    super_admin: "អ្នកគ្រប់គ្រងប្រព័ន្ធ", users: "អ្នកប្រើប្រាស់", restaurants: "ភោជនីយដ្ឋាន",
+    stats: "ស្ថិតិ", total_users: "អ្នកប្រើសរុប", total_restaurants: "ភោជនីយដ្ឋានសរុប",
+    total_orders: "ការកុម្ម៉ង់សរុប", total_foods: "ម្ហូបសរុប", suspend: "ផ្អាក",
+    activate: "ដំណើរការ", role: "តួនាទី", owner: "ម្ចាស់", super_admin_label: "អ្នកគ្រប់គ្រង",
+    email_verified: "បានផ្ទៀងផ្ទាត់", not_verified: "មិនទាន់ផ្ទៀងផ្ទាត់", actions: "សកម្មភាព",
+    created_at: "កាលបរិច្ឆេទ",
+    owner_preview: "មើលម៉ឺនុយអតិថិជន", guest_menu_experience: "ម៉ឺនុយសម្រាប់អតិថិជន",
+    preview_desc: "បើក ឬចម្លងតំណភ្ជាប់ម៉ឺនុយផ្ទាល់សម្រាប់ភោជនីយដ្ឋានរបស់អ្នក",
+    copy_link: "ចម្លងតំណ", open_menu: "បើកម៉ឺនុយ", menu_url: "តំណភ្ជាប់ម៉ឺនុយ",
+    daily_revenue: "ចំណូលប្រចាំថ្ងៃ", revenue: "ចំណូល", orders: "ការបញ្ជាទិញ",
+    from: "ចាប់ពី", to: "ដល់", live: "ផ្ទាល់", today: "ថ្ងៃនេះ",
+    features: "លក្ខណៈពិសេស", how_it_works: "របៀបដំណើរការ", pricing: "តម្លៃ", get_started: "ចាប់ផ្តើម",
+    get_started_free: "ចាប់ផ្តើមឥតគិតថ្លៃ", learn_more: "ស្វែងយល់បន្ថែម",
+    hero_title: "ជួយម្ចាស់ភោជនីយដ្ឋានលក់បានរហ័ស និងគ្រប់គ្រងម៉ឺនុយងាយជាងមុន",
+    hero_subtitle: "ប្ដូរតម្លៃ ឬម្ហូបអស់ភ្លាមៗដោយមិនបោះពុម្ពម៉ឺនុយថ្មី។ អតិថិជនស្កេន QR តាមតុ ហើយការបញ្ជាទិញចូល Telegram របស់អ្នកភ្លាមៗ។",
+    owner_badge: "សម្រាប់ម្ចាស់ភោជនីយដ្ឋាន កាហ្វេ និងហាងអាហារ",
+    owner_problem_title: "បញ្ហាដែលម្ចាស់ហាងជួបរាល់ថ្ងៃ",
+    owner_problem_desc: "ម៉ឺនុយក្រដាសចាស់ តម្លៃផ្លាស់ប្តូរញឹកញាប់ ការកុម្ម៉ង់ខុស និងបុគ្គលិករវល់ពេក។ ប្រព័ន្ធនេះជួយកាត់បន្ថយការងារដដែលៗទាំងនេះ។",
+    owner_reprint_title: "មិនចាំបាច់បោះពុម្ពម៉ឺនុយម្ដងហើយម្ដងទៀត",
+    owner_reprint_desc: "កែតម្លៃ រូបភាព ឬស្ថានភាពអស់ម្ហូប ពេលណាក៏បានពីផ្ទាំងគ្រប់គ្រង។",
+    owner_order_title: "កាត់បន្ថយការកុម្ម៉ង់ខុស",
+    owner_order_desc: "អតិថិជនមើលរូបភាព តម្លៃ និងជ្រើសរើសដោយខ្លួនឯង មុនផ្ញើការបញ្ជាទិញ។",
+    owner_telegram_title: "ដឹងការបញ្ជាទិញភ្លាម",
+    owner_telegram_desc: "ម្ចាស់ ឬបុគ្គលិកទទួលសារតាម Telegram ដើម្បីរៀបចំម្ហូបបានលឿន។",
+    owner_guest_title: "អតិថិជនប្រើងាយ",
+    owner_guest_desc: "ស្កេន QR មើលម៉ឺនុយពីទូរស័ព្ទ ទាំងភាសាខ្មែរ និងអង់គ្លេស។",
+    owner_no_printing: "កាត់បន្ថយថ្លៃបោះពុម្ព",
+    owner_fast_update: "កែម៉ឺនុយបានភ្លាម",
+    owner_less_mistake: "កុម្ម៉ង់ច្បាស់លាស់",
+    why_choose_us: "អ្វីដែលម្ចាស់ហាងទទួលបាន",
+    why_choose_us_desc: "មិនមែនត្រឹមតែម៉ឺនុយស្អាតទេ ប៉ុន្តែជាឧបករណ៍ជួយអោយហាងដំណើរការលឿន និងមានរបៀបជាងមុន",
+    digital_menu_title: "កែម៉ឺនុយបានភ្លាម", digital_menu_desc: "បន្ថែមម្ហូប រូបភាព តម្លៃ និងបិទម្ហូបអស់បានដោយខ្លួនឯង",
+    qr_code_title: "QR សម្រាប់តុនីមួយៗ", qr_code_desc: "អតិថិជនស្កេនតាមតុ មើលម៉ឺនុយ និងបញ្ជាទិញដោយងាយស្រួល",
+    telegram_title: "ទទួល Order តាម Telegram", telegram_desc: "ពេលមានការបញ្ជាទិញ អ្នកទទួលសារភ្លាម ដោយមានលេខតុ និងមុខម្ហូប",
+    bilingual_title: "ពីរភាសា", bilingual_desc: "គាំទ្រទាំងភាសាខ្មែរ និងអង់គ្លេស",
+    multi_restaurant_title: "ច្រើនភោជនីយដ្ឋាន", multi_restaurant_desc: "គ្រប់គ្រងភោជនីយដ្ឋានច្រើនកន្លែងក្នុងគណនីតែមួយ",
+    analytics_title: "ស្ថិតិ", analytics_desc: "មើលរបាយការណ៍លម្អិតអំពីការបញ្ជាទិញ",
+    register_acc_title: "ចុះឈ្មោះ", register_acc_desc: "បង្កើតគណនីដោយឥតគិតថ្លៃក្នុងរយៈពេលតែប៉ុន្មាននាទី",
+    setup_menu_title: "រៀបចំម៉ឺនុយ", setup_menu_desc: "បន្ថែមម្ហូប ប្រភេទ រូបភាព និងតម្លៃ",
+    receive_orders_title: "ទទួលការបញ្ជាទិញ", receive_orders_desc: "អតិថិជនបញ្ជាទិញតាម QR អ្នកទទួលតាម Telegram",
+    cta_title: "ចាប់ផ្តើមធ្វើឱ្យហាងអ្នកងាយគ្រប់គ្រងជាងមុន",
+    cta_subtitle: "បង្កើតគណនី ហើយរៀបចំម៉ឺនុយដំបូងរបស់អ្នក។ អ្នកអាចបោះពុម្ព QR សម្រាប់តុ និងចាប់ផ្តើមទទួលការបញ្ជាទិញបានឆាប់ៗ។",
+    sample_menu_title: "អតិថិជនឃើញអ្វីខ្លះ?", sample_menu_desc: "គំរូម៉ឺនុយដែលអតិថិជនស្កេនមើលពីតុ មានរូបភាព តម្លៃ ប្រភេទម្ហូប និងការបញ្ជាទិញងាយស្រួល",
+    orders_served: "ការបញ្ជាទិញ", satisfaction: "ការពេញចិត្ត",
+    product: "ផលិតផល", support: "ជំនួយ",
+    footer_desc: "ប្រព័ន្ធគ្រប់គ្រងម៉ឺនុយឌីជីថលសម្រាប់ភោជនីយដ្ឋាន",
+    all_rights_reserved: "រក្សាសិទ្ធិគ្រប់យ៉ាង",
+  },
+  en: {
+    app_name: "Digital Menu", loading: "Loading...", save: "Save", cancel: "Cancel",
+    delete: "Delete", edit: "Edit", add: "Add", search: "Search", close: "Close",
+    confirm: "Confirm", success: "Success", error: "Error", back: "Back", no_data: "No data",
+    login: "Login", register: "Register", logout: "Logout", email: "Email", password: "Password",
+    username: "Username", full_name: "Full Name", phone: "Phone",
+    forgot_password: "Forgot Password?", reset_password: "Reset Password",
+    send_reset_link: "Send Reset Link", verify_email: "Please verify your email",
+    login_title: "Login to your account", register_title: "Register Restaurant",
+    no_account: "Don't have an account?", have_account: "Already have an account?",
+    restaurant_name: "Restaurant Name", restaurant_name_en: "Restaurant Name (English)",
+    slug: "Slug", logo: "Logo", description: "Description", address: "Address", language: "Language",
+    khmer: "ភាសាខ្មែរ", english: "English", menu: "Menu", foods: "Foods", categories: "Categories",
+    orders: "Orders", add_food: "Add Food", add_category: "Add Category",
+    food_name: "Food Name", food_name_en: "Food Name (English)", price: "Price", image: "Image",
+    available: "Available", unavailable: "Unavailable", status: "Status", category: "Category",
+    sort_order: "Sort Order", cart: "Cart", table: "Table", table_no: "Table No.",
+    order_now: "Order Now", order_success: "Order placed successfully!", total: "Total",
+    note: "Note", customer_name: "Customer Name", items: "Items", qty: "Qty",
+    empty_cart: "Cart is empty", admin_panel: "Admin Panel", telegram: "Telegram",
+    telegram_settings: "Telegram Settings", link_code: "Link Code", copy: "Copy",
+    copied: "Copied!", linked: "Linked", not_linked: "Not linked", unlink: "Unlink",
+    qr_code: "QR Code", generate_qr: "Generate QR", download_qr: "Download QR",
+    super_admin: "Super Admin", users: "Users", restaurants: "Restaurants", stats: "Statistics",
+    total_users: "Total Users", total_restaurants: "Total Restaurants", total_orders: "Total Orders",
+    total_foods: "Total Foods", suspend: "Suspend", activate: "Activate", role: "Role",
+    owner: "Owner", super_admin_label: "Super Admin", email_verified: "Verified",
+    not_verified: "Not verified", actions: "Actions", created_at: "Date",
+    features: "Features", how_it_works: "How It Works", pricing: "Pricing", get_started: "Get Started",
+    get_started_free: "Get Started Free", learn_more: "Learn More",
+    hero_title: "Help restaurant owners sell faster and manage menus with less work",
+    hero_subtitle: "Change prices, mark items unavailable, and add new dishes without reprinting menus. Customers scan a table QR code, and every order arrives instantly in your Telegram.",
+    owner_badge: "Built for restaurant, cafe, and food shop owners",
+    owner_problem_title: "Daily problems this fixes",
+    owner_problem_desc: "Paper menus become outdated, prices change, orders get written incorrectly, and staff get busy. This system removes repetitive work from your daily service.",
+    owner_reprint_title: "Stop reprinting menus",
+    owner_reprint_desc: "Update prices, photos, categories, and item availability from your admin panel anytime.",
+    owner_order_title: "Reduce order mistakes",
+    owner_order_desc: "Customers see photos and prices, choose items themselves, and submit clearer orders.",
+    owner_telegram_title: "Know every order instantly",
+    owner_telegram_desc: "Owners or staff receive Telegram messages with table number, items, and total price.",
+    owner_guest_title: "Easy for customers",
+    owner_guest_desc: "Guests scan a QR code and browse the menu on their phone in Khmer or English.",
+    owner_no_printing: "Lower printing cost",
+    owner_fast_update: "Update menu instantly",
+    owner_less_mistake: "Clearer orders",
+    why_choose_us: "What owners get",
+    why_choose_us_desc: "Not just a pretty menu, but a practical tool to make your restaurant faster, clearer, and easier to manage",
+    digital_menu_title: "Instant menu updates", digital_menu_desc: "Add dishes, photos, prices, and mark sold-out items from your admin panel",
+    qr_code_title: "QR codes for tables", qr_code_desc: "Customers scan from their table, browse the menu, and order without waiting",
+    telegram_title: "Telegram order alerts", telegram_desc: "Every order arrives immediately with table number, items, and total",
+    bilingual_title: "Bilingual", bilingual_desc: "Support both Khmer and English languages",
+    multi_restaurant_title: "Multi-Restaurant", multi_restaurant_desc: "Manage multiple restaurants from one account",
+    analytics_title: "Analytics", analytics_desc: "View detailed reports about orders and sales",
+    register_acc_title: "Register Account", register_acc_desc: "Create an account for free in just a few minutes",
+    setup_menu_title: "Setup Menu", setup_menu_desc: "Add foods, categories, images and prices",
+    qr_generate_title: "Generate QR", qr_generate_desc: "Create QR codes for tables",
+    receive_orders_title: "Receive Orders", receive_orders_desc: "Customers order via QR, you receive via Telegram",
+    cta_title: "Make your restaurant easier to run",
+    cta_subtitle: "Create your account, add your first menu, print table QR codes, and start receiving clearer orders.",
+    sample_menu_title: "What customers will see", sample_menu_desc: "A real table menu preview with photos, prices, categories, and simple ordering from the customer phone",
+    orders_served: "Orders Served", satisfaction: "Satisfaction",
+    product: "Product", support: "Support",
+    footer_desc: "Digital menu management system for restaurants",
+    all_rights_reserved: "All rights reserved",
+    owner_preview: "Owner Preview", guest_menu_experience: "Guest Menu Experience",
+    preview_desc: "Open or copy the live guest menu experience for your restaurant.",
+    copy_link: "Copy Link", open_menu: "Open Menu", menu_url: "Menu URL",
+    daily_revenue: "Daily Revenue", revenue: "Revenue", orders: "Orders",
+    from: "From", to: "To", live: "Live", today: "Today",
+  },
+};
+
+export const useI18nStore = defineStore("i18n", () => {
+  const locale = ref(localStorage.getItem("locale") || "km");
+
+  // Create a single reactive object that holds the current translations
+  // Using Object.assign to update it in-place preserves reactivity
+  const t = reactive({ ...translations[locale.value] });
+
+  function updateTranslations() {
+    Object.assign(t, translations[locale.value]);
+  }
+
+  function setLocale(lang) {
+    if (translations[lang]) {
+      locale.value = lang;
+      localStorage.setItem("locale", lang);
+      updateTranslations();
+    }
+  }
+
+  function toggleLocale() {
+    setLocale(locale.value === "km" ? "en" : "km");
+  }
+
+  return { locale, t, setLocale, toggleLocale };
+});

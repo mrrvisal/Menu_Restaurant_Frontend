@@ -31,8 +31,8 @@
               <div class="form-group">
                 <label class="form-label">ប្រភេទ *</label>
                 <select v-model="form.category" class="form-input">
-                  <option v-for="cat in categories" :key="cat.slug" :value="cat.slug">
-                    {{ cat.icon }} {{ cat.label_km }}
+                  <option v-for="cat in categories" :key="cat.id" :value="cat.id">
+                    {{ cat.label_km }}
                   </option>
                 </select>
               </div>
@@ -101,7 +101,7 @@ const errors = ref({ name: '', price: '', img: '' });
 const form = ref({ 
   name: '', 
   price: '', 
-  category: 'made-to-order', 
+  category: null, 
   status: 'available' 
 });
 
@@ -125,7 +125,7 @@ watch(() => props.show, (isVisible) => {
       form.value = { 
         name: '', 
         price: '', 
-        category: props.categories[0]?.slug || 'made-to-order', 
+        category: props.categories[0]?.id || null, 
         status: 'available' 
       };
       previewUrl.value = '';

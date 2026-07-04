@@ -1,9 +1,6 @@
 // frontend/src/stores/cart.js
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import axios from "axios";
-
-const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export const useCartStore = defineStore("cart", () => {
   // { foodId: { qty, name, price, img, category } }
@@ -41,22 +38,5 @@ export const useCartStore = defineStore("cart", () => {
     items.value = {};
   }
 
-  async function placeOrder(tableNo, note) {
-    // Send full item details — backend doesn't query DB for orders
-    const orderItems = Object.values(items.value).map((v) => ({
-      name: v.name,
-      price: v.price,
-      qty: v.qty,
-    }));
-
-    const res = await axios.post(`${API_BASE_URL}/api/orders`, {
-      table_no: tableNo,
-      note,
-      items: orderItems,
-    });
-    clear();
-    return res.data;
-  }
-
-  return { items, count, total, add, change, clear, placeOrder };
+  return { items, count, total, add, change, clear };
 });

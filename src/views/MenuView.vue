@@ -1,83 +1,100 @@
 <!-- frontend/src/views/MenuView.vue -->
 <template>
   <div class="page">
-
     <!-- HEADER -->
     <div class="header">
-      <span class="leaf l1">🌿</span>
-      <span class="leaf l2">🍃</span>
-      <span class="leaf l3">🌿</span>
-      <span class="leaf l4">🍃</span>
-      <span class="leaf l5">🌿</span>
-      <span class="leaf l6">🍃</span>
-      <span class="leaf l7">🌿</span>
-      <span class="leaf l8">🍃</span>
-      <span class="sparkle s1"></span>
-      <span class="sparkle s2"></span>
-      <span class="sparkle s3"></span>
-      <span class="sparkle s4"></span>
-      <span class="sparkle s5"></span>
-      <img
-        src="https://res.cloudinary.com/daji2ml3y/image/upload/v1777712294/ChatGPT_Image_May_2_2026_03_39_44_PM-Picsart-BackgroundRemover_1_x4yi9t.png"
-        class="header-logo"
-        alt="restaurant logo"
-      />
-      <div class="wave-divider">
-        <svg viewBox="0 0 1440 28" fill="none"
-             xmlns="http://www.w3.org/2000/svg"
-             preserveAspectRatio="none"
-             style="height:28px">
+      <div class="header-bg-pattern"></div>
+      <div class="header-content">
+        <div class="header-logo-wrapper">
+          <img
+            :src="
+              restaurantInfo?.logo_url ||
+              'https://res.cloudinary.com/daji2ml3y/image/upload/v1777712294/ChatGPT_Image_May_2_2026_03_39_44_PM-Picsart-BackgroundRemover_1_x4yi9t.png'
+            "
+            class="header-logo"
+            alt="restaurant logo"
+          />
+        </div>
+        <div class="header-text">
+          <h1 class="header-title">
+            {{ restaurantInfo?.name || "Digital Menu" }}
+          </h1>
+          <p class="header-subtitle">
+            {{
+              restaurantInfo?.default_language === "en"
+                ? "Scan the QR and order from your table"
+                : "ស្កេន QR និងបញ្ជាទិញពីតុអ្នក"
+            }}
+          </p>
+        </div>
+      </div>
+      <div class="header-wave">
+        <svg
+          viewBox="0 0 1440 40"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          preserveAspectRatio="none"
+        >
           <path
-            d="M0 14 C180 0 360 28 540 14
-               C720 0 900 28 1080 14
-               C1260 0 1440 28 1440 14
-               L1440 28 L0 28 Z"
-            fill="#f4faf6"/>
-          <path
-            d="M1440 14 C1620 0 1800 28 1980 14
-               C2160 0 2340 28 2520 14
-               C2700 0 2880 28 2880 14
-               L2880 28 L1440 28 Z"
-            fill="#f4faf6"/>
+            d="M0 20 C240 0 480 40 720 20 C960 0 1200 40 1440 20 L1440 40 L0 40 Z"
+            fill="#f4faf6"
+          />
         </svg>
       </div>
     </div>
 
     <!-- TABS -->
     <div class="tabs-wrap">
-      <!-- Skeleton tabs while categories loading -->
       <div v-if="!foods.categories.length" class="tabs">
         <div v-for="n in 5" :key="n" class="sk tab-sk"></div>
       </div>
       <div v-else class="tabs">
         <button
           v-for="cat in foods.categories"
-          :key="cat.slug"
+          :key="cat.id"
           class="tab"
-          :class="{ active: curCat === cat.slug }"
-          @click="switchCategory(cat.slug)"
+          :class="{ active: curCat === cat.id }"
+          @click="switchCategory(cat.id)"
         >
-          <span class="tab-icon">{{ cat.icon }}</span>
-          {{ cat.label_km }}
+          <span class="tab-label">{{ cat.label_km }}</span>
         </button>
       </div>
     </div>
 
     <!-- SEARCH -->
     <div class="search-bar">
-      <div class="search-wrap">
-        <svg class="search-icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8">
-          <circle cx="8.5" cy="8.5" r="5.5"/><path d="M15 15l-3-3"/>
+      <div class="search-inner">
+        <svg
+          class="search-icon"
+          viewBox="0 0 20 20"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+        >
+          <circle cx="8.5" cy="8.5" r="5.5" />
+          <path d="M15 15l-3-3" />
         </svg>
-        <input v-model="searchQ" placeholder="ស្វែងរកម្ហូប..." @input="debouncedLoad()" />
-        <button v-if="searchQ" class="search-clear" @click="searchQ = ''; load()">✕</button>
+        <input
+          v-model="searchQ"
+          placeholder="ស្វែងរកម្ហូប..."
+          @input="debouncedLoad()"
+        />
+        <button
+          v-if="searchQ"
+          class="search-clear"
+          @click="
+            searchQ = '';
+            load();
+          "
+        >
+          ✕
+        </button>
       </div>
     </div>
 
-    <!-- GRID -->
+    <!-- MENU GRID -->
     <div class="menu-section">
-
-      <!-- Skeleton: shown while loading OR before first fetch completes -->
+      <!-- Skeleton loading -->
       <div v-if="foods.loading || !initialized" class="food-grid">
         <div v-for="n in 10" :key="n" class="card-sk">
           <div class="sk card-img-sk"></div>
@@ -88,7 +105,7 @@
         </div>
       </div>
 
-      <!-- Food grid: shown when NOT loading AND results exist -->
+      <!-- Food grid -->
       <div v-else-if="filteredFoods.length" class="food-grid">
         <FoodCard
           v-for="food in filteredFoods"
@@ -100,75 +117,145 @@
         />
       </div>
 
-      <!-- Empty state: only shown after a search that returned nothing -->
-      <div v-else-if="searchQ" class="empty">
-        <div class="empty-illustration">🍽️</div>
+      <!-- Empty state -->
+      <div v-else-if="searchQ" class="empty-state">
+        <div class="empty-icon"><AppIcon name="search" :size="48" /></div>
         <p class="empty-title">រកមិនឃើញម្ហូប</p>
         <p class="empty-sub">សូមសាកល្បងស្វែងរកពាក្យផ្សេង</p>
       </div>
-
     </div>
 
     <!-- CART FAB -->
     <Transition name="fab-pop">
       <button v-if="cart.count > 0" class="cart-fab" @click="showCart = true">
         <div class="cart-fab-images">
-          <template v-for="(item, index) in cartPreviewItems" :key="item.id">
-            <img
-              v-if="item.img_url"
-              :src="item.img_url"
-              :alt="item.name"
-              class="cart-fab-img"
-              :style="{ zIndex: cartPreviewItems.length - index, marginLeft: index > 0 ? '-8px' : '0' }"
-            />
-            <span
-              v-else
-              class="cart-fab-img cart-fab-img--emoji"
-              :style="{ zIndex: cartPreviewItems.length - index, marginLeft: index > 0 ? '-8px' : '0' }"
-            >{{ getCategoryEmoji(item.category) }}</span>
-          </template>
+          <img
+            v-for="(item, index) in cartPreviewItems"
+            :key="item.id || index"
+            :src="item.img_url"
+            :alt="item.name"
+            class="cart-fab-img"
+            :style="{
+              zIndex: cartPreviewItems.length - index,
+              marginLeft: index > 0 ? '-8px' : '0',
+            }"
+          />
+          <span
+            v-for="(item, index) in cartPreviewItems.filter((i) => !i.img_url)"
+            :key="'icon-' + index"
+            class="cart-fab-img cart-fab-img--emoji"
+            :style="{
+              zIndex: cartPreviewItems.length - index,
+              marginLeft: index > 0 ? '-8px' : '0',
+            }"
+          >
+            <AppIcon name="food" :size="16" />
+          </span>
         </div>
         <span class="cart-fab-label">
           <span class="cart-fab-badge">{{ cart.count }}</span>
-          {{ cart.total.toFixed(0) }}៛
+          <span class="cart-fab-total">{{ cart.total.toFixed(0) }}៛</span>
         </span>
       </button>
     </Transition>
 
-    <!-- ADMIN FAB -->
-    <button class="fab-admin" @click="goAdmin">
-      <span>🔐</span> Admin
+    <!-- ADMIN FAB (only for logged in users) -->
+    <button v-if="isLoggedIn" class="fab-admin" @click="goAdmin">
+      <svg
+        width="16"
+        height="16"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+      </svg>
+      Admin
     </button>
 
-    <!-- MODALS -->
-    <CartModal :show="showCart" :table-from-qr="tableFromQR" @close="showCart = false" />
+    <!-- CART MODAL -->
+    <CartModal
+      :show="showCart"
+      :table-from-qr="tableFromQR"
+      :restaurant-id="restaurantId"
+      @close="showCart = false"
+    />
 
-    <!-- Food Detail Modal -->
+    <!-- FOOD DETAIL MODAL -->
     <Teleport to="body">
       <Transition name="fade">
-        <div v-if="selectedFood" class="modal-overlay" @click.self="selectedFood = null">
-          <div class="modal-card pop-in">
-            <button class="modal-close" @click="selectedFood = null">✕</button>
+        <div
+          v-if="selectedFood"
+          class="modal-overlay"
+          @click.self="selectedFood = null"
+        >
+          <div class="modal-card">
+            <button class="modal-close" @click="selectedFood = null">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
 
             <div class="detail-img-wrap">
-              <img v-if="selectedFood.img_url" :src="selectedFood.img_url" :alt="selectedFood.name" />
-              <span v-else class="detail-img-placeholder">{{ getCategoryEmoji(selectedFood.category) }}</span>
+              <img
+                v-if="selectedFood.img_url"
+                :src="selectedFood.img_url"
+                :alt="selectedFood.name"
+              />
+              <span v-else class="detail-img-placeholder">{{
+                getCategoryEmoji(selectedFood.category)
+              }}</span>
               <div class="detail-img-gradient"></div>
             </div>
 
             <div class="detail-body">
-              <span class="detail-status-chip" :class="selectedFood.status">
-                {{ selectedFood.status === 'available' ? '✅ មាន' : '❌ អស់' }}
+            <div class="detail-header">
+              <span class="detail-status" :class="selectedFood.status">
+                <AppIcon name="check-circle" :size="14" />
+                {{ selectedFood.status === "available" ? " មាន" : " អស់" }}
               </span>
-              <div class="detail-name">{{ selectedFood.name }}</div>
-              <div class="detail-price">{{ Number(selectedFood.price).toFixed(0) }}៛</div>
+            </div>
+              <h2 class="detail-name">{{ selectedFood.name }}</h2>
+              <div class="detail-price">
+                {{ Number(selectedFood.price).toFixed(0) }}៛
+              </div>
 
               <button
                 v-if="selectedFood.status === 'available'"
                 class="add-cart-big"
-                @click="cart.add(selectedFood); selectedFood = null;"
+                @click="
+                  cart.add(selectedFood);
+                  selectedFood = null;
+                "
               >
-                + ដាក់ក្នុងកញ្ចប់
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2.5"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <line x1="12" y1="5" x2="12" y2="19" />
+                  <line x1="5" y1="12" x2="19" y2="12" />
+                </svg>
+                ដាក់ក្នុងកញ្ចប់
               </button>
             </div>
           </div>
@@ -183,73 +270,117 @@ import { ref, computed, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useFoodsStore } from "@/stores/foods";
 import { useCartStore } from "@/stores/cart";
+import { useAuthStore } from "@/stores/auth";
 import FoodCard from "@/components/FoodCard.vue";
 import CartModal from "@/components/CartModal.vue";
+import AppIcon from "@/components/AppIcon.vue";
+import axios from "axios";
 
 const route = useRoute();
 const router = useRouter();
 const foods = useFoodsStore();
 const cart = useCartStore();
+const auth = useAuthStore();
+const isLoggedIn = computed(() => auth.isLoggedIn);
 
-const curCat = ref("");
+const curCat = ref(null);
 const searchQ = ref("");
 const showCart = ref(false);
 const selectedFood = ref(null);
-const initialized = ref(false); // true after the very first successful fetch
+const initialized = ref(false);
+const restaurantInfo = ref(null);
 
-// Read table number from URL parameter ?table=X
+const restaurantSlug = computed(() => route.query.slug || null);
+const restaurantId = computed(() => {
+  const id = route.query.restaurant_id;
+  if (id && !isNaN(id)) return parseInt(id);
+  const rid = route.query.rid;
+  if (rid) {
+    try {
+      const decoded = decodeURIComponent(rid);
+      const parts = decoded.split(".");
+      if (parts.length === 2) {
+        const iv = atob(parts[0].replace(/_/g, "/").replace(/-/g, "+"));
+        const data = atob(parts[1].replace(/_/g, "/").replace(/-/g, "+"));
+        return parseInt(data, 10);
+      }
+    } catch {
+      return null;
+    }
+  }
+  return null;
+});
+
 const tableFromQR = computed(() => {
   const t = route.query.table;
   return t && !isNaN(t) ? parseInt(t) : null;
 });
-const tableBadge = ref(null);
 
-// Debounce timer for search input
+const restaurantParams = computed(() => {
+  if (restaurantSlug.value) return { slug: restaurantSlug.value };
+  if (restaurantId.value) return { restaurant_id: restaurantId.value };
+  return {};
+});
+
+async function loadRestaurant() {
+  if (!restaurantId.value) {
+    restaurantInfo.value = null;
+    return;
+  }
+  try {
+    const res = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/restaurants/${restaurantId.value}`
+    );
+    restaurantInfo.value = res.data;
+  } catch (err) {
+    restaurantInfo.value = null;
+  }
+}
+
 let searchTimer = null;
 
-// Derives from store — skeleton is controlled by foods.loading
 const filteredFoods = computed(() => foods.foods);
 const cartPreviewItems = computed(() => Object.values(cart.items).slice(0, 3));
 
 function getCategoryEmoji(category) {
-  const emojis = {
-    "made-to-order": "🍽️",
-    "ready-cooked": "🍱",
-    dessert: "🍰",
+  const icons = {
+    "made-to-order": "food",
+    "ready-cooked": "food",
+    dessert: "food",
   };
-  return emojis[category] || "🍽️";
+  return icons[category] || "food";
 }
 
 async function load() {
-  const params = {};
+  const params = { ...restaurantParams.value };
   if (curCat.value) params.category = curCat.value;
   if (searchQ.value) params.search = searchQ.value;
   await foods.fetchFoods(params);
 }
 
-// Switch tab: update category and immediately trigger load (with loading state)
 function switchCategory(slug) {
   curCat.value = slug;
   load();
 }
 
-// Debounce search so skeleton doesn't flash on every keystroke
 function debouncedLoad() {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => load(), 350);
 }
 
 onMounted(async () => {
-  await foods.fetchCategories();
+  await foods.fetchCategories(restaurantParams.value);
   if (foods.categories.length) {
-    curCat.value = foods.categories[0].slug;
+    curCat.value = foods.categories[0].id;
   }
+  await loadRestaurant();
   await load();
   initialized.value = true;
 });
 
 function goAdmin() {
-  router.push("/admin");
+  if (auth.isSuperAdmin) router.push("/super-admin");
+  else router.push("/dashboard");
 }
 </script>
 
@@ -268,9 +399,9 @@ function goAdmin() {
   --text-dark: #111827;
   --text-light: #6b7280;
   --radius: 16px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
-  --shadow-md: 0 4px 16px rgba(0,0,0,0.09);
-  --shadow-lg: 0 12px 40px rgba(0,0,0,0.14);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.07);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12);
 
   min-height: 100vh;
   background: #f4faf6;
@@ -281,8 +412,12 @@ function goAdmin() {
    SKELETON SHIMMER
    ============================================================ */
 @keyframes shimmer {
-  0%   { background-position: -700px 0 }
-  100% { background-position:  700px 0 }
+  0% {
+    background-position: -700px 0;
+  }
+  100% {
+    background-position: 700px 0;
+  }
 }
 .sk {
   background: linear-gradient(90deg, #dff0e6 25%, #c5e3cf 50%, #dff0e6 75%);
@@ -304,114 +439,114 @@ function goAdmin() {
   box-shadow: var(--shadow-sm);
   border: 1px solid #e2f0e6;
 }
-/* Matches FoodCard .food-card-img exactly: width 100%, aspect-ratio 1/1 */
 .card-img-sk {
   width: 100%;
   aspect-ratio: 1 / 1;
   border-radius: 0;
   flex-shrink: 0;
 }
-.card-body-sk { padding: 12px; display: flex; flex-direction: column; gap: 9px; }
-.line-sk      { height: 12px; width: 100%; border-radius: 6px; }
-.line-sk.short { width: 60%; }
-.line-sk.price { width: 40%; height: 16px; }
+.card-body-sk {
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+.line-sk {
+  height: 12px;
+  width: 100%;
+  border-radius: 6px;
+}
+.line-sk.short {
+  width: 60%;
+}
+.line-sk.price {
+  width: 40%;
+  height: 16px;
+}
 
 /* ============================================================
    HEADER
    ============================================================ */
 .header {
-  background: linear-gradient(135deg, #0f766e, #22c55e, #86efac);
-  padding: 36px 20px 32px;
-  text-align: center;
   position: relative;
+  background: linear-gradient(135deg, #0f766e 0%, #22c55e 50%, #86efac 100%);
+  padding: 40px 20px 36px;
+  text-align: center;
   overflow: hidden;
-  min-height: 160px;
+  min-height: 180px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
-.header::before {
-  content: '';
+.header-bg-pattern {
   position: absolute;
-  width: 220px; height: 220px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.06);
-  top: -60px; right: -50px;
+  inset: 0;
+  opacity: 0.08;
+  background-image: radial-gradient(
+      circle at 20% 50%,
+      #fff 1px,
+      transparent 1px
+    ),
+    radial-gradient(circle at 80% 20%, #fff 1px, transparent 1px),
+    radial-gradient(circle at 50% 80%, #fff 1px, transparent 1px);
+  background-size: 40px 40px;
   pointer-events: none;
 }
-.header::after {
-  content: '';
-  position: absolute;
-  width: 140px; height: 140px;
+.header-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+.header-logo-wrapper {
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.04);
-  bottom: -40px; left: -30px;
-  pointer-events: none;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  backdrop-filter: blur(4px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 }
 .header-logo {
-  width: 150px;
-  position: relative; z-index: 2;
-  filter: drop-shadow(0 6px 18px rgba(0,0,0,0.35));
-  animation: logoFloat 3.6s ease-in-out infinite;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
 }
-@keyframes logoFloat {
-  0%, 100% { transform: translateY(0); }
-  50%       { transform: translateY(-8px); }
+.header-text {
+  text-align: center;
 }
-.leaf {
+.header-title {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.header-subtitle {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 13px;
+  margin: 4px 0 0;
+  font-weight: 500;
+}
+.header-wave {
   position: absolute;
-  opacity: 0;
-  animation: leafFall linear infinite;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
   pointer-events: none;
   z-index: 3;
-  user-select: none;
 }
-.l1 { left:  8%; font-size: 26px; animation-duration: 6.0s; animation-delay: 0.0s; }
-.l2 { left: 18%; font-size: 18px; animation-duration: 7.5s; animation-delay: 1.2s; }
-.l3 { left: 32%; font-size: 20px; animation-duration: 5.8s; animation-delay: 2.5s; }
-.l4 { left: 55%; font-size: 14px; animation-duration: 8.0s; animation-delay: 0.6s; }
-.l5 { left: 68%; font-size: 22px; animation-duration: 6.5s; animation-delay: 3.0s; }
-.l6 { left: 80%; font-size: 16px; animation-duration: 7.0s; animation-delay: 1.8s; }
-.l7 { left: 90%; font-size: 20px; animation-duration: 5.5s; animation-delay: 4.0s; }
-.l8 { left: 44%; font-size: 12px; animation-duration: 9.0s; animation-delay: 0.3s; }
-@keyframes leafFall {
-  0%   { top: -5%;  opacity: 0;   transform: rotate(0deg)   translateX(0); }
-  8%   {             opacity: .55; }
-  85%  {             opacity: .4;  }
-  100% { top: 105%; opacity: 0;   transform: rotate(360deg) translateX(24px); }
-}
-.sparkle {
-  position: absolute;
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: rgba(255,255,255,0.7);
-  animation: sparklePop ease-in-out infinite;
-  pointer-events: none; z-index: 3;
-}
-.s1 { top: 20%; left: 15%; animation-duration: 2.4s; animation-delay: 0.0s; }
-.s2 { top: 60%; left: 25%; animation-duration: 3.1s; animation-delay: 0.8s; }
-.s3 { top: 30%; left: 72%; animation-duration: 2.8s; animation-delay: 1.5s; }
-.s4 { top: 70%; left: 82%; animation-duration: 2.2s; animation-delay: 0.4s; }
-.s5 { top: 50%; left: 48%; animation-duration: 3.5s; animation-delay: 2.1s; }
-@keyframes sparklePop {
-  0%, 100% { transform: scale(0);   opacity: 0; }
-  40%       { transform: scale(1.6); opacity: 1; }
-  60%       { transform: scale(0.8); opacity: .7; }
-}
-.wave-divider {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 28px; overflow: hidden;
-  pointer-events: none; z-index: 4;
-}
-.wave-divider svg {
-  position: absolute; bottom: 0;
-  width: 200%; left: 0;
-  animation: waveDrift 8s linear infinite;
-}
-@keyframes waveDrift {
-  0%   { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
+.header-wave svg {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 /* ============================================================
@@ -419,15 +554,17 @@ function goAdmin() {
    ============================================================ */
 .tabs-wrap {
   background: var(--white);
-  border-bottom: 1.5px solid #e2f0e6;
+  border-bottom: 1px solid #e2f0e6;
   overflow-x: auto;
   scrollbar-width: none;
   position: sticky;
   top: 0;
   z-index: 50;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
 }
-.tabs-wrap::-webkit-scrollbar { display: none; }
+.tabs-wrap::-webkit-scrollbar {
+  display: none;
+}
 .tabs {
   display: flex;
   min-width: max-content;
@@ -437,23 +574,27 @@ function goAdmin() {
 .tab {
   display: flex;
   align-items: center;
-  gap: 5px;
-  padding: 13px 16px 11px;
+  gap: 6px;
+  padding: 14px 18px 12px;
   font-size: 13px;
   font-family: inherit;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-light);
   border: none;
   background: none;
   cursor: pointer;
   white-space: nowrap;
   border-bottom: 3px solid transparent;
-  transition: all 0.18s;
+  transition: all 0.2s;
   position: relative;
-  top: 1.5px;
+  top: 1px;
+}
+.tab-icon {
+  font-size: 16px;
+}
+.tab-label {
   letter-spacing: 0.01em;
 }
-.tab-icon { font-size: 15px; }
 .tab.active {
   color: var(--green-mid);
   border-bottom-color: var(--green-mid);
@@ -473,14 +614,14 @@ function goAdmin() {
   background: var(--white);
   border-bottom: 1px solid #e2f0e6;
 }
-.search-wrap {
+.search-inner {
   position: relative;
   max-width: 100%;
   margin: 0 auto;
 }
 .search-icon {
   position: absolute;
-  left: 13px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   width: 17px;
@@ -490,19 +631,22 @@ function goAdmin() {
 }
 .search-bar input {
   width: 100%;
-  padding: 10px 38px 10px 40px;
+  padding: 11px 40px 11px 42px;
   border: 1.5px solid #d1fae5;
-  border-radius: 26px;
-  font-size: 13.5px;
+  border-radius: 28px;
+  font-size: 14px;
   font-family: inherit;
   background: #f0fdf4;
   color: var(--text-dark);
   outline: none;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  transition: all 0.2s;
 }
 .search-bar input:focus {
   border-color: var(--green-light);
-  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.15);
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.12);
+}
+.search-bar input::placeholder {
+  color: #9ca3af;
 }
 .search-clear {
   position: absolute;
@@ -513,14 +657,17 @@ function goAdmin() {
   color: #fff;
   border: none;
   border-radius: 50%;
-  width: 18px;
-  height: 18px;
-  font-size: 10px;
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  line-height: 1;
+  transition: background 0.15s;
+}
+.search-clear:hover {
+  background: #9ca3af;
 }
 
 /* ============================================================
@@ -534,22 +681,38 @@ function goAdmin() {
   grid-template-columns: repeat(5, 1fr);
   gap: 14px;
 }
-@media (max-width: 1100px) { .food-grid { grid-template-columns: repeat(4, 1fr); } }
-@media (max-width: 800px)  { .food-grid { grid-template-columns: repeat(3, 1fr); } }
-@media (max-width: 560px)  { .food-grid { grid-template-columns: repeat(2, 1fr); } }
-@media (max-width: 360px)  { .food-grid { grid-template-columns: 1fr; } }
+@media (max-width: 1100px) {
+  .food-grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+@media (max-width: 800px) {
+  .food-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .food-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 360px) {
+  .food-grid {
+    grid-template-columns: 1fr;
+  }
+}
 
 /* ============================================================
    EMPTY STATE
    ============================================================ */
-.empty {
+.empty-state {
   text-align: center;
   padding: 60px 20px 40px;
 }
-.empty-illustration {
-  font-size: 56px;
+.empty-icon {
+  font-size: 48px;
   margin-bottom: 14px;
-  opacity: 0.35;
+  opacity: 0.3;
 }
 .empty-title {
   font-size: 16px;
@@ -573,30 +736,36 @@ function goAdmin() {
   color: #fff;
   border: none;
   border-radius: 50px;
-  padding: 7px 16px 7px 7px;
+  padding: 7px 18px 7px 7px;
   font-size: 14px;
   font-family: inherit;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 4px 20px rgba(234, 88, 12, 0.45);
+  box-shadow: 0 4px 20px rgba(234, 88, 12, 0.4);
   display: flex;
   align-items: center;
   gap: 10px;
   z-index: 100;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: all 0.2s;
 }
 .cart-fab:hover {
   transform: translateY(-3px);
   box-shadow: 0 8px 28px rgba(234, 88, 12, 0.5);
 }
-.cart-fab:active { transform: scale(0.97); }
-.cart-fab-images { display: flex; align-items: center; flex-shrink: 0; }
+.cart-fab:active {
+  transform: scale(0.97);
+}
+.cart-fab-images {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
 .cart-fab-img {
   width: 34px;
   height: 34px;
   border-radius: 50%;
   object-fit: cover;
-  border: 2px solid rgba(255,255,255,0.45);
+  border: 2px solid rgba(255, 255, 255, 0.45);
   background: #fff3e0;
   display: inline-flex;
   align-items: center;
@@ -604,8 +773,16 @@ function goAdmin() {
   flex-shrink: 0;
   position: relative;
 }
-.cart-fab-img--emoji { font-size: 16px; line-height: 34px; text-align: center; }
-.cart-fab-label     { display: flex; align-items: center; gap: 7px; }
+.cart-fab-img--emoji {
+  font-size: 16px;
+  line-height: 34px;
+  text-align: center;
+}
+.cart-fab-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
 .cart-fab-badge {
   background: #fff;
   color: var(--orange);
@@ -619,11 +796,24 @@ function goAdmin() {
   justify-content: center;
   flex-shrink: 0;
 }
-.fab-pop-enter-active { animation: fabIn 0.3s cubic-bezier(0.34,1.56,0.64,1); }
-.fab-pop-leave-active { animation: fabIn 0.18s reverse ease-in; }
+.cart-fab-total {
+  font-size: 13px;
+}
+.fab-pop-enter-active {
+  animation: fabIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.fab-pop-leave-active {
+  animation: fabIn 0.18s reverse ease-in;
+}
 @keyframes fabIn {
-  from { transform: translateY(18px) scale(0.85); opacity: 0; }
-  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+  from {
+    transform: translateY(18px) scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
 }
 
 /* ============================================================
@@ -637,22 +827,22 @@ function goAdmin() {
   color: #e5e7eb;
   border: none;
   border-radius: 50px;
-  padding: 13px 18px;
+  padding: 12px 18px;
   font-size: 13px;
   font-family: inherit;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   z-index: 100;
   transition: all 0.2s;
 }
 .fab-admin:hover {
   background: #111827;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
 /* ============================================================
@@ -661,7 +851,7 @@ function goAdmin() {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.6);
+  background: rgba(0, 0, 0, 0.55);
   z-index: 200;
   display: flex;
   align-items: flex-end;
@@ -669,7 +859,10 @@ function goAdmin() {
   padding: 0;
 }
 @media (min-width: 560px) {
-  .modal-overlay { align-items: center; padding: 20px; }
+  .modal-overlay {
+    align-items: center;
+    padding: 20px;
+  }
 }
 .modal-card {
   background: #fff;
@@ -678,33 +871,48 @@ function goAdmin() {
   max-width: 480px;
   max-height: 92vh;
   overflow-y: auto;
-  box-shadow: 0 -8px 40px rgba(0,0,0,0.2);
+  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.15);
   position: relative;
+  animation: slideUp 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+@keyframes slideUp {
+  from {
+    transform: translateY(40px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 @media (min-width: 560px) {
-  .modal-card { border-radius: 24px; box-shadow: var(--shadow-lg); }
+  .modal-card {
+    border-radius: 24px;
+  }
 }
 .modal-close {
   position: absolute;
   top: 14px;
   right: 14px;
   z-index: 10;
-  width: 34px;
-  height: 34px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
-  background: rgba(0,0,0,0.35);
+  background: rgba(0, 0, 0, 0.3);
   color: #fff;
   border: none;
   cursor: pointer;
-  font-size: 14px;
-  font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background 0.15s;
+}
+.modal-close:hover {
+  background: rgba(0, 0, 0, 0.5);
 }
 .detail-img-wrap {
   width: 100%;
-  height: 400px;
+  height: 380px;
   overflow: hidden;
   background: #f0fdf4;
   display: flex;
@@ -719,41 +927,63 @@ function goAdmin() {
 }
 .detail-img-gradient {
   position: absolute;
-  bottom: 0; left: 0; right: 0;
-  height: 80px;
-  background: linear-gradient(to top, rgba(0,0,0,0.16), transparent);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.2), transparent);
   pointer-events: none;
 }
-.detail-img-placeholder { font-size: 80px; }
-.detail-body { padding: 18px 20px 28px; }
-.detail-status-chip {
+.detail-img-placeholder {
+  font-size: 80px;
+}
+.detail-body {
+  padding: 20px 22px 28px;
+}
+.detail-header {
+  margin-bottom: 10px;
+}
+.detail-status {
   display: inline-block;
   font-size: 12px;
   padding: 4px 12px;
   border-radius: 20px;
   font-weight: 600;
-  margin-bottom: 10px;
 }
-.detail-status-chip.available   { background: #dcfce7; color: #166534; }
-.detail-status-chip.unavailable { background: #fee2e2; color: #991b1b; }
+.detail-status.available {
+  background: #dcfce7;
+  color: #166534;
+}
+.detail-status.unavailable {
+  background: #fee2e2;
+  color: #991b1b;
+}
 .detail-name {
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--text-dark);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   line-height: 1.3;
 }
+.detail-name-en {
+  font-size: 14px;
+  color: var(--text-light);
+  margin-bottom: 8px;
+}
 .detail-price {
-  font-size: 22px;
-  font-weight: 700;
+  font-size: 24px;
+  font-weight: 800;
   color: var(--green-mid);
-  margin-bottom: 18px;
+  margin-bottom: 20px;
 }
 .add-cart-big {
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   padding: 15px;
-  background: var(--green-mid);
+  background: linear-gradient(135deg, var(--green-mid), var(--green-light));
   color: #fff;
   border: none;
   border-radius: 14px;
@@ -761,20 +991,27 @@ function goAdmin() {
   font-family: inherit;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.2s, transform 0.15s;
-  letter-spacing: 0.02em;
+  transition: all 0.2s;
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.3);
 }
-.add-cart-big:hover  { background: var(--green-dark); }
-.add-cart-big:active { transform: scale(0.98); }
+.add-cart-big:hover {
+  background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(22, 163, 74, 0.35);
+}
+.add-cart-big:active {
+  transform: scale(0.98);
+}
 
 /* ============================================================
    TRANSITIONS
    ============================================================ */
-.fade-enter-active, .fade-leave-active { transition: opacity 0.22s ease; }
-.fade-enter-from,  .fade-leave-to      { opacity: 0; }
-.pop-in { animation: popIn 0.26s cubic-bezier(0.34, 1.56, 0.64, 1); }
-@keyframes popIn {
-  from { transform: translateY(30px) scale(0.96); opacity: 0; }
-  to   { transform: translateY(0)    scale(1);    opacity: 1; }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.22s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

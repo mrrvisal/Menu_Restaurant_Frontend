@@ -1,6 +1,10 @@
 /* frontend/src/assets/main.css */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 
+html {
+  scroll-behavior: smooth;
+}
+
 :root {
   --green-dark:   #1a4a1a;
   --green-mid:    #2d7a2d;
@@ -27,6 +31,19 @@ body {
 }
 
 button { font-family: inherit; cursor: pointer; }
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; height: 6px; }

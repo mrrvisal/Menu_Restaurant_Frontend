@@ -7,9 +7,9 @@
     <!-- Image -->
     <div class="food-card-img">
       <img v-if="food.img_url" :src="food.img_url" :alt="food.name" @error="imgError = true" />
-      <span v-if="!food.img_url || imgError" class="img-fallback">{{ getCategoryEmoji(food.category) }}</span>
+      <span v-if="!food.img_url || imgError" class="img-fallback"><AppIcon name="food" :size="48" /></span>
       <div v-if="food.status === 'unavailable'" class="unavail-overlay">
-        <span class="unavail-tag">❌ អស់</span>
+        <span class="unavail-tag"><AppIcon name="x-circle" :size="12" /> អស់</span>
       </div>
     </div>
 
@@ -24,12 +24,12 @@
           class="status-toggle-btn"
           :class="food.status"
           @click.stop="$emit('toggle-status', food.id)">
-          {{ food.status === 'available' ? '✅ មាន' : '❌ អស់' }}
+          <AppIcon name="check-circle" :size="12" /> {{ food.status === 'available' ? 'មាន' : 'អស់' }}
         </button>
 
         <!-- Guest: add to cart -->
         <template v-else>
-          <button v-if="food.status === 'unavailable'" class="add-cart-btn unavail" disabled>❌ អស់</button>
+          <button v-if="food.status === 'unavailable'" class="add-cart-btn unavail" disabled><AppIcon name="x-circle" :size="14" /> អស់</button>
           <button v-else class="add-cart-btn" @click.stop="$emit('add-cart', food)">
             {{ cartQty > 0 ? `🛒 (${cartQty})` : '+ ដាក់' }}
           </button>
@@ -41,6 +41,7 @@
 
 <script setup>
 import { ref } from 'vue';
+import AppIcon from "@/components/AppIcon.vue";
 
 const props = defineProps({
   food:     { type: Object,  required: true },
@@ -53,12 +54,7 @@ defineEmits(['detail', 'delete', 'toggle-status', 'add-cart']);
 const imgError = ref(false);
 
 function getCategoryEmoji(category) {
-  const emojis = {
-    'made-to-order': '🍽️',
-    'ready-cooked': '🍱',
-    'dessert': '🍰'
-  };
-  return emojis[category] || '🍽️';
+  return 'food';
 }
 </script>
 
