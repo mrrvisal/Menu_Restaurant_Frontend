@@ -3,46 +3,17 @@
   <div>
     <!-- HEADER -->
     <div class="header">
-      <span class="leaf l1">🌿</span>
-      <span class="leaf l2">🍃</span>
-      <span class="leaf l3">🌿</span>
-      <span class="leaf l4">🍃</span>
-      <span class="leaf l5">🌿</span>
-      <span class="leaf l6">🍃</span>
-      <span class="leaf l7">🌿</span>
-      <span class="leaf l8">🍃</span>
-      <span class="sparkle s1"></span>
-      <span class="sparkle s2"></span>
-      <span class="sparkle s3"></span>
-      <span class="sparkle s4"></span>
-      <span class="sparkle s5"></span>
-      <img :src="restaurantLogo" class="header-logo" alt="restaurant logo" />
-      <div class="header-restaurant-name">
-        {{ auth.restaurant?.name || "ភោជនីយដ្ឋាន" }}
-      </div>
-      <div class="wave-divider">
-        <svg
-          viewBox="0 0 1440 28"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none"
-          style="height: 28px"
-        >
-          <path
-            d="M0 14 C180 0 360 28 540 14
-               C720 0 900 28 1080 14
-               C1260 0 1440 28 1440 14
-               L1440 28 L0 28 Z"
-            fill="#f4faf6"
-          />
-          <path
-            d="M1440 14 C1620 0 1800 28 1980 14
-               C2160 0 2340 28 2520 14
-               C2700 0 2880 28 2880 14
-               L2880 28 L1440 28 Z"
-            fill="#f4faf6"
-          />
-        </svg>
+      <div class="header-bg-overlay"></div>
+      <div class="header-bg-pattern"></div>
+      <div class="header-content">
+        <div class="header-logo-ring">
+          <img :src="restaurantLogo" class="header-logo" alt="restaurant logo" />
+        </div>
+        <div class="header-text">
+          <div class="header-restaurant-name">
+            {{ auth.restaurant?.name || "ភោជនីយដ្ឋាន" }}
+          </div>
+        </div>
       </div>
     </div>
 
@@ -57,6 +28,9 @@
           </button>
           <button class="admin-qr-btn" @click="showQR = true">
             <AppIcon name="qr" :size="16" /> {{ i18n.t.generate_qr }}
+          </button>
+          <button class="admin-profile-btn" @click="openProfile">
+            <AppIcon name="user" :size="16" /> {{ i18n.t.profile || 'Profile' }}
           </button>
           <button
             class="admin-telegram-btn"
@@ -477,6 +451,9 @@
                   <AppIcon name="bell" :size="14" /> ភ្ជាប់ Telegram
                   ដើម្បីទទួលការជូនដំណឹងរាល់ពេលមានការបញ្ជាទិញថ្មី!
                 </p>
+                <div class="telegram-bot-name">
+                  <AppIcon name="telegram" :size="14" /> Bot: <strong>@digital_menu_khmer_bot</strong>
+                </div>
               </div>
 
               <!-- Link Code Display -->
@@ -507,7 +484,7 @@
                   <div class="guide-step">
                     <span class="guide-step-num">2</span>
                     <span
-                      >ស្វែងរក Bot របស់យើង (ឈ្មោះ Bot នឹងត្រូវបានប្រកាស)</span
+                      >ស្វែងរក Bot <strong>@digital_menu_khmer_bot</strong></span
                     >
                   </div>
                   <div class="guide-step">
@@ -626,6 +603,63 @@
         </div>
       </Transition>
     </Teleport>
+
+    <!-- PROFILE MODAL -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div
+          v-if="showProfile"
+          class="modal-overlay"
+          @click.self="showProfile = false"
+        >
+          <div class="modal-card pop-in">
+            <div class="modal-header">
+              <span class="modal-header-title"><AppIcon name="user" :size="18" /> {{ i18n.t.profile || 'កែប្រែហាង' }}</span>
+              <button class="close-btn" @click="showProfile = false">✕</button>
+            </div>
+            <div class="modal-form">
+              <div v-if="profileSuccess" class="form-success-msg">
+                {{ profileSuccess }}
+              </div>
+              <div v-if="profileError" class="tg-error-msg">{{ profileError }}</div>
+
+              <!-- Logo preview -->
+              <div class="profile-logo-section">
+                <div class="profile-logo-preview">
+                  <img
+                    :src="profileLogoPreview || restaurantLogo"
+                    class="profile-logo-img"
+                    alt="logo preview"
+                  />
+                </div>
+                <label class="profile-logo-upload">
+                  <AppIcon name="camera" :size="16" />
+                  {{ i18n.t.change_logo || 'ប្តូររូប' }}
+                  <input type="file" accept="image/*" hidden @change="onLogoChange" />
+                </label>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">{{ i18n.t.restaurant_name || 'ឈ្មោះហាង' }} *</label>
+                <input
+                  v-model="profileName"
+                  class="form-input"
+                  placeholder="e.g. ម្លប់ព្រឹក ដាលីន"
+                />
+              </div>
+
+              <button
+                class="submit-btn"
+                :disabled="profileSubmitting"
+                @click="submitProfile"
+              >
+                {{ profileSubmitting ? "កំពុងរក្សាទុក..." : "រក្សាទុក" }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -675,9 +709,71 @@ const previewMenuUrl = computed(() => {
 const restaurantLogo = computed(() => {
   return (
     auth.restaurant?.logoUrl ||
-    "https://res.cloudinary.com/daji2ml3y/image/upload/v1777712294/ChatGPT_Image_May_2_2026_03_39_44_PM-Picsart-BackgroundRemover_1_x4yi9t.png"
+    "https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png"
   );
 });
+
+// ── Profile Modal ──
+const showProfile = ref(false);
+const profileName = ref("");
+const profileLogoFile = ref(null);
+const profileLogoPreview = ref(null);
+const profileSubmitting = ref(false);
+const profileSuccess = ref("");
+const profileError = ref("");
+
+function openProfile() {
+  profileName.value = auth.restaurant?.name || "";
+  profileLogoFile.value = null;
+  profileLogoPreview.value = null;
+  profileSuccess.value = "";
+  profileError.value = "";
+  showProfile.value = true;
+}
+
+function onLogoChange(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  profileLogoFile.value = file;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    profileLogoPreview.value = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function submitProfile() {
+  if (!profileName.value.trim()) {
+    profileError.value = "សូមបញ្ចូលឈ្មោះហាង";
+    return;
+  }
+  profileSubmitting.value = true;
+  profileSuccess.value = "";
+  profileError.value = "";
+  try {
+    const formData = new FormData();
+    formData.append("name", profileName.value.trim());
+    if (profileLogoFile.value) {
+      formData.append("logo", profileLogoFile.value);
+    }
+    const res = await axios.patch(`${API_BASE}/api/auth/restaurant`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    if (res.data.restaurant) {
+      auth.restaurant.name = res.data.restaurant.name;
+      auth.restaurant.logoUrl = res.data.restaurant.logoUrl;
+      auth.saveToStorage();
+    }
+    profileSuccess.value = "រក្សាទុកបានជោគជ័យ!";
+    setTimeout(() => {
+      showProfile.value = false;
+    }, 1200);
+  } catch (err) {
+    profileError.value = err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
+  } finally {
+    profileSubmitting.value = false;
+  }
+}
 
 // ── Telegram Settings (Link Code) ──
 const showTelegramSettings = ref(false);
@@ -697,7 +793,6 @@ async function copyLinkCode() {
       copied.value = false;
     }, 2000);
   } catch {
-    // Fallback
     const el = document.createElement("textarea");
     el.value = auth.linkCode || "";
     document.body.appendChild(el);
@@ -1416,6 +1511,22 @@ onMounted(async () => {
 .admin-add-cat-btn:hover {
   background: #0d5e57;
 }
+.admin-profile-btn {
+  padding: 7px 14px;
+  background: #0f766e;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.admin-profile-btn:hover {
+  background: #0d5e57;
+}
 .admin-telegram-btn {
   padding: 7px 14px;
   background: #0f766e;
@@ -2030,220 +2141,77 @@ onMounted(async () => {
   }
 }
 
-/* HEADER */
+/* ─── HEADER (Centered Layout) ─── */
 .header {
-  background: linear-gradient(135deg, #0f766e, #22c55e, #86efac);
-  padding: 36px 20px 32px;
-  text-align: center;
   position: relative;
+  background: linear-gradient(135deg, #0f766e 0%, #22c55e 50%, #16a34a 100%);
+  padding: 36px 24px 32px;
   overflow: hidden;
-  min-height: 160px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 200px;
 }
-.header::before {
-  content: "";
+.header-bg-overlay {
   position: absolute;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  top: -60px;
-  right: -50px;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.08) 0%, transparent 60%);
   pointer-events: none;
 }
-.header::after {
-  content: "";
+.header-bg-pattern {
   position: absolute;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
-  bottom: -40px;
-  left: -30px;
+  inset: 0;
+  opacity: 0.04;
+  background-image:
+    radial-gradient(circle, #fff 1px, transparent 1px);
+  background-size: 32px 32px;
   pointer-events: none;
+}
+.header-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  max-width: 400px;
+  width: 100%;
+}
+.header-logo-ring {
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 0 0 6px rgba(255, 255, 255, 0.1),
+    0 8px 24px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  transition: transform 0.3s ease;
+}
+.header-logo-ring:hover {
+  transform: scale(1.03);
 }
 .header-logo {
-  width: 120px;
-  position: relative;
-  z-index: 2;
-  filter: drop-shadow(0 6px 18px rgba(0, 0, 0, 0.35));
-  animation: logoFloat 3.6s ease-in-out infinite;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.header-text {
+  text-align: center;
 }
 .header-restaurant-name {
-  position: relative;
-  z-index: 2;
-  color: white;
+  color: #fff;
   font-family: "Hanuman", serif;
-  font-size: 16px;
-  font-weight: 700;
-  margin-top: 8px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-@keyframes logoFloat {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-8px);
-  }
-}
-.leaf {
-  position: absolute;
-  opacity: 0;
-  animation: leafFall linear infinite;
-  pointer-events: none;
-  z-index: 3;
-  user-select: none;
-}
-.l1 {
-  left: 8%;
-  font-size: 26px;
-  animation-duration: 6s;
-  animation-delay: 0s;
-}
-.l2 {
-  left: 18%;
-  font-size: 18px;
-  animation-duration: 7.5s;
-  animation-delay: 1.2s;
-}
-.l3 {
-  left: 32%;
-  font-size: 20px;
-  animation-duration: 5.8s;
-  animation-delay: 2.5s;
-}
-.l4 {
-  left: 55%;
-  font-size: 14px;
-  animation-duration: 8s;
-  animation-delay: 0.6s;
-}
-.l5 {
-  left: 68%;
   font-size: 22px;
-  animation-duration: 6.5s;
-  animation-delay: 3s;
-}
-.l6 {
-  left: 80%;
-  font-size: 16px;
-  animation-duration: 7s;
-  animation-delay: 1.8s;
-}
-.l7 {
-  left: 90%;
-  font-size: 20px;
-  animation-duration: 5.5s;
-  animation-delay: 4s;
-}
-.l8 {
-  left: 44%;
-  font-size: 12px;
-  animation-duration: 9s;
-  animation-delay: 0.3s;
-}
-@keyframes leafFall {
-  0% {
-    top: -5%;
-    opacity: 0;
-    transform: rotate(0deg) translateX(0);
-  }
-  8% {
-    opacity: 0.55;
-  }
-  85% {
-    opacity: 0.4;
-  }
-  100% {
-    top: 105%;
-    opacity: 0;
-    transform: rotate(360deg) translateX(24px);
-  }
-}
-.sparkle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.7);
-  animation: sparklePop ease-in-out infinite;
-  pointer-events: none;
-  z-index: 3;
-}
-.s1 {
-  top: 20%;
-  left: 15%;
-  animation-duration: 2.4s;
-  animation-delay: 0s;
-}
-.s2 {
-  top: 60%;
-  left: 25%;
-  animation-duration: 3.1s;
-  animation-delay: 0.8s;
-}
-.s3 {
-  top: 30%;
-  left: 72%;
-  animation-duration: 2.8s;
-  animation-delay: 1.5s;
-}
-.s4 {
-  top: 70%;
-  left: 82%;
-  animation-duration: 2.2s;
-  animation-delay: 0.4s;
-}
-.s5 {
-  top: 50%;
-  left: 48%;
-  animation-duration: 3.5s;
-  animation-delay: 2.1s;
-}
-@keyframes sparklePop {
-  0%,
-  100% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  40% {
-    transform: scale(1.6);
-    opacity: 1;
-  }
-  60% {
-    transform: scale(0.8);
-    opacity: 0.7;
-  }
-}
-.wave-divider {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 28px;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 4;
-}
-.wave-divider svg {
-  position: absolute;
-  bottom: 0;
-  width: 200%;
-  left: 0;
-  animation: waveDrift 8s linear infinite;
-}
-@keyframes waveDrift {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
 }
 .tg-error-msg {
   background: #fef2f2;
@@ -2254,6 +2222,46 @@ onMounted(async () => {
   font-size: 13px;
   color: #dc2626;
   font-weight: 600;
+}
+
+/* Profile Modal */
+.profile-logo-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+.profile-logo-preview {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--green-soft);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+.profile-logo-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.profile-logo-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: var(--green-pale);
+  color: var(--green-dark);
+  border: 1.5px solid var(--green-soft);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s;
+}
+.profile-logo-upload:hover {
+  background: var(--green-soft);
 }
 
 /* Link Code Section */
@@ -2378,6 +2386,13 @@ onMounted(async () => {
 }
 .telegram-note p {
   margin: 4px 0;
+}
+.telegram-bot-name {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid #fde68a;
+  font-size: 12px;
+  color: #92400e;
 }
 .telegram-guide {
   margin-bottom: 12px;

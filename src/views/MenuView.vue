@@ -3,13 +3,14 @@
   <div class="page">
     <!-- HEADER -->
     <div class="header">
+      <div class="header-bg-overlay"></div>
       <div class="header-bg-pattern"></div>
       <div class="header-content">
-        <div class="header-logo-wrapper">
+        <div class="header-logo-ring">
           <img
             :src="
               restaurantInfo?.logo_url ||
-              'https://res.cloudinary.com/daji2ml3y/image/upload/v1777712294/ChatGPT_Image_May_2_2026_03_39_44_PM-Picsart-BackgroundRemover_1_x4yi9t.png'
+              'https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png'
             "
             class="header-logo"
             alt="restaurant logo"
@@ -17,29 +18,9 @@
         </div>
         <div class="header-text">
           <h1 class="header-title">
-            {{ restaurantInfo?.name || "Digital Menu" }}
+            {{ restaurantInfo?.name }}
           </h1>
-          <p class="header-subtitle">
-            {{
-              restaurantInfo?.default_language === "en"
-                ? "Scan the QR and order from your table"
-                : "ស្កេន QR និងបញ្ជាទិញពីតុអ្នក"
-            }}
-          </p>
         </div>
-      </div>
-      <div class="header-wave">
-        <svg
-          viewBox="0 0 1440 40"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none"
-        >
-          <path
-            d="M0 20 C240 0 480 40 720 20 C960 0 1200 40 1440 20 L1440 40 L0 40 Z"
-            fill="#f4faf6"
-          />
-        </svg>
       </div>
     </div>
 
@@ -132,7 +113,10 @@
           <img
             v-for="(item, index) in cartPreviewItems"
             :key="item.id || index"
-            :src="item.img_url"
+            :src="
+              item.img ||
+              'https://res.cloudinary.com/daji2ml3y/image/upload/v1783260526/error-image-icon_194117-662_kppjnq.avif'
+            "
             :alt="item.name"
             class="cart-fab-img"
             :style="{
@@ -140,17 +124,6 @@
               marginLeft: index > 0 ? '-8px' : '0',
             }"
           />
-          <span
-            v-for="(item, index) in cartPreviewItems.filter((i) => !i.img_url)"
-            :key="'icon-' + index"
-            class="cart-fab-img cart-fab-img--emoji"
-            :style="{
-              zIndex: cartPreviewItems.length - index,
-              marginLeft: index > 0 ? '-8px' : '0',
-            }"
-          >
-            <AppIcon name="food" :size="16" />
-          </span>
         </div>
         <span class="cart-fab-label">
           <span class="cart-fab-badge">{{ cart.count }}</span>
@@ -158,24 +131,6 @@
         </span>
       </button>
     </Transition>
-
-    <!-- ADMIN FAB (only for logged in users) -->
-    <button v-if="isLoggedIn" class="fab-admin" @click="goAdmin">
-      <svg
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-      </svg>
-      Admin
-    </button>
 
     <!-- CART MODAL -->
     <CartModal
@@ -223,12 +178,12 @@
             </div>
 
             <div class="detail-body">
-            <div class="detail-header">
-              <span class="detail-status" :class="selectedFood.status">
-                <AppIcon name="check-circle" :size="14" />
-                {{ selectedFood.status === "available" ? " មាន" : " អស់" }}
-              </span>
-            </div>
+              <div class="detail-header">
+                <span class="detail-status" :class="selectedFood.status">
+                  <AppIcon name="check-circle" :size="14" />
+                  {{ selectedFood.status === "available" ? " មាន" : " អស់" }}
+                </span>
+              </div>
               <h2 class="detail-name">{{ selectedFood.name }}</h2>
               <div class="detail-price">
                 {{ Number(selectedFood.price).toFixed(0) }}៛
@@ -291,35 +246,50 @@ const initialized = ref(false);
 const restaurantInfo = ref(null);
 
 const restaurantSlug = computed(() => route.query.slug || null);
-const restaurantId = computed(() => {
-  const id = route.query.restaurant_id;
-  if (id && !isNaN(id)) return parseInt(id);
-  const rid = route.query.rid;
-  if (rid) {
+
+// Try to decrypt restaurant token if provided
+const encryptedToken = computed(() => route.query.rid || null);
+const restaurantId = ref(null);
+
+onMounted(async () => {
+  // If encrypted token provided, decrypt it first
+  if (encryptedToken.value) {
     try {
-      const decoded = decodeURIComponent(rid);
-      const parts = decoded.split(".");
-      if (parts.length === 2) {
-        const iv = atob(parts[0].replace(/_/g, "/").replace(/-/g, "+"));
-        const data = atob(parts[1].replace(/_/g, "/").replace(/-/g, "+"));
-        return parseInt(data, 10);
-      }
-    } catch {
-      return null;
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/qr/decrypt`,
+        { params: { rid: encryptedToken.value } }
+      );
+      restaurantId.value = res.data.restaurantId;
+    } catch (err) {
+      console.error("Failed to decrypt token:", err);
+      restaurantId.value = null;
+    }
+  } else {
+    // Fallback to direct restaurant_id parameter
+    const id = route.query.restaurant_id;
+    if (id && !isNaN(id)) {
+      restaurantId.value = parseInt(id);
     }
   }
-  return null;
+
+  await foods.fetchCategories(getRestaurantParams());
+  if (foods.categories.length) {
+    curCat.value = foods.categories[0].id;
+  }
+  await loadRestaurant();
+  await load();
+  initialized.value = true;
 });
+
+function getRestaurantParams() {
+  if (restaurantSlug.value) return { slug: restaurantSlug.value };
+  if (restaurantId.value) return { restaurant_id: restaurantId.value };
+  return {};
+}
 
 const tableFromQR = computed(() => {
   const t = route.query.table;
   return t && !isNaN(t) ? parseInt(t) : null;
-});
-
-const restaurantParams = computed(() => {
-  if (restaurantSlug.value) return { slug: restaurantSlug.value };
-  if (restaurantId.value) return { restaurant_id: restaurantId.value };
-  return {};
 });
 
 async function loadRestaurant() {
@@ -352,7 +322,7 @@ function getCategoryEmoji(category) {
 }
 
 async function load() {
-  const params = { ...restaurantParams.value };
+  const params = { ...getRestaurantParams() };
   if (curCat.value) params.category = curCat.value;
   if (searchQ.value) params.search = searchQ.value;
   await foods.fetchFoods(params);
@@ -367,16 +337,6 @@ function debouncedLoad() {
   clearTimeout(searchTimer);
   searchTimer = setTimeout(() => load(), 350);
 }
-
-onMounted(async () => {
-  await foods.fetchCategories(restaurantParams.value);
-  if (foods.categories.length) {
-    curCat.value = foods.categories[0].id;
-  }
-  await loadRestaurant();
-  await load();
-  initialized.value = true;
-});
 
 function goAdmin() {
   if (auth.isSuperAdmin) router.push("/super-admin");
@@ -465,31 +425,32 @@ function goAdmin() {
 }
 
 /* ============================================================
-   HEADER
+   HEADER (Centered Layout)
    ============================================================ */
 .header {
   position: relative;
-  background: linear-gradient(135deg, #0f766e 0%, #22c55e 50%, #86efac 100%);
-  padding: 40px 20px 36px;
-  text-align: center;
+  background: linear-gradient(135deg, #0f766e 0%, #22c55e 50%, #16a34a 100%);
+  padding: 40px 24px 36px;
   overflow: hidden;
-  min-height: 180px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  min-height: 200px;
+}
+.header-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.08) 0%, transparent 60%);
+  pointer-events: none;
 }
 .header-bg-pattern {
   position: absolute;
   inset: 0;
-  opacity: 0.08;
-  background-image: radial-gradient(
-      circle at 20% 50%,
-      #fff 1px,
-      transparent 1px
-    ),
-    radial-gradient(circle at 80% 20%, #fff 1px, transparent 1px),
-    radial-gradient(circle at 50% 80%, #fff 1px, transparent 1px);
-  background-size: 40px 40px;
+  opacity: 0.04;
+  background-image:
+    radial-gradient(circle, #fff 1px, transparent 1px);
+  background-size: 32px 32px;
   pointer-events: none;
 }
 .header-content {
@@ -498,25 +459,32 @@ function goAdmin() {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
+  max-width: 400px;
+  width: 100%;
 }
-.header-logo-wrapper {
-  width: 100px;
-  height: 100px;
+.header-logo-ring {
+  width: 96px;
+  height: 96px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px;
-  backdrop-filter: blur(4px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  box-shadow:
+    0 0 0 6px rgba(255, 255, 255, 0.1),
+    0 8px 24px rgba(0, 0, 0, 0.15);
+  background: rgba(255, 255, 255, 0.08);
+  transition: transform 0.3s ease;
+}
+.header-logo-ring:hover {
+  transform: scale(1.03);
 }
 .header-logo {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.15));
+  object-fit: cover;
 }
 .header-text {
   text-align: center;
@@ -526,27 +494,8 @@ function goAdmin() {
   font-size: 22px;
   font-weight: 800;
   margin: 0;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-.header-subtitle {
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 13px;
-  margin: 4px 0 0;
-  font-weight: 500;
-}
-.header-wave {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 40px;
-  pointer-events: none;
-  z-index: 3;
-}
-.header-wave svg {
-  width: 100%;
-  height: 100%;
-  display: block;
+  line-height: 1.3;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* ============================================================

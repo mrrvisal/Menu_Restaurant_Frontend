@@ -5,10 +5,7 @@
       <div class="nav-inner">
         <router-link to="/" class="brand" aria-label="Digital Menu home">
           <div class="brand-icon">
-            <svg viewBox="0 0 32 32" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 4C9 4 5 9 5 14c0 6 5 8 11 12 6-4 11-6 11-12 0-5-4-10-11-10Z"/>
-              <circle cx="16" cy="13" r="3"/>
-            </svg>
+            <img src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png" width="40" alt="">
           </div>
           <span class="brand-name">{{ i18n.t.app_name }}</span>
         </router-link>
@@ -97,13 +94,13 @@
                 <div class="hero-order-items">
                   <div v-for="food in sampleFoods.slice(0, 3)" :key="food.id" class="hero-order-item">
                     <div class="hero-order-img" :style="{ backgroundImage: `url(${food.img})` }"></div>
-                    <span class="hero-order-name">{{ food.name_en }}</span>
+                    <span class="hero-order-name">{{ food.name }}</span>
                     <span class="hero-order-price">{{ Number(food.price).toLocaleString() }}៛</span>
                   </div>
                 </div>
                 <div class="hero-order-total">
                   <span>Total</span>
-                  <strong>58,000៛</strong>
+                  <strong>60,000៛</strong>
                 </div>
               </div>
             </div>
@@ -239,16 +236,16 @@
 
     <!-- FOOTER -->
     <footer class="footer">
+      <div class="footer-bg-overlay"></div>
       <div class="footer-inner">
         <div class="footer-brand">
           <div class="footer-logo-wrapper">
-            <svg viewBox="0 0 32 32" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 4C9 4 5 9 5 14c0 6 5 8 11 12 6-4 11-6 11-12 0-5-4-10-11-10Z"/>
-              <circle cx="16" cy="13" r="3"/>
-            </svg>
+            <img src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png" width="32" height="32" alt="" style="border-radius: 8px; object-fit: cover;" />
           </div>
-          <strong>{{ i18n.t.app_name }}</strong>
-          <p>{{ i18n.t.footer_desc }}</p>
+          <div class="footer-brand-text">
+            <strong>{{ i18n.t.app_name }}</strong>
+            <p>{{ i18n.t.footer_desc }}</p>
+          </div>
         </div>
         <div class="footer-links">
           <div class="footer-col">
@@ -260,12 +257,12 @@
           <div class="footer-col">
             <h4>{{ i18n.t.support || 'Support' }}</h4>
             <router-link to="/register">{{ i18n.t.register }}</router-link>
-            <a href="mailto:support@menu.com">support@menu.com</a>
           </div>
         </div>
       </div>
+      <div class="footer-divider"></div>
       <div class="footer-bottom">
-        <p>&copy; 2026 {{ i18n.t.app_name }}. {{ i18n.t.all_rights_reserved }}</p>
+        <p>&copy; {{ new Date().getFullYear() }} {{ i18n.t.app_name }}. {{ i18n.t.all_rights_reserved }}</p>
       </div>
     </footer>
   </div>
@@ -313,45 +310,39 @@ const steps = [
 const sampleFoods = [
   {
     id: 1,
-    name: "ម្ហូបខ្ទិចខ្ទាំង",
-    name_en: "Spicy Beef Stir Fry",
-    price: 18000,
-    img: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?w=300&h=200&fit=crop",
+    name: "ស្ងោរជ្រក់មាន់",
+    price: 30000,
+    img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249185/560052334_1491890335269845_8989493767183977872_n_v6osxh.jpg",
   },
   {
     id: 2,
-    name: "ហ្គាសត្រី",
-    name_en: "Grilled Fish",
-    price: 25000,
-    img: "https://images.unsplash.com/photo-1467003909585-2f8a72700288?w=300&h=200&fit=crop",
+    name: "ត្ត្រីបំពង",
+    price: 20000,
+    img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249185/560100192_1294493769028479_7023791370470250097_n_q8rlo8.jpg",
   },
   {
     id: 3,
-    name: "សាច់ជ្រូកអាំងខ្ទិះ",
-    name_en: "Marinated Pork BBQ",
-    price: 15000,
-    img: "https://images.unsplash.com/photo-1606728035253-49e372a0d8f6?w=300&h=200&fit=crop",
+    name: "កង្កែបបោក",
+    price: 10000,
+    img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249185/maxresdefault_7_dn2dax.jpg",
   },
   {
     id: 4,
-    name: "សម្លរខ្ទីខ្ទាំង",
-    name_en: "Spicy Beef Soup",
-    price: 12000,
-    img: "https://images.unsplash.com/photo-1547592166-23ac45744acd?w=300&h=200&fit=crop",
+    name: "ភ្លៅមាន់បំពង",
+    price: 5000,
+    img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249572/DSC_0039_pnh4pf.jpg",
   },
   {
     id: 5,
-    name: "បាយស៊ុបជ្រូក",
-    name_en: "Pork Congee",
-    price: 8000,
-    img: "https://images.unsplash.com/photo-1511690656952-34342d5c71df?w=300&h=200&fit=crop",
+    name: "ត្រីងៀតបំពង",
+    price: 4000,
+    img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249572/79600669_1434979050004558_994592641955921920_n_nbkm2a.jpg",
   },
   {
     id: 6,
-    name: "បន្លែឆាខ្ទាំង",
-    name_en: "Spicy Mixed Vegetables",
-    price: 10000,
-    img: "https://images.unsplash.com/photo-1625944525533-473f1a3e54dc?w=300&h=200&fit=crop",
+    name: "បុកអំបិល",
+    price: 3000,
+    img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249571/images_1_khv5yn.jpg",
   },
 ];
 
@@ -427,7 +418,6 @@ onUnmounted(() => {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #166534, #22c55e);
   color: #fff;
   display: flex;
   align-items: center;
@@ -958,8 +948,8 @@ onUnmounted(() => {
   display: inline-block;
   padding: 5px 12px;
   border-radius: 20px;
-  background: rgba(251,146,60,0.1);
-  color: #c2410c;
+  background: rgba(34,197,94,0.1);
+  color: #15803d;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.03em;
@@ -1344,7 +1334,7 @@ onUnmounted(() => {
 .cta-section {
   position: relative;
   padding: 100px 24px;
-  background: linear-gradient(160deg, #14532d, #166534, #15803d);
+  background: linear-gradient(160deg, #f0fdf4 0%, #dcfce7 30%, #f0fdf4 60%, #e8f5e9 100%);
   text-align: center;
   overflow: hidden;
 }
@@ -1378,21 +1368,21 @@ onUnmounted(() => {
   height: 72px;
   margin: 0 auto 20px;
   border-radius: 18px;
-  background: rgba(255,255,255,0.08);
+  background: rgba(34,197,94,0.15);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255,255,255,0.9);
+  color: #14532d;
 }
 .cta-inner h2 {
   margin: 0 0 14px;
   font-size: clamp(24px, 4vw, 38px);
   font-weight: 900;
-  color: #fff;
   line-height: 1.15;
+  color: #14532d;
 }
 .cta-inner p {
-  color: rgba(255,255,255,0.7);
+  color: #4a6650;
   font-size: 15px;
   line-height: 1.7;
   margin-bottom: 30px;
@@ -1404,11 +1394,12 @@ onUnmounted(() => {
   padding: 15px 34px;
   border-radius: 12px;
   background: #fff;
-  color: #166534;
+  color: #fff;
   font-size: 14px;
   font-weight: 800;
   text-decoration: none;
   transition: all 0.25s;
+  background: linear-gradient(135deg, #166534, #22c55e);
 }
 .cta-btn:hover {
   transform: translateY(-2px);
@@ -1419,11 +1410,20 @@ onUnmounted(() => {
    FOOTER
    ============================================================ */
 .footer {
+  position: relative;
   padding: 50px 24px 24px;
-  background: #0f172a;
-  color: rgba(255,255,255,0.6);
+  background: linear-gradient(135deg, #0f766e 0%, #22c55e 50%, #16a34a 100%);
+  overflow: hidden;
+}
+.footer-bg-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.06) 0%, transparent 60%);
+  pointer-events: none;
 }
 .footer-inner {
+  position: relative;
+  z-index: 2;
   width: min(1180px, 100%);
   margin: 0 auto;
   display: flex;
@@ -1433,27 +1433,36 @@ onUnmounted(() => {
 }
 .footer-brand {
   max-width: 320px;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+.footer-brand-text {
+  flex: 1;
 }
 .footer-logo-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 10px;
-  background: rgba(34,197,94,0.15);
+  background: rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #22c55e;
-  margin-bottom: 12px;
+  flex-shrink: 0;
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 .footer-brand strong {
+  display: block;
   font-size: 16px;
   font-weight: 800;
   color: #fff;
+  margin-bottom: 4px;
 }
 .footer-brand p {
-  margin-top: 8px;
+  margin: 0;
   font-size: 13px;
   line-height: 1.65;
+  color: rgba(255, 255, 255, 0.6);
 }
 .footer-links {
   display: flex;
@@ -1461,33 +1470,42 @@ onUnmounted(() => {
 }
 .footer-col h4 {
   margin: 0 0 14px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: rgba(255,255,255,0.5);
+  letter-spacing: 0.06em;
+  color: rgba(255, 255, 255, 0.5);
 }
 .footer-col a {
   display: block;
-  color: rgba(255,255,255,0.7);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   font-size: 13px;
   margin-bottom: 8px;
   transition: color 0.15s;
 }
 .footer-col a:hover {
-  color: #22c55e;
+  color: #fff;
+}
+.footer-divider {
+  position: relative;
+  z-index: 2;
+  width: min(1180px, 100%);
+  margin: 36px auto 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
 }
 .footer-bottom {
+  position: relative;
+  z-index: 2;
   width: min(1180px, 100%);
-  margin: 40px auto 0;
-  padding-top: 20px;
-  border-top: 1px solid rgba(255,255,255,0.06);
+  margin: 16px auto 0;
   text-align: center;
 }
 .footer-bottom p {
   font-size: 12px;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255, 255, 255, 0.4);
+  margin: 0;
 }
 @media (max-width: 640px) {
   .footer-inner {

@@ -14,21 +14,12 @@
           <label>{{ i18n.t.restaurant_name }} *</label>
           <input v-model="form.restaurantName" class="input" :placeholder="i18n.t.restaurant_name" required />
         </div>
-        <div class="form-group">
-          <label>{{ i18n.t.logo }}</label>
-          <input type="file" accept="image/*" class="input" @change="onLogoChange" />
-          <div v-if="logoPreview" class="logo-preview"><img :src="logoPreview" /></div>
-        </div>
 
         <div class="section-title">{{ i18n.t.login }}</div>
 
         <div class="form-group">
           <label>{{ i18n.t.email }} *</label>
           <input v-model="form.email" type="email" class="input" placeholder="your@email.com" required />
-        </div>
-        <div class="form-group">
-          <label>{{ i18n.t.full_name }}</label>
-          <input v-model="form.fullName" class="input" :placeholder="i18n.t.full_name" />
         </div>
         <div class="form-group">
           <label>{{ i18n.t.password }} *</label>

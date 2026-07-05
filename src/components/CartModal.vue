@@ -26,10 +26,7 @@
                   class="cart-item"
                 >
                   <div class="item-img">
-                    <img v-if="item.img" :src="item.img" :alt="item.name" />
-                    <span v-else class="item-emoji">{{
-                      getCategoryEmoji(item.category)
-                    }}</span>
+                    <img :src="item.img || 'https://res.cloudinary.com/daji2ml3y/image/upload/v1783260526/error-image-icon_194117-662_kppjnq.avif'" :alt="item.name" />
                   </div>
                   <div class="item-info">
                     <div class="item-name">{{ item.name }}</div>
