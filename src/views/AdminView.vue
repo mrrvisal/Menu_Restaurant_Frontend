@@ -7,7 +7,11 @@
       <div class="header-bg-pattern"></div>
       <div class="header-content">
         <div class="header-logo-ring">
-          <img :src="restaurantLogo" class="header-logo" alt="restaurant logo" />
+          <img
+            :src="restaurantLogo"
+            class="header-logo"
+            alt="restaurant logo"
+          />
         </div>
         <div class="header-text">
           <div class="header-restaurant-name">
@@ -20,9 +24,13 @@
     <!-- ADMIN BAR -->
     <div class="admin-bar">
       <div class="admin-actions">
-        <button class="admin-add-btn" @click="openAdd"><AppIcon name="add" :size="16" /> {{ i18n.t.add_food }}</button>
+        <button class="admin-add-btn" @click="openAdd">
+          <AppIcon name="add" :size="16" /> {{ i18n.t.add_food }}
+        </button>
         <div class="admin-right">
-          <button class="lang-btn" @click="i18n.toggleLocale">{{ i18n.locale === 'km' ? 'English' : 'ភាសាខ្មែរ' }}</button>
+          <button class="lang-btn" @click="i18n.toggleLocale">
+            {{ i18n.locale === "km" ? "English" : "ភាសាខ្មែរ" }}
+          </button>
           <button class="admin-add-cat-btn" @click="openCatForm()">
             <AppIcon name="category" :size="16" /> {{ i18n.t.add_category }}
           </button>
@@ -30,7 +38,7 @@
             <AppIcon name="qr" :size="16" /> {{ i18n.t.generate_qr }}
           </button>
           <button class="admin-profile-btn" @click="openProfile">
-            <AppIcon name="user" :size="16" /> {{ i18n.t.profile || 'Profile' }}
+            <AppIcon name="user" :size="16" /> {{ i18n.t.profile || "Profile" }}
           </button>
           <button
             class="admin-telegram-btn"
@@ -71,7 +79,9 @@
               </div>
               <div>
                 <div class="summary-card-title">{{ i18n.t.owner_preview }}</div>
-                <p class="summary-card-subtitle">{{ i18n.t.guest_menu_experience }}</p>
+                <p class="summary-card-subtitle">
+                  {{ i18n.t.guest_menu_experience }}
+                </p>
               </div>
             </div>
             <span class="preview-live-badge">
@@ -85,12 +95,20 @@
           <div class="preview-actions">
             <div class="preview-url-box">
               <span class="preview-url-icon">🔗</span>
-              <span class="preview-url-text">{{ previewMenuUrl !== '#' ? previewMenuUrl.slice(0, 40) + '...' : i18n.t.menu_url }}</span>
+              <span class="preview-url-text">{{
+                previewMenuUrl !== "#"
+                  ? previewMenuUrl.slice(0, 40) + "..."
+                  : i18n.t.menu_url
+              }}</span>
             </div>
             <div class="summary-actions">
               <button class="copy-btn" @click="copyPreviewLink">
-                <span class="btn-icon">{{ previewLinkCopied ? "✅" : "📋" }}</span>
-                <span>{{ previewLinkCopied ? i18n.t.copied : i18n.t.copy_link }}</span>
+                <span class="btn-icon">{{
+                  previewLinkCopied ? "✅" : "📋"
+                }}</span>
+                <span>{{
+                  previewLinkCopied ? i18n.t.copied : i18n.t.copy_link
+                }}</span>
               </button>
               <button class="open-btn" @click="openPreview">
                 <span class="btn-icon">🚀</span>
@@ -102,11 +120,11 @@
       </div>
       <div class="summary-card stats-card">
         <div class="summary-card-bg"></div>
-      <div class="summary-card-content">
-        <div class="summary-card-top">
-          <AppIcon name="chart" :size="22" class="summary-card-icon" />
-          <span class="stats-period-badge">{{ i18n.t.today }}</span>
-        </div>
+        <div class="summary-card-content">
+          <div class="summary-card-top">
+            <AppIcon name="chart" :size="22" class="summary-card-icon" />
+            <span class="stats-period-badge">{{ i18n.t.today }}</span>
+          </div>
           <div class="summary-card-title">{{ i18n.t.daily_revenue }}</div>
           <div class="stats-values">
             <div class="stats-item stats-item-revenue">
@@ -131,7 +149,11 @@
           <div class="stats-filter">
             <div class="stats-filter-group">
               <label class="stats-filter-label">{{ i18n.t.from }}</label>
-              <input type="date" v-model="statsStartDate" @change="fetchStats" />
+              <input
+                type="date"
+                v-model="statsStartDate"
+                @change="fetchStats"
+              />
             </div>
             <div class="stats-filter-arrow">→</div>
             <div class="stats-filter-group">
@@ -172,7 +194,7 @@
           fetchOrders();
         "
       >
-        <AppIcon name="clipboard" :size="16" /> ការកុម្ម៉ង់
+        <AppIcon name="clipboard" :size="16" /> ការកម្មង់
       </button>
     </div>
 
@@ -255,8 +277,12 @@
             <div class="cat-item-name">{{ cat.label_km }}</div>
           </div>
           <div class="cat-item-right">
-            <button class="cat-item-edit" @click="openCatForm(cat)"><AppIcon name="edit" :size="16" /></button>
-            <button class="cat-item-del" @click="confirmDelCat(cat)"><AppIcon name="trash" :size="16" /></button>
+            <button class="cat-item-edit" @click="openCatForm(cat)">
+              <AppIcon name="edit" :size="16" />
+            </button>
+            <button class="cat-item-del" @click="confirmDelCat(cat)">
+              <AppIcon name="trash" :size="16" />
+            </button>
           </div>
         </div>
       </div>
@@ -265,7 +291,7 @@
     <!-- ─── ORDERS MANAGEMENT ─── -->
     <div v-else class="orders-section">
       <div class="orders-header">
-        <span><AppIcon name="clipboard" :size="18" /> ការកុម្ម៉ង់ថ្មីៗ</span>
+        <span><AppIcon name="clipboard" :size="18" /> ការកម្មង់ថ្មីៗ</span>
       </div>
 
       <div v-if="ordersLoading" class="empty">
@@ -275,17 +301,16 @@
 
       <div v-else-if="!orders.length" class="empty">
         <div class="empty-icon"><AppIcon name="clipboard" :size="40" /></div>
-        មិនទាន់មានការកុម្ម៉ង់ទេ
+        មិនទាន់មានការកម្មង់ទេ
       </div>
 
       <div v-else class="orders-list">
         <div v-for="order in orders" :key="order.id" class="order-card">
           <div class="order-header">
             <span class="order-id">#{{ order.id }}</span>
-            <span class="order-table"><AppIcon name="table" :size="14" /> តុ {{ order.table_no }}</span>
-            <span class="order-status" :class="order.status">
-              {{ statusLabel(order.status) }}
-            </span>
+            <span class="order-table"
+              ><AppIcon name="table" :size="14" /> តុ {{ order.table_no }}</span
+            >
           </div>
           <div class="order-time">{{ formatDate(order.created_at) }}</div>
           <div class="order-items">
@@ -301,23 +326,12 @@
               >
             </div>
           </div>
-          <div v-if="order.note" class="order-note"><AppIcon name="note" :size="14" /> {{ order.note }}</div>
-          <div class="order-total">
-            <AppIcon name="money" :size="14" /> សរុប: {{ Number(order.total).toLocaleString() }}៛
+          <div v-if="order.note" class="order-note">
+            <AppIcon name="note" :size="14" /> {{ order.note }}
           </div>
-          <div class="order-actions">
-            <select
-              :value="order.status"
-              @change="updateOrderStatus(order.id, $event.target.value)"
-              class="order-status-select"
-            >
-              <option value="pending"><AppIcon name="clock" :size="12" /> រង់ចាំ</option>
-              <option value="confirmed"><AppIcon name="check" :size="12" /> បញ្ជាក់</option>
-              <option value="preparing"><AppIcon name="chef" :size="12" /> កំពុងរៀបចំ</option>
-              <option value="ready"><AppIcon name="food" :size="12" /> រួចរាល់</option>
-              <option value="served"><AppIcon name="check-circle" :size="12" /> បានបម្រើ</option>
-              <option value="cancelled"><AppIcon name="x-circle" :size="12" /> បោះបង់</option>
-            </select>
+          <div class="order-total">
+            <AppIcon name="money" :size="14" /> សរុប:
+            {{ Number(order.total).toLocaleString() }}៛
           </div>
         </div>
       </div>
@@ -435,7 +449,9 @@
         >
           <div class="modal-card pop-in">
             <div class="modal-header">
-              <span class="modal-header-title"><AppIcon name="telegram" :size="18" /> ភ្ជាប់ Telegram</span>
+              <span class="modal-header-title"
+                ><AppIcon name="telegram" :size="18" /> ភ្ជាប់ Telegram</span
+              >
               <button class="close-btn" @click="showTelegramSettings = false">
                 ✕
               </button>
@@ -444,7 +460,9 @@
               <div v-if="tgSuccess" class="form-success-msg">
                 {{ tgSuccess }}
               </div>
-              <div v-if="tgError" class="tg-error-msg"><AppIcon name="alert-circle" :size="14" /> {{ tgError }}</div>
+              <div v-if="tgError" class="tg-error-msg">
+                <AppIcon name="alert-circle" :size="14" /> {{ tgError }}
+              </div>
 
               <div class="telegram-note">
                 <p>
@@ -452,7 +470,8 @@
                   ដើម្បីទទួលការជូនដំណឹងរាល់ពេលមានការបញ្ជាទិញថ្មី!
                 </p>
                 <div class="telegram-bot-name">
-                  <AppIcon name="telegram" :size="14" /> Bot: <strong>@digital_menu_khmer_bot</strong>
+                  <AppIcon name="telegram" :size="14" /> Bot:
+                  <strong>@digital_menu_khmer_bot</strong>
                 </div>
               </div>
 
@@ -461,12 +480,17 @@
                 <div class="link-code-label">លេខកូដភ្ជាប់របស់អ្នក៖</div>
                 <div class="link-code-box" @click="copyLinkCode">
                   <span class="link-code-value">{{ displayLinkCode }}</span>
-                  <button class="link-code-copy-btn" title="ចម្លង"><AppIcon name="clipboard" :size="16" /></button>
+                  <button class="link-code-copy-btn" title="ចម្លង">
+                    <AppIcon name="clipboard" :size="16" />
+                  </button>
                 </div>
-                <div v-if="copied" class="link-code-copied"><AppIcon name="check" :size="14" /> ចម្លងរួច!</div>
+                <div v-if="copied" class="link-code-copied">
+                  <AppIcon name="check" :size="14" /> ចម្លងរួច!
+                </div>
                 <div class="link-code-hint">
                   <span class="link-code-permanent"
-                    ><AppIcon name="lock" :size="12" /> លេខកូដនេះមិនអាចប្តូរបានទេ</span
+                    ><AppIcon name="lock" :size="12" />
+                    លេខកូដនេះមិនអាចប្តូរបានទេ</span
                   >
                 </div>
               </div>
@@ -484,7 +508,8 @@
                   <div class="guide-step">
                     <span class="guide-step-num">2</span>
                     <span
-                      >ស្វែងរក Bot <strong>@digital_menu_khmer_bot</strong></span
+                      >ស្វែងរក Bot
+                      <strong>@digital_menu_khmer_bot</strong></span
                     >
                   </div>
                   <div class="guide-step">
@@ -505,7 +530,8 @@
                   <div class="guide-step">
                     <span class="guide-step-num">5</span>
                     <span
-                      >រួចរាល់! <AppIcon name="check" :size="14" />
+                      >រួចរាល់!
+                      <AppIcon name="check" :size="14" />
                       អ្នកនឹងទទួលបានការជូនដំណឹងរាល់ពេលមានការបញ្ជាទិញ</span
                     >
                   </div>
@@ -514,7 +540,10 @@
 
               <!-- Status -->
               <div v-if="isLinked" class="tg-linked-status">
-                <span class="tg-linked-badge"><AppIcon name="check-circle" :size="14" /> ភ្ជាប់ Telegram រួចរាល់</span>
+                <span class="tg-linked-badge"
+                  ><AppIcon name="check-circle" :size="14" /> ភ្ជាប់ Telegram
+                  រួចរាល់</span
+                >
                 <button class="tg-unlink-btn" @click="unlinkTelegram">
                   លែងភ្ជាប់
                 </button>
@@ -614,14 +643,19 @@
         >
           <div class="modal-card pop-in">
             <div class="modal-header">
-              <span class="modal-header-title"><AppIcon name="user" :size="18" /> {{ i18n.t.profile || 'កែប្រែហាង' }}</span>
+              <span class="modal-header-title"
+                ><AppIcon name="user" :size="18" />
+                {{ i18n.t.profile || "កែប្រែហាង" }}</span
+              >
               <button class="close-btn" @click="showProfile = false">✕</button>
             </div>
             <div class="modal-form">
               <div v-if="profileSuccess" class="form-success-msg">
                 {{ profileSuccess }}
               </div>
-              <div v-if="profileError" class="tg-error-msg">{{ profileError }}</div>
+              <div v-if="profileError" class="tg-error-msg">
+                {{ profileError }}
+              </div>
 
               <!-- Logo preview -->
               <div class="profile-logo-section">
@@ -634,13 +668,20 @@
                 </div>
                 <label class="profile-logo-upload">
                   <AppIcon name="camera" :size="16" />
-                  {{ i18n.t.change_logo || 'ប្តូររូប' }}
-                  <input type="file" accept="image/*" hidden @change="onLogoChange" />
+                  {{ i18n.t.change_logo || "ប្តូររូប" }}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    @change="onLogoChange"
+                  />
                 </label>
               </div>
 
               <div class="form-group">
-                <label class="form-label">{{ i18n.t.restaurant_name || 'ឈ្មោះហាង' }} *</label>
+                <label class="form-label"
+                  >{{ i18n.t.restaurant_name || "ឈ្មោះហាង" }} *</label
+                >
                 <input
                   v-model="profileName"
                   class="form-input"
@@ -769,7 +810,8 @@ async function submitProfile() {
       showProfile.value = false;
     }, 1200);
   } catch (err) {
-    profileError.value = err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
+    profileError.value =
+      err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
   } finally {
     profileSubmitting.value = false;
   }
@@ -876,7 +918,7 @@ async function updateOrderStatus(orderId, status) {
     const idx = orders.value.findIndex((o) => o.id === orderId);
     if (idx !== -1) orders.value[idx].status = status;
   } catch (err) {
-    alert("មិនអាចប្តូរស្ថានភាពកុម្ម៉ង់បានទេ");
+    alert("មិនអាចប្តូរស្ថានភាពកម្មង់បានទេ");
   }
 }
 
@@ -1098,7 +1140,11 @@ onMounted(async () => {
   right: -40px;
   width: 120px;
   height: 120px;
-  background: radial-gradient(circle, rgba(251, 191, 36, 0.15) 0%, transparent 70%);
+  background: radial-gradient(
+    circle,
+    rgba(251, 191, 36, 0.15) 0%,
+    transparent 70%
+  );
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
@@ -1118,18 +1164,54 @@ onMounted(async () => {
   border-radius: 50%;
   opacity: 0.15;
 }
-.pattern-dot:nth-child(1) { top: 12%; left: 8%; }
-.pattern-dot:nth-child(2) { top: 25%; left: 85%; }
-.pattern-dot:nth-child(3) { top: 45%; left: 15%; }
-.pattern-dot:nth-child(4) { top: 60%; left: 75%; }
-.pattern-dot:nth-child(5) { top: 78%; left: 22%; }
-.pattern-dot:nth-child(6) { top: 35%; left: 55%; }
-.pattern-dot:nth-child(7) { top: 70%; left: 50%; }
-.pattern-dot:nth-child(8) { top: 15%; left: 45%; }
-.pattern-dot:nth-child(9) { top: 85%; left: 70%; }
-.pattern-dot:nth-child(10) { top: 50%; left: 88%; }
-.pattern-dot:nth-child(11) { top: 90%; left: 10%; }
-.pattern-dot:nth-child(12) { top: 5%; left: 65%; }
+.pattern-dot:nth-child(1) {
+  top: 12%;
+  left: 8%;
+}
+.pattern-dot:nth-child(2) {
+  top: 25%;
+  left: 85%;
+}
+.pattern-dot:nth-child(3) {
+  top: 45%;
+  left: 15%;
+}
+.pattern-dot:nth-child(4) {
+  top: 60%;
+  left: 75%;
+}
+.pattern-dot:nth-child(5) {
+  top: 78%;
+  left: 22%;
+}
+.pattern-dot:nth-child(6) {
+  top: 35%;
+  left: 55%;
+}
+.pattern-dot:nth-child(7) {
+  top: 70%;
+  left: 50%;
+}
+.pattern-dot:nth-child(8) {
+  top: 15%;
+  left: 45%;
+}
+.pattern-dot:nth-child(9) {
+  top: 85%;
+  left: 70%;
+}
+.pattern-dot:nth-child(10) {
+  top: 50%;
+  left: 88%;
+}
+.pattern-dot:nth-child(11) {
+  top: 90%;
+  left: 10%;
+}
+.pattern-dot:nth-child(12) {
+  top: 5%;
+  left: 65%;
+}
 
 .preview-card-header {
   display: flex;
@@ -1156,7 +1238,7 @@ onMounted(async () => {
   z-index: 1;
 }
 .preview-icon-ring::after {
-  content: '';
+  content: "";
   position: absolute;
   inset: 2px;
   border-radius: 10px;
@@ -1185,8 +1267,15 @@ onMounted(async () => {
   animation: livePulse 1.5s ease-in-out infinite;
 }
 @keyframes livePulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.3); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.5;
+    transform: scale(1.3);
+  }
 }
 .summary-card-subtitle {
   font-size: 11px;
@@ -1215,7 +1304,7 @@ onMounted(async () => {
 .preview-url-text {
   font-size: 11px;
   color: #6b7280;
-  font-family: 'Courier New', monospace;
+  font-family: "Courier New", monospace;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -1826,6 +1915,7 @@ onMounted(async () => {
 .order-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
   margin-bottom: 6px;
 }
@@ -2156,15 +2246,18 @@ onMounted(async () => {
 .header-bg-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.08) 0%, transparent 60%);
+  background: radial-gradient(
+    ellipse at 50% 0%,
+    rgba(255, 255, 255, 0.08) 0%,
+    transparent 60%
+  );
   pointer-events: none;
 }
 .header-bg-pattern {
   position: absolute;
   inset: 0;
   opacity: 0.04;
-  background-image:
-    radial-gradient(circle, #fff 1px, transparent 1px);
+  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
   background-size: 32px 32px;
   pointer-events: none;
 }
@@ -2187,9 +2280,7 @@ onMounted(async () => {
   justify-content: center;
   overflow: hidden;
   border: 3px solid rgba(255, 255, 255, 0.3);
-  box-shadow:
-    0 0 0 6px rgba(255, 255, 255, 0.1),
-    0 8px 24px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.1), 0 8px 24px rgba(0, 0, 0, 0.15);
   background: rgba(255, 255, 255, 0.08);
   transition: transform 0.3s ease;
 }
