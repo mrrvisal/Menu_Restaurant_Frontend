@@ -16,7 +16,6 @@
       <span class="sparkle s4"></span>
       <span class="sparkle s5"></span>
       <div class="header-content">
-        <span class="header-icon"><AppIcon name="settings" :size="28" /></span>
         <span class="header-title">{{ t.super_admin }}</span>
       </div>
       <div class="wave-divider">

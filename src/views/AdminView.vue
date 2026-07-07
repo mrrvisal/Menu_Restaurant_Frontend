@@ -42,7 +42,7 @@
           </button>
           <button
             class="admin-telegram-btn"
-            @click="showTelegramSettings = true"
+            @click="openTelegramSettings()"
           >
             <AppIcon name="telegram" :size="16" /> {{ i18n.t.telegram }}
           </button>
@@ -823,9 +823,29 @@ const tgSubmitting = ref(false);
 const tgSuccess = ref("");
 const tgError = ref("");
 const copied = ref(false);
+const tgLoading = ref(false);
 
 const displayLinkCode = computed(() => auth.linkCode || "------");
 const isLinked = computed(() => auth.isTelegramLinked);
+
+// Refresh restaurant data from server when opening Telegram settings
+async function openTelegramSettings() {
+  showTelegramSettings.value = true;
+  tgLoading.value = true;
+  tgSuccess.value = "";
+  tgError.value = "";
+  try {
+    const res = await axios.get(`${API_BASE}/api/auth/me`);
+    if (res.data.restaurant) {
+      auth.restaurant = res.data.restaurant;
+      auth.saveToStorage();
+    }
+  } catch (err) {
+    console.error("Failed to refresh restaurant data:", err);
+  } finally {
+    tgLoading.value = false;
+  }
+}
 
 async function copyLinkCode() {
   try {
