@@ -1,377 +1,274 @@
 <template>
-  <div>
-    <!-- HEADER -->
-    <div class="header">
-      <span class="leaf l1">🌿</span>
-      <span class="leaf l2">🍃</span>
-      <span class="leaf l3">🌿</span>
-      <span class="leaf l4">🍃</span>
-      <span class="leaf l5">🌿</span>
-      <span class="leaf l6">🍃</span>
-      <span class="leaf l7">🌿</span>
-      <span class="leaf l8">🍃</span>
-      <span class="sparkle s1"></span>
-      <span class="sparkle s2"></span>
-      <span class="sparkle s3"></span>
-      <span class="sparkle s4"></span>
-      <span class="sparkle s5"></span>
-      <div class="header-content">
-        <span class="header-title">{{ t.super_admin }}</span>
-      </div>
-      <div class="wave-divider">
-        <svg
-          viewBox="0 0 1440 28"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          preserveAspectRatio="none"
-          style="height: 28px"
-        >
-          <path
-            d="M0 14 C180 0 360 28 540 14 C720 0 900 28 1080 14 C1260 0 1440 28 1440 14 L1440 28 L0 28 Z"
-            fill="#f4faf6"
-          />
-          <path
-            d="M1440 14 C1620 0 1800 28 1980 14 C2160 0 2340 28 2520 14 C2700 0 2880 28 2880 14 L2880 28 L1440 28 Z"
-            fill="#f4faf6"
-          />
-        </svg>
-      </div>
+  <div class="shell" :class="{ 'nav-open': mobileNavOpen }">
+    <!-- MOBILE TOP BAR -->
+    <div class="mobile-bar">
+      <div class="mark "><img width="40" src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png" alt=""></div>
+      <span class="mobile-bar-title">{{ t.super_admin }}</span>
+      <button class="icon-btn" @click="mobileNavOpen = !mobileNavOpen" aria-label="Toggle navigation">
+        <AppIcon name="menu" :size="18" />
+      </button>
     </div>
 
-    <!-- ADMIN BAR -->
-    <div class="admin-bar">
-      <div class="admin-bar-left">
-        <span class="admin-bar-title"><AppIcon name="settings" :size="18" /> {{ t.super_admin }}</span>
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="brand-area">
+        <div class="brand-glow"></div>
+        <div class="brand-content">
+          <div class="mark"><img width="40" src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png" alt=""></div>
+          <div class="brand-text">
+            <span class="brand-name">{{ t.super_admin }}</span>
+          </div>
+        </div>
       </div>
-      <div class="admin-bar-right">
+
+      <nav class="nav">
+        <button
+          class="nav-item"
+          :class="{ active: tab === 'users' }"
+          @click="tab = 'users'; fetchUsers(); mobileNavOpen = false"
+        >
+          <AppIcon name="users" :size="18" />
+          <span>{{ t.users }}</span>
+        </button>
+        <button
+          class="nav-item"
+          :class="{ active: tab === 'restaurants' }"
+          @click="tab = 'restaurants'; fetchRestaurants(); mobileNavOpen = false"
+        >
+          <AppIcon name="store" :size="18" />
+          <span>{{ t.restaurants }}</span>
+        </button>
+      </nav>
+
+      <div class="sidebar-footer">
         <button class="lang-btn" @click="toggleLocale">
           {{ locale === "km" ? "English" : "ភាសាខ្មែរ" }}
         </button>
-        <button class="logout-btn" @click="showLogoutModal = true">
-          <AppIcon name="lock" :size="14" /> {{ t.logout }}
+        <button class="logout-link" @click="showLogoutModal = true">
+          <AppIcon name="lock" :size="15" /> {{ t.logout }}
         </button>
       </div>
-    </div>
+    </aside>
 
-    <!-- STATS ROW -->
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-card-bg"></div>
-        <div class="stat-card-content">
-          <div class="stat-icon"><AppIcon name="users" :size="24" /></div>
-          <div class="stat-info">
+    <div class="nav-scrim" @click="mobileNavOpen = false"></div>
+
+    <!-- MAIN -->
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <h1 class="page-title">{{ tab === 'users' ? t.users : t.restaurants }}</h1>
+          <p class="page-sub">{{ t.super_admin }} · {{ t.manage_system || 'Manage system' }}</p>
+        </div>
+      </header>
+
+      <!-- STATS -->
+      <section class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon-wrap icon-teal"><AppIcon name="users" :size="20" /></div>
+          <div class="stat-body">
             <span class="stat-num">{{ stats.totalUsers }}</span>
             <span class="stat-label">{{ t.total_users }}</span>
           </div>
+          <div class="stat-spark teal"></div>
         </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-bg"></div>
-        <div class="stat-card-content">
-          <div class="stat-icon"><AppIcon name="store" :size="24" /></div>
-          <div class="stat-info">
+        <div class="stat-card">
+          <div class="stat-icon-wrap icon-amber"><AppIcon name="store" :size="20" /></div>
+          <div class="stat-body">
             <span class="stat-num">{{ stats.totalRestaurants }}</span>
             <span class="stat-label">{{ t.total_restaurants }}</span>
           </div>
+          <div class="stat-spark amber"></div>
         </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-bg"></div>
-        <div class="stat-card-content">
-          <div class="stat-icon"><AppIcon name="clipboard" :size="24" /></div>
-          <div class="stat-info">
+        <div class="stat-card">
+          <div class="stat-icon-wrap icon-blue"><AppIcon name="clipboard" :size="20" /></div>
+          <div class="stat-body">
             <span class="stat-num">{{ stats.totalOrders }}</span>
             <span class="stat-label">{{ t.total_orders }}</span>
           </div>
+          <div class="stat-spark blue"></div>
         </div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-card-bg"></div>
-        <div class="stat-card-content">
-          <div class="stat-icon"><AppIcon name="food" :size="24" /></div>
-          <div class="stat-info">
+        <div class="stat-card">
+          <div class="stat-icon-wrap icon-green"><AppIcon name="food" :size="20" /></div>
+          <div class="stat-body">
             <span class="stat-num">{{ stats.totalFoods }}</span>
             <span class="stat-label">{{ t.total_foods }}</span>
           </div>
+          <div class="stat-spark green"></div>
         </div>
-      </div>
-    </div>
+      </section>
 
-    <!-- TABS -->
-    <div class="admin-tabs">
-      <button
-        :class="{ active: tab === 'users' }"
-        @click="
-          tab = 'users';
-          fetchUsers();
-        "
-      >
-        <AppIcon name="users" :size="16" /> {{ t.users }}
-      </button>
-      <button
-        :class="{ active: tab === 'restaurants' }"
-        @click="
-          tab = 'restaurants';
-          fetchRestaurants();
-        "
-      >
-        <AppIcon name="store" :size="16" /> {{ t.restaurants }}
-      </button>
-    </div>
+      <!-- USERS -->
+      <section v-if="tab === 'users'" class="panel">
+        <div class="panel-head">
+          <span class="panel-title"><AppIcon name="users" :size="16" /> {{ t.users }}</span>
+          <span class="panel-count">{{ users.length }}</span>
+        </div>
 
-    <!-- USERS TABLE -->
-    <div v-if="tab === 'users'" class="table-section">
-      <div class="table-header">
-        <span class="table-header-title"><AppIcon name="users" :size="16" /> {{ t.users }}</span>
-        <span class="table-header-count"
-          >{{ users.length }} {{ t.total_users?.toLowerCase?.() || "" }}</span
-        >
-      </div>
-      <div v-if="users.length" class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>{{ t.email }}</th>
-              <th>{{ t.full_name }}</th>
-              <th>{{ t.role }}</th>
-              <th>{{ t.status }}</th>
-              <th>{{ t.email_verified }}</th>
-              <th>{{ t.restaurants }}</th>
-              <th>{{ t.actions }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="user in users"
-              :key="user.id"
-              class="clickable-row"
-              @click="openUserDetail(user)"
-            >
-              <td class="cell-id">{{ user.id }}</td>
-              <td class="cell-email">{{ user.email }}</td>
-              <td>{{ user.full_name || "-" }}</td>
-              <td>
-                <span :class="'role-badge ' + user.role">
-                  {{
-                    user.role === "super_admin" ? t.super_admin_label : t.owner
-                  }}
-                </span>
-              </td>
-              <td>
-                <span :class="'status-badge ' + user.status">{{
-                  user.status
-                }}</span>
-              </td>
-              <td>
-                <span
-                  :class="
-                    'verify-badge ' +
-                    (user.email_verified_at ? 'verified' : 'not-verified')
-                  "
-                >
-                  {{
-                    user.email_verified_at ? t.email_verified : t.not_verified
-                  }}
-                </span>
-              </td>
-              <td>{{ user.restaurant_name || "-" }}</td>
-              <td @click.stop>
+        <div v-if="users.length" class="rows">
+          <div
+            v-for="user in users"
+            :key="user.id"
+            class="row"
+            @click="openUserDetail(user)"
+          >
+            <div class="row-main">
+              <div class="avatar" :class="user.role === 'super_admin' ? 'avatar-amber' : 'avatar-teal'">
+                {{ (user.full_name || user.email || '?').charAt(0).toUpperCase() }}
+              </div>
+              <div class="row-text">
+                <span class="row-muted">{{ user.restaurant_name || "Super Admin" }}</span>
+                <span class="row-sub">{{ user.email }}</span>
+              </div>
+            </div>
+
+            <div class="row-meta">
+              <span class="tag" :class="user.role === 'super_admin' ? 'tag-amber' : 'tag-blue'">
+                {{ user.role === "super_admin" ? t.super_admin_label : t.owner }}
+              </span>
+              <span class="status-dot" :class="'sd-' + user.status">
+                <i></i>{{ user.status }}
+              </span>
+              <span class="status-dot" :class="user.email_verified_at ? 'sd-verified' : 'sd-pending'">
+                <i></i>{{ user.email_verified_at ? t.email_verified : t.not_verified }}
+              </span>
+              
+            </div>
+
+            <div class="row-actions" @click.stop>
+              <select
+                :value="user.status"
+                @change="updateUserStatus(user.id, $event.target.value)"
+                class="select"
+              >
+                <option value="active">{{ t.activate }}</option>
+                <option value="suspended">{{ t.suspend }}</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div v-else class="empty">
+          <AppIcon name="category" :size="34" />
+          <p>{{ t.no_data }}</p>
+        </div>
+      </section>
+
+      <!-- RESTAURANTS -->
+      <section v-if="tab === 'restaurants'" class="panel">
+        <div class="panel-head">
+          <span class="panel-title"><AppIcon name="store" :size="16" /> {{ t.restaurants }}</span>
+          <span class="panel-count">{{ restaurants.length }}</span>
+        </div>
+
+        <div v-if="restaurants.length" class="rows">
+          <div
+            v-for="r in restaurants"
+            :key="r.id"
+            class="row"
+            @click="openRestaurantDetail(r)"
+          >
+            <div class="row-main">
+              <div class="avatar avatar-amber avatar-square">
+                <AppIcon name="store" :size="16" />
+              </div>
+              <div class="row-text">
+                <span class="row-title">{{ r.name }}</span>
+                <span class="row-sub">{{ r.owner_email }}</span>
+              </div>
+            </div>
+
+            <div class="row-meta">
+              <span class="status-dot" :class="'sd-' + r.status">
+                <i></i>{{ r.status }}
+              </span>
+              <code class="code" v-if="r.telegram_link_code">{{ r.telegram_link_code }}</code>
+              <span class="row-muted">{{ formatDate(r.created_at) }}</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="empty">
+          <AppIcon name="category" :size="34" />
+          <p>{{ t.no_data }}</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- USER DETAIL DRAWER -->
+    <Teleport to="body">
+      <Transition name="drawer">
+        <div v-if="selectedUser" class="drawer-overlay" @click.self="selectedUser = null">
+          <div class="drawer">
+            <div class="drawer-head">
+              <div class="drawer-id">
+                <div class="avatar avatar-lg" :class="selectedUser.role === 'super_admin' ? 'avatar-amber' : 'avatar-teal'">
+                  {{ (selectedUser.full_name || '?').charAt(0).toUpperCase() }}
+                </div>
+                <div>
+                  <div class="drawer-title">{{ selectedUser.full_name || t.username }}</div>
+                  <div class="drawer-sub">{{ selectedUser.email }}</div>
+                </div>
+              </div>
+              <button class="icon-btn" @click="selectedUser = null" aria-label="Close">✕</button>
+            </div>
+
+            <div class="drawer-body">
+              <div class="field-grid">
+                <div class="field">
+                  <span class="field-label">ID</span>
+                  <span class="field-value">#{{ selectedUser.id }}</span>
+                </div>
+                <div class="field">
+                  <span class="field-label">{{ t.role }}</span>
+                  <span class="tag" :class="selectedUser.role === 'super_admin' ? 'tag-amber' : 'tag-blue'">
+                    {{ selectedUser.role === "super_admin" ? t.super_admin_label : t.owner }}
+                  </span>
+                </div>
+                <div class="field">
+                  <span class="field-label">{{ t.status }}</span>
+                  <span class="status-dot" :class="'sd-' + selectedUser.status"><i></i>{{ selectedUser.status }}</span>
+                </div>
+                <div class="field">
+                  <span class="field-label">{{ t.email_verified }}</span>
+                  <span class="status-dot" :class="selectedUser.email_verified_at ? 'sd-verified' : 'sd-pending'">
+                    <i></i>{{ selectedUser.email_verified_at ? t.email_verified : t.not_verified }}
+                  </span>
+                </div>
+                <div class="field">
+                  <span class="field-label">{{ t.restaurants }}</span>
+                  <span class="field-value">{{ selectedUser.restaurant_name || "—" }}</span>
+                </div>
+                <div class="field">
+                  <span class="field-label">{{ t.created_at }}</span>
+                  <span class="field-value">{{ formatDate(selectedUser.created_at) }}</span>
+                </div>
+              </div>
+
+              <div class="drawer-actions">
                 <select
-                  :value="user.status"
-                  @change="updateUserStatus(user.id, $event.target.value)"
-                  class="status-select"
+                  :value="selectedUser.status"
+                  @change="updateModalUserStatus($event.target.value)"
+                  class="select select-block"
                 >
                   <option value="active">{{ t.activate }}</option>
                   <option value="suspended">{{ t.suspend }}</option>
                   <option value="inactive">Inactive</option>
                 </select>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div v-else class="empty-state">
-        <div class="empty-icon"><AppIcon name="category" :size="40" /></div>
-        <div class="empty-text">{{ t.no_data }}</div>
-      </div>
-    </div>
 
-    <!-- RESTAURANTS TABLE -->
-    <div v-if="tab === 'restaurants'" class="table-section">
-      <div class="table-header">
-        <span class="table-header-title"><AppIcon name="store" :size="16" /> {{ t.restaurants }}</span>
-        <span class="table-header-count"
-          >{{ restaurants.length }}
-          {{ t.total_restaurants?.toLowerCase?.() || "" }}</span
-        >
-      </div>
-      <div v-if="restaurants.length" class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>{{ t.restaurant_name }}</th>
-              <th>Slug</th>
-              <th>{{ t.owner }}</th>
-              <th>{{ t.language }}</th>
-              <th>{{ t.status }}</th>
-              <th>{{ t.telegram_link_code || "Link Code" }}</th>
-              <th>{{ t.created_at }}</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="r in restaurants"
-              :key="r.id"
-              class="clickable-row"
-              @click="openRestaurantDetail(r)"
-            >
-              <td class="cell-id">{{ r.id }}</td>
-              <td class="cell-name">{{ r.name }}</td>
-              <td>
-                <code class="cell-slug">{{ r.slug }}</code>
-              </td>
-              <td class="cell-email">{{ r.owner_email }}</td>
-              <td>
-                <span class="lang-badge">{{
-                  r.default_language === "km" ? "ភាសាខ្មែរ" : "English"
-                }}</span>
-              </td>
-              <td>
-                <span :class="'status-badge ' + r.status">{{ r.status }}</span>
-              </td>
-              <td>
-                <code class="cell-code">{{ r.telegram_link_code || "-" }}</code>
-              </td>
-              <td class="cell-date">{{ formatDate(r.created_at) }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-      <div v-else class="empty-state">
-        <div class="empty-icon"><AppIcon name="category" :size="40" /></div>
-        <div class="empty-text">{{ t.no_data }}</div>
-      </div>
-    </div>
-
-    <!-- USER DETAIL MODAL -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="selectedUser"
-          class="modal-overlay"
-          @click.self="selectedUser = null"
-        >
-          <div class="modal-card pop-in">
-            <div class="modal-header">
-              <div class="modal-header-left">
-                <div class="modal-avatar">
-                  {{
-                    selectedUser.full_name
-                      ? selectedUser.full_name.charAt(0).toUpperCase()
-                      : ""
-                  }}
-                </div>
-                <div>
-                  <div class="modal-title">
-                    {{ selectedUser.full_name || t.username }}
-                  </div>
-                  <div class="modal-subtitle">{{ selectedUser.email }}</div>
-                </div>
-              </div>
-              <button class="modal-close-btn" @click="selectedUser = null">
-                ✕
-              </button>
-            </div>
-            <div class="modal-body">
-              <div class="modal-section">
-                <div class="modal-section-title">
-                  {{ t.details || "Details" }}
-                </div>
-                <div class="detail-grid">
-                  <div class="detail-item">
-                    <span class="detail-label">ID</span>
-                    <span class="detail-value">#{{ selectedUser.id }}</span>
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">{{ t.phone || "Phone" }}</span>
-                    <span class="detail-value">{{
-                      selectedUser.phone || "-"
-                    }}</span>
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">{{ t.role }}</span>
-                    <span class="detail-value">
-                      <span :class="'role-badge ' + selectedUser.role">
-                        {{
-                          selectedUser.role === "super_admin"
-                            ? t.super_admin_label
-                            : t.owner
-                        }}
-                      </span>
-                    </span>
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">{{ t.status }}</span>
-                    <span class="detail-value">
-                      <span :class="'status-badge ' + selectedUser.status">{{
-                        selectedUser.status
-                      }}</span>
-                    </span>
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">{{ t.email_verified }}</span>
-                    <span class="detail-value">
-                      <span
-                        :class="
-                          'verify-badge ' +
-                          (selectedUser.email_verified_at
-                            ? 'verified'
-                            : 'not-verified')
-                        "
-                      >
-                        {{
-                          selectedUser.email_verified_at
-                            ? t.email_verified
-                            : t.not_verified
-                        }}
-                      </span>
-                    </span>
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">{{ t.restaurants }}</span>
-                    <span class="detail-value">{{
-                      selectedUser.restaurant_name || "-"
-                    }}</span>
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">{{ t.created_at }}</span>
-                    <span class="detail-value">{{
-                      formatDate(selectedUser.created_at)
-                    }}</span>
-                  </div>
-                </div>
-              </div>
-              <div class="modal-section">
-                <div class="modal-section-title">{{ t.actions }}</div>
-                <div class="modal-actions">
-                  <select
-                    :value="selectedUser.status"
-                    @change="updateModalUserStatus($event.target.value)"
-                    class="status-select modal-status-select"
-                  >
-                    <option value="active">{{ t.activate }}</option>
-                    <option value="suspended">{{ t.suspend }}</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
-                  <button
-                    class="modal-action-btn close-action"
-                    @click="selectedUser = null"
-                  >
-                    {{ t.close }}
-                  </button>
-                </div>
+                <button
+                  v-if="!selectedUser.email_verified_at"
+                  class="btn btn-green"
+                  @click="verifyUserEmail(selectedUser.id)"
+                >
+                  <AppIcon name="check" :size="14" /> {{ t.verify_email_btn || "Verify email" }}
+                </button>
+                <button
+                  v-if="!selectedUser.email_verified_at"
+                  class="btn btn-blue"
+                  @click="resendVerification(selectedUser.id)"
+                >
+                  <AppIcon name="mail" :size="14" /> {{ t.resend_verification || "Resend verification" }}
+                </button>
+                <button class="btn btn-ghost" @click="selectedUser = null">{{ t.close }}</button>
               </div>
             </div>
           </div>
@@ -379,111 +276,52 @@
       </Transition>
     </Teleport>
 
-    <!-- RESTAURANT DETAIL MODAL -->
+    <!-- RESTAURANT DETAIL DRAWER -->
     <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="selectedRestaurant"
-          class="modal-overlay"
-          @click.self="selectedRestaurant = null"
-        >
-          <div class="modal-card pop-in">
-            <div class="modal-header">
-              <div class="modal-header-left">
-                <div class="modal-avatar modal-avatar-restaurant"><AppIcon name="store" :size="20" /></div>
+      <Transition name="drawer">
+        <div v-if="selectedRestaurant" class="drawer-overlay" @click.self="selectedRestaurant = null">
+          <div class="drawer">
+            <div class="drawer-head">
+              <div class="drawer-id">
+                <div class="avatar avatar-lg avatar-amber avatar-square">
+                  <AppIcon name="store" :size="20" />
+                </div>
                 <div>
-                  <div class="modal-title">{{ selectedRestaurant.name }}</div>
-                  <div class="modal-subtitle">
-                    {{ selectedRestaurant.slug }}
-                  </div>
+                  <div class="drawer-title">{{ selectedRestaurant.name }}</div>
+                  <div class="drawer-sub">{{ selectedRestaurant.owner_email }}</div>
                 </div>
               </div>
-              <button
-                class="modal-close-btn"
-                @click="selectedRestaurant = null"
-              >
-                ✕
-              </button>
+              <button class="icon-btn" @click="selectedRestaurant = null" aria-label="Close">✕</button>
             </div>
-            <div class="modal-body">
-              <div class="modal-section">
-                <div class="modal-section-title">
-                  {{ t.details || "Details" }}
+
+            <div class="drawer-body">
+              <div class="field-grid">
+                <div class="field">
+                  <span class="field-label">ID</span>
+                  <span class="field-value">#{{ selectedRestaurant.id }}</span>
                 </div>
-                <div class="detail-grid">
-                  <div class="detail-item">
-                    <span class="detail-label">ID</span>
-                    <span class="detail-value"
-                      >#{{ selectedRestaurant.id }}</span
-                    >
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">{{ t.restaurant_name }}</span>
-                    <span class="detail-value">{{
-                      selectedRestaurant.name
-                    }}</span>
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">Slug</span>
-                    <span class="detail-value"
-                      ><code class="cell-slug">{{
-                        selectedRestaurant.slug
-                      }}</code></span
-                    >
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">{{ t.owner }}</span>
-                    <span class="detail-value cell-email">{{
-                      selectedRestaurant.owner_email
-                    }}</span>
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">{{ t.language }}</span>
-                    <span class="detail-value">
-                      <span class="lang-badge">{{
-                        selectedRestaurant.default_language === "km"
-                          ? "ភាសាខ្មែរ"
-                          : "English"
-                      }}</span>
-                    </span>
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">{{ t.status }}</span>
-                    <span class="detail-value">
-                      <span
-                        :class="'status-badge ' + selectedRestaurant.status"
-                        >{{ selectedRestaurant.status }}</span
-                      >
-                    </span>
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">{{
-                      t.telegram_link_code || "Link Code"
-                    }}</span>
-                    <span class="detail-value"
-                      ><code class="cell-code">{{
-                        selectedRestaurant.telegram_link_code || "-"
-                      }}</code></span
-                    >
-                  </div>
-                  <div class="detail-item">
-                    <span class="detail-label">{{ t.created_at }}</span>
-                    <span class="detail-value cell-date">{{
-                      formatDate(selectedRestaurant.created_at)
-                    }}</span>
-                  </div>
+                <div class="field">
+                  <span class="field-label">{{ t.restaurant_name }}</span>
+                  <span class="field-value">{{ selectedRestaurant.name }}</span>
+                </div>
+                <div class="field">
+                  <span class="field-label">{{ t.status }}</span>
+                  <span class="status-dot" :class="'sd-' + selectedRestaurant.status">
+                    <i></i>{{ selectedRestaurant.status }}
+                  </span>
+                </div>
+                <div class="field">
+                  <span class="field-label">{{ t.telegram_link_code || "Link code" }}</span>
+                  <code class="code">{{ selectedRestaurant.telegram_link_code || "—" }}</code>
+                </div>
+                <div class="field">
+                  <span class="field-label">{{ t.created_at }}</span>
+                  <span class="field-value">{{ formatDate(selectedRestaurant.created_at) }}</span>
                 </div>
               </div>
-              <div class="modal-section">
-                <div class="modal-section-title">{{ t.actions }}</div>
-                <div class="modal-actions">
-                  <button
-                    class="modal-action-btn close-action"
-                    @click="selectedRestaurant = null"
-                  >
-                    {{ t.close }}
-                  </button>
-                </div>
+
+              <div class="drawer-actions">
+                <button class="btn btn-ghost" @click="selectedRestaurant = null">{{ t.close }}</button>
               </div>
             </div>
           </div>
@@ -491,7 +329,7 @@
       </Transition>
     </Teleport>
 
-    <!-- CONFIRM LOGOUT MODAL -->
+    <!-- CONFIRM LOGOUT (exact style from AdminView) -->
     <Teleport to="body">
       <Transition name="fade">
         <div
@@ -501,17 +339,11 @@
         >
           <div class="confirm-box pop-in">
             <div class="confirm-icon"><AppIcon name="lock" :size="36" /></div>
-            <div class="confirm-title">{{ t.logout }}</div>
-            <div class="confirm-text">
-              {{ t.confirm_logout || "Are you sure you want to logout?" }}
-            </div>
+            <div class="confirm-title confirm-title--blue">{{ t.logout }}</div>
+            <div class="confirm-name">{{ t.confirm_logout }}</div>
             <div class="confirm-btns">
-              <button class="confirm-cancel" @click="showLogoutModal = false">
-                {{ t.cancel }}
-              </button>
-              <button class="confirm-logout" @click="confirmLogout">
-                {{ t.logout }}
-              </button>
+              <button class="confirm-cancel" @click="showLogoutModal = false">{{ t.cancel }}</button>
+              <button class="confirm-logout" @click="confirmLogout">{{ t.logout }}</button>
             </div>
           </div>
         </div>
@@ -543,10 +375,11 @@ const stats = ref({
   totalFoods: 0,
 });
 
-// Modal state
+// Modal / drawer state
 const selectedUser = ref(null);
 const selectedRestaurant = ref(null);
 const showLogoutModal = ref(false);
+const mobileNavOpen = ref(false);
 
 onMounted(async () => {
   try {
@@ -567,6 +400,7 @@ async function fetchUsers() {
   try {
     const res = await axios.get(`${API_BASE}/api/admin/users`);
     users.value = res.data;
+    console.log("Fetched users:", users.value);
   } catch (err) {
     console.error(err);
   }
@@ -576,6 +410,7 @@ async function fetchRestaurants() {
   try {
     const res = await axios.get(`${API_BASE}/api/admin/restaurants`);
     restaurants.value = res.data;
+    console.log("Fetched restaurants:", restaurants.value);
   } catch (err) {
     console.error(err);
   }
@@ -611,6 +446,29 @@ function updateModalUserStatus(status) {
   }
 }
 
+async function verifyUserEmail(userId) {
+  try {
+    const res = await axios.post(`${API_BASE}/api/admin/users/${userId}/verify`);
+    if (selectedUser.value && selectedUser.value.id === userId) {
+      selectedUser.value.email_verified_at = new Date().toISOString();
+    }
+    const user = users.value.find(u => u.id === userId);
+    if (user) user.email_verified_at = new Date().toISOString();
+    alert(res.data.message || "Email verified successfully");
+  } catch (err) {
+    alert(err.response?.data?.error || t.error);
+  }
+}
+
+async function resendVerification(userId) {
+  try {
+    const res = await axios.post(`${API_BASE}/api/admin/users/${userId}/resend-verification`);
+    alert(res.data.message || "Verification email sent");
+  } catch (err) {
+    alert(err.response?.data?.error || t.error);
+  }
+}
+
 function formatDate(d) {
   return new Date(d).toLocaleDateString();
 }
@@ -622,554 +480,625 @@ function confirmLogout() {
 }
 </script>
 
+<style>
+:root {
+  /* Brand palette */
+  --teal: #0f766e;
+  --teal-dark: #0d5e57;
+  --green: #22c55e;
+  --green-soft: #86efac;
+  --amber: #f59e0b;
+  --amber-soft: #fbbf24;
+  --red: #c62828;
+  --red-deep: #b71c1c;
+  --blue: #2563eb;
+  --ink: #14532d;
+  --ink-light: #166534;
+  --muted: #6b7280;
+  --muted-light: #9ca3af;
+  --text: #374151;
+  --surface: #ffffff;
+  --surface-soft: #f8fdf9;
+  --surface-warm: #f0fdf4;
+  --border: #e2e8f0;
+  --border-light: #e6f3e8;
+}
+</style>
+
 <style scoped>
-/* ─── HEADER (matches AdminView) ─── */
-.header {
-  background: linear-gradient(135deg, #0f766e, #22c55e, #86efac);
-  padding: 36px 20px 32px;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-  min-height: 140px;
+/* ════════════════════════════════════════════════════════
+   SUPER ADMIN VIEW — Sidebar layout
+   Colors matched to AdminView brand (teal/green/amber)
+   ════════════════════════════════════════════════════════ */
+
+.shell {
+  display: grid;
+  grid-template-columns: 236px 1fr;
+  background: #f1f5f4;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+}
+
+/* ═══ SIDEBAR ═══ */
+.sidebar {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 100;
+}
+
+/* Brand area with gradient */
+.brand-area {
+  background: linear-gradient(135deg, #0f766e 0%, #166534 50%, #22c55e 100%);
+  padding: 24px 18px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 70px;
+  overflow: hidden;
+}
+.brand-glow {
+  position: absolute;
+  top: -40px;
+  right: -30px;
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+}
+.brand-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  z-index: 1;
+}
+.mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  object-fit: cover;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+}
+.brand-name {
+  font-family: "Hanuman", serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: white;
+  line-height: 1.3;
+}
+.brand-role {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 500;
+}
+
+/* Navigation */
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 10px;
+  flex: 1;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.15s;
+}
+.nav-item:hover {
+  background: var(--surface-warm);
+  color: var(--ink);
+}
+.nav-item.active {
+  background: var(--surface-warm);
+  color: var(--teal);
+  box-shadow: inset 3px 0 0 var(--teal);
+}
+
+/* Sidebar footer */
+.sidebar-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px 20px;
+  border-top: 1px solid var(--border);
+}
+.lang-btn {
+  padding: 9px 12px;
+  background: var(--surface-warm);
+  color: var(--ink);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.lang-btn:hover {
+  border-color: var(--green);
+  background: #dcfce7;
+}
+.logout-link {
+  display: flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
+  padding: 9px 12px;
+  background: #fef2f2;
+  border-color: #fecaca;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-family: inherit;
+  font-weight: 600;
+  color: var(--red);
+  cursor: pointer;
+  transition: all 0.15s;
 }
-.header::before {
-  content: "";
-  position: absolute;
-  width: 220px;
-  height: 220px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.06);
-  top: -60px;
-  right: -50px;
-  pointer-events: none;
+.logout-link:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
 }
-.header::after {
-  content: "";
-  position: absolute;
-  width: 140px;
-  height: 140px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.04);
-  bottom: -40px;
-  left: -30px;
-  pointer-events: none;
+
+/* ═══ MOBILE BAR / SCRIM ═══ */
+.mobile-bar { display: none; height: 70px;}
+.nav-scrim { display: none; }
+
+/* ═══ MAIN ═══ */
+.main {
+  padding: 28px 32px 60px;
+  max-width: 1200px;
+  width: 100%;
 }
-.header-content {
-  position: relative;
-  z-index: 2;
+.topbar {
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 2px solid var(--border-light);
+}
+.page-title {
+  font-family: "Hanuman", serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 10px;
 }
-.header-icon {
-  font-size: 28px;
-}
-.header-title {
-  font-family: "Hanuman", serif;
-  font-size: 20px;
-  font-weight: 700;
-  color: white;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-}
-.wave-divider {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 28px;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 4;
-}
-.wave-divider svg {
-  position: absolute;
-  bottom: 0;
-  width: 200%;
-  left: 0;
-  animation: waveDrift 8s linear infinite;
-}
-@keyframes waveDrift {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
-  }
+.page-sub {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin: 4px 0 0;
+  font-weight: 500;
 }
 
-/* ─── LEAVES & SPARKLES (matches AdminView) ─── */
-.leaf {
-  position: absolute;
-  opacity: 0;
-  animation: leafFall linear infinite;
-  pointer-events: none;
-  z-index: 3;
-  user-select: none;
-}
-.l1 {
-  left: 8%;
-  font-size: 26px;
-  animation-duration: 6s;
-  animation-delay: 0s;
-}
-.l2 {
-  left: 18%;
-  font-size: 18px;
-  animation-duration: 7.5s;
-  animation-delay: 1.2s;
-}
-.l3 {
-  left: 32%;
-  font-size: 20px;
-  animation-duration: 5.8s;
-  animation-delay: 2.5s;
-}
-.l4 {
-  left: 55%;
-  font-size: 14px;
-  animation-duration: 8s;
-  animation-delay: 0.6s;
-}
-.l5 {
-  left: 68%;
-  font-size: 22px;
-  animation-duration: 6.5s;
-  animation-delay: 3s;
-}
-.l6 {
-  left: 80%;
-  font-size: 16px;
-  animation-duration: 7s;
-  animation-delay: 1.8s;
-}
-.l7 {
-  left: 90%;
-  font-size: 20px;
-  animation-duration: 5.5s;
-  animation-delay: 4s;
-}
-.l8 {
-  left: 44%;
-  font-size: 12px;
-  animation-duration: 9s;
-  animation-delay: 0.3s;
-}
-@keyframes leafFall {
-  0% {
-    top: -5%;
-    opacity: 0;
-    transform: rotate(0deg) translateX(0);
-  }
-  8% {
-    opacity: 0.55;
-  }
-  85% {
-    opacity: 0.4;
-  }
-  100% {
-    top: 105%;
-    opacity: 0;
-    transform: rotate(360deg) translateX(24px);
-  }
-}
-.sparkle {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.7);
-  animation: sparklePop ease-in-out infinite;
-  pointer-events: none;
-  z-index: 3;
-}
-.s1 {
-  top: 20%;
-  left: 15%;
-  animation-duration: 2.4s;
-  animation-delay: 0s;
-}
-.s2 {
-  top: 60%;
-  left: 25%;
-  animation-duration: 3.1s;
-  animation-delay: 0.8s;
-}
-.s3 {
-  top: 30%;
-  left: 72%;
-  animation-duration: 2.8s;
-  animation-delay: 1.5s;
-}
-.s4 {
-  top: 70%;
-  left: 82%;
-  animation-duration: 2.2s;
-  animation-delay: 0.4s;
-}
-.s5 {
-  top: 50%;
-  left: 48%;
-  animation-duration: 3.5s;
-  animation-delay: 2.1s;
-}
-@keyframes sparklePop {
-  0%,
-  100% {
-    transform: scale(0);
-    opacity: 0;
-  }
-  40% {
-    transform: scale(1.6);
-    opacity: 1;
-  }
-  60% {
-    transform: scale(0.8);
-    opacity: 0.7;
-  }
-}
-
-/* ─── ADMIN BAR ─── */
-.admin-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 16px;
-  background: #fff3e0;
-  border-bottom: 2px solid #ffb74d;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.admin-bar-left {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.admin-bar-title {
-  font-family: "Hanuman", serif;
-  font-size: 15px;
-  font-weight: 700;
-  color: #14532d;
-}
-.admin-bar-right {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.lang-btn {
-  padding: 7px 14px;
-  background: var(--green-pale, #e8f5e9);
-  color: var(--green-dark, #1a4a1a);
-  border: 1.5px solid var(--green-soft, #c8e6c9);
-  border-radius: 20px;
-  font-size: 12px;
-  font-family: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-.lang-btn:hover {
-  background: var(--green-soft, #c8e6c9);
-  border-color: var(--green-mid, #2d7a2d);
-}
-.logout-btn {
-  padding: 7px 14px;
-  background: #fbe9e7;
-  color: #c62828;
-  border: 1.5px solid #ffccbc;
-  border-radius: 20px;
-  font-size: 12px;
-  font-family: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-.logout-btn:hover {
-  background: #c62828;
-  color: white;
-}
-
-/* ─── STATS ROW ─── */
-.stats-row {
+/* ═══ STATS GRID ═══ */
+.stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 12px;
-  padding: 16px;
-  max-width: 900px;
-  margin: 0 auto;
+  gap: 14px;
+  margin-bottom: 28px;
 }
-@media (max-width: 700px) {
-  .stats-row {
+/* Large tablets */
+@media (max-width: 1200px) {
+  .stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
+/* Tablets */
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
 .stat-card {
-  position: relative;
-  background: white;
-  border: 1.5px solid #e6f3e8;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
   overflow: hidden;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform 0.18s, box-shadow 0.18s;
 }
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 8px 24px rgba(20, 83, 45, 0.08);
 }
-.stat-card-bg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #0f766e, #22c55e, #86efac);
-  pointer-events: none;
-}
-.stat-card-content {
-  position: relative;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.stat-icon {
-  font-size: 24px;
-  width: 44px;
-  height: 44px;
+.stat-icon-wrap {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #f0fdf4;
-  border-radius: 12px;
   flex-shrink: 0;
 }
-.stat-info {
+.icon-teal { background: #ccfbf1; color: var(--teal); }
+.icon-amber { background: #fef3c7; color: var(--amber); }
+.icon-blue { background: #dbeafe; color: var(--blue); }
+.icon-green { background: #dcfce7; color: #166534; }
+
+.stat-body {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 .stat-num {
   font-family: "Hanuman", serif;
-  font-size: 24px;
+  font-size: 26px;
   font-weight: 700;
-  color: #14532d;
-  line-height: 1.2;
+  color: var(--ink);
+  line-height: 1.1;
 }
 .stat-label {
-  font-size: 11px;
-  color: #6b7280;
-  margin-top: 2px;
-  font-weight: 500;
-}
-
-/* ─── TABS ─── */
-.admin-tabs {
-  display: flex;
-  background: white;
-  border-bottom: 2px solid #c8e6c9;
-  padding: 0 16px;
-}
-.admin-tabs button {
-  padding: 12px 20px;
-  border: none;
-  background: none;
-  font-family: inherit;
-  font-size: 13px;
+  font-size: 11.5px;
+  color: var(--muted);
   font-weight: 600;
-  color: #6a8f6a;
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
 }
-.admin-tabs button.active {
-  color: #2d7a2d;
-  border-bottom-color: #2d7a2d;
+.stat-spark {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
 }
-.admin-tabs button:hover {
-  color: #2d7a2d;
-}
+.stat-spark.teal { background: linear-gradient(90deg, var(--teal), var(--green)); }
+.stat-spark.amber { background: linear-gradient(90deg, var(--amber), var(--amber-soft)); }
+.stat-spark.blue { background: linear-gradient(90deg, var(--blue), #93c5fd); }
+.stat-spark.green { background: linear-gradient(90deg, #166534, var(--green)); }
 
-/* ─── TABLE SECTION ─── */
-.table-section {
-  padding: 16px;
-  max-width: 1200px;
-  margin: 0 auto;
+/* ═══ PANEL / ROWS ═══ */
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
-.table-header {
+.panel-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-soft);
 }
-.table-header-title {
+.panel-title {
   font-family: "Hanuman", serif;
-  font-size: 15px;
+  font-size: 14.5px;
   font-weight: 700;
-  color: #14532d;
+  color: var(--ink);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
-.table-header-count {
-  font-size: 12px;
-  color: #6b7280;
-  background: #f0fdf4;
-  padding: 4px 12px;
-  border-radius: 999px;
+.panel-count {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: var(--teal);
+  background: var(--surface-warm);
   border: 1px solid #bbf7d0;
-}
-.table-wrap {
-  overflow-x: auto;
-  border-radius: 14px;
-  border: 1.5px solid #e6f3e8;
-  background: white;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.05);
-}
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 700px;
-}
-.table th {
-  padding: 12px 14px;
-  text-align: left;
-  font-size: 10px;
-  font-weight: 700;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  background: #f8fdf9;
-  border-bottom: 2px solid #e6f3e8;
-}
-.table td {
-  padding: 11px 14px;
-  font-size: 12px;
-  color: #374151;
-  border-bottom: 1px solid #f1f5f9;
-}
-.table tbody tr:last-child td {
-  border-bottom: none;
-}
-.table tbody tr:hover td {
-  background: #f0fdf4;
-}
-.clickable-row {
-  cursor: pointer;
-}
-.clickable-row:hover td {
-  background: #f0fdf4;
-}
-.cell-id {
-  font-weight: 600;
-  color: #14532d;
-  font-family: "Hanuman", serif;
-}
-.cell-email {
-  color: #0f766e;
-  font-weight: 500;
-}
-.cell-name {
-  font-weight: 600;
-  color: #14532d;
-}
-.cell-slug {
-  background: #f0fdf4;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 11px;
-  color: #166534;
-}
-.cell-code {
-  background: #fefce8;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 11px;
-  color: #92400e;
-  font-family: "Courier New", monospace;
-}
-.cell-date {
-  color: #6b7280;
-  font-size: 11px;
+  padding: 3px 12px;
+  border-radius: 999px;
 }
 
-/* ─── BADGES ─── */
-.role-badge {
-  display: inline-block;
+.rows { display: flex; flex-direction: column; }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+.row:last-child { border-bottom: none; }
+.row:hover { background: #f8fdfa; }
+
+.row-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 200px;
+  flex: 1 1 auto;
+}
+
+/* Avatar */
+.avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Hanuman", serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: white;
+  flex-shrink: 0;
+}
+.avatar-square { border-radius: 10px; }
+.avatar-lg { width: 46px; height: 46px; font-size: 16px; }
+.avatar-teal { background: linear-gradient(135deg, var(--teal), var(--green)); }
+.avatar-amber { background: linear-gradient(135deg, var(--amber), #f59e0b); }
+
+.row-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.row-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row-sub {
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.row-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  flex: 1 0 auto;
+  justify-content: flex-end;
+}
+.row-muted { font-size: 12px; color: var(--muted); white-space: nowrap; }
+
+.row-actions { flex-shrink: 0; }
+
+/* Tags */
+.tag {
+  font-size: 11px;
+  font-weight: 700;
   padding: 3px 10px;
   border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
 }
-.role-badge.super_admin {
-  background: #fef3c7;
+.tag-amber { background: #fef3c7; color: #92400e; }
+.tag-blue { background: #dbeafe; color: #1e40af; }
+.tag-teal { background: #ccfbf1; color: #0f766e; }
+
+/* Status dots */
+.status-dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+.status-dot i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+}
+.sd-active i { background: #16a34a; box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15); }
+.sd-suspended i { background: var(--red); }
+.sd-inactive i { background: var(--muted-light); }
+.sd-verified i { background: #16a34a; box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15); }
+.sd-pending i { background: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15); }
+
+/* Code */
+.code {
+  background: #fefce8;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
   color: #92400e;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  border: 1px solid #fde68a;
 }
-.role-badge.owner {
-  background: #dbeafe;
-  color: #1e40af;
-}
-.status-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.status-badge.active {
-  background: #dcfce7;
-  color: #166534;
-}
-.status-badge.suspended {
-  background: #fbe9e7;
-  color: #c62828;
-}
-.status-badge.inactive {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-.verify-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.verify-badge.verified {
-  background: #dcfce7;
-  color: #166534;
-}
-.verify-badge.not-verified {
-  background: #fef3c7;
-  color: #92400e;
-}
-.lang-badge {
-  display: inline-block;
-  padding: 3px 10px;
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  background: #f0fdf4;
-  color: #0f766e;
-  border: 1px solid #bbf7d0;
-}
-.status-select {
-  padding: 5px 10px;
-  border: 1.5px solid #d1fae5;
-  border-radius: 8px;
-  font-size: 11px;
+
+/* Select */
+.select {
+  padding: 7px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: 9px;
+  font-size: 12px;
   font-family: inherit;
-  color: #374151;
-  background: white;
+  color: var(--text);
+  background: var(--surface);
   outline: none;
   cursor: pointer;
-  transition: border-color 0.2s;
+  min-width: 100px;
+  transition: border-color 0.15s;
 }
-.status-select:focus {
-  border-color: #22c55e;
+.select:focus, .select:focus-visible { border-color: var(--green); box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12); }
+.select-block { width: 100%; }
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: 56px 20px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.empty p { margin: 0; font-size: 13.5px; }
+
+/* ═══ ICON BUTTONS ═══ */
+.icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--ink);
+  font-size: 14px;
+  transition: all 0.15s;
+  flex-shrink: 0;
+}
+.icon-btn:hover { background: var(--surface-warm); border-color: var(--green-soft); }
+
+/* ═══ DRAWER (detail panels) ═══ */
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 40, 30, 0.35);
+  z-index: 200;
+  display: flex;
+  justify-content: flex-end;
+}
+.drawer {
+  width: 100%;
+  max-width: 440px;
+  height: 100%;
+  background: var(--surface);
+  box-shadow: -18px 0 40px rgba(0, 0, 0, 0.12);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.drawer-overlay:active .drawer,
+.drawer:hover { box-shadow: -18px 0 50px rgba(0, 0, 0, 0.15); }
+
+.drawer-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 24px 22px 16px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-soft);
+}
+.drawer-id { display: flex; align-items: center; gap: 12px; }
+.drawer-title {
+  font-family: "Hanuman", serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.drawer-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+.drawer-body { padding: 22px 22px 30px; display: flex; flex-direction: column; gap: 24px; }
+
+/* Field grid */
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.field {
+  background: var(--surface-soft);
+  border-radius: 11px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.field-label {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--muted-light);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.field-value { font-size: 13px; font-weight: 600; color: var(--text); }
+
+/* Drawer actions */
+.drawer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.drawer-actions .btn {
+  flex: 1;
+  justify-content: center;
+  min-width: 120px;
 }
 
-/* ─── CONFIRM BOX (Logout Modal) ─── */
+/* Buttons */
+.btn {
+  padding: 9px 16px;
+  border: none;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn:hover { filter: brightness(0.95); }
+.btn:active { transform: scale(0.98); }
+.btn-ghost { background: var(--surface-warm); color: var(--ink); }
+.btn-ghost:hover { background: #dcfce7; }
+.btn-green { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+.btn-green:hover { background: #bbf7d0; }
+.btn-blue { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
+.btn-blue:hover { background: #bfdbfe; }
+/* ═══ CONFIRM MODAL (exact style from AdminView) ═══ */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
 .confirm-box {
   background: white;
   border-radius: 22px;
@@ -1189,11 +1118,13 @@ function confirmLogout() {
   color: #c62828;
   margin-bottom: 6px;
 }
-.confirm-text {
+.confirm-title--blue {
+  color: #b71c1c;
+}
+.confirm-name {
   font-size: 13px;
-  color: #3a5a3a;
+  color: var(--text);
   margin-bottom: 18px;
-  line-height: 1.5;
 }
 .confirm-btns {
   display: flex;
@@ -1218,7 +1149,7 @@ function confirmLogout() {
 .confirm-logout {
   flex: 1;
   padding: 11px;
-  background: #c62828;
+  background: #9f4040;
   color: white;
   border: none;
   border-radius: 10px;
@@ -1229,201 +1160,140 @@ function confirmLogout() {
   transition: background 0.2s;
 }
 .confirm-logout:hover {
-  background: #b71c1c;
+  background: #7a2a2a;
 }
 
-/* ─── EMPTY STATE ─── */
-.empty-state {
-  text-align: center;
-  padding: 50px 20px;
-  background: white;
-  border: 1.5px solid #e6f3e8;
-  border-radius: 14px;
-}
-.empty-icon {
-  font-size: 46px;
-  margin-bottom: 10px;
-}
-.empty-text {
-  font-size: 14px;
-  color: #6b7280;
+/* ═══ TRANSITIONS ═══ */
+.fade-enter-active, .fade-leave-active { transition: opacity 0.18s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }
+
+.drawer-enter-active, .drawer-leave-active { transition: opacity 0.2s ease; }
+.drawer-enter-from, .drawer-leave-to { opacity: 0; }
+
+.drawer { transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1); }
+.drawer-enter-from .drawer, .drawer-leave-to .drawer { transform: translateX(100%); }
+
+/* ═══ REDUCED MOTION ═══ */
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
 }
 
-/* ─── MODAL OVERLAY ─── */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 200;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-}
-.modal-card {
-  background: white;
-  border-radius: 22px;
-  width: 100%;
-  max-width: 500px;
-  max-height: 88vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-}
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 20px 22px 0;
-}
-.modal-header-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.modal-avatar {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #0f766e, #22c55e);
-  color: white;
-  font-size: 18px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  font-family: "Hanuman", serif;
-}
-.modal-avatar-restaurant {
-  font-size: 20px;
-  background: linear-gradient(135deg, #f59e0b, #fbbf24);
-}
-.modal-title {
-  font-family: "Hanuman", serif;
-  font-size: 17px;
-  font-weight: 700;
-  color: #14532d;
-}
-.modal-subtitle {
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: 2px;
-}
-.modal-close-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #e8f5e9;
-  border: none;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 700;
-  color: #1a4a1a;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-.modal-close-btn:hover {
-  background: #c8e6c9;
-}
-.modal-body {
-  padding: 18px 22px 22px;
-}
-.modal-section {
-  margin-bottom: 16px;
-}
-.modal-section:last-child {
-  margin-bottom: 0;
-}
-.modal-section-title {
-  font-size: 11px;
-  font-weight: 700;
-  color: #6b7280;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 10px;
-  padding-bottom: 6px;
-  border-bottom: 1.5px solid #e6f3e8;
-}
-.detail-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-@media (max-width: 420px) {
-  .detail-grid {
-    grid-template-columns: 1fr;
+/* ════════════════════════════════════════════════════════
+   RESPONSIVE — Tablet & Mobile
+   ════════════════════════════════════════════════════════ */
+
+/* Tablet: 900px and below */
+@media (max-width: 900px) {
+  .shell { grid-template-columns: 1fr; }
+
+  /* Mobile top bar */
+  .mobile-bar {
+    display: flex;
+    align-items: center;
+    height: 70px !important;
+    gap: 12px;
+    padding: 14px 16px;
+    background: linear-gradient(135deg, #0f766e, #166534);
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 90;
   }
-}
-.detail-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 8px 10px;
-  background: #f8fdf9;
-  border-radius: 10px;
-}
-.detail-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: #9ca3af;
-  text-transform: uppercase;
-  letter-spacing: 0.3px;
-}
-.detail-value {
-  font-size: 13px;
-  font-weight: 600;
-  color: #374151;
-}
-.modal-actions {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
-.modal-status-select {
-  flex: 1;
-  padding: 8px 12px;
-  font-size: 12px;
-}
-.modal-action-btn {
-  padding: 8px 18px;
-  border: none;
-  border-radius: 10px;
-  font-size: 12px;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.close-action {
-  background: #e8f5e9;
-  color: #1a4a1a;
-}
-.close-action:hover {
-  background: #c8e6c9;
+  .mobile-bar .icon-btn {
+    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+  }
+  .mobile-bar .icon-btn:hover { background: rgba(255, 255, 255, 0.2); }
+  .mobile-bar-title {
+    font-family: "Hanuman", serif;
+    font-weight: 700;
+    font-size: 14.5px;
+    color: white;
+    flex: 1;
+  }
+
+  /* Sidebar slides in from left */
+  .sidebar {
+    position: fixed;
+    left: -260px;
+    top: 0;
+    width: 236px;
+    z-index: 220;
+    transition: left 0.22s ease;
+    box-shadow: none;
+  }
+  .nav-open .sidebar { left: 0; box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15); }
+
+  .nav-open .nav-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 210;
+  }
+
+  /* Main content */
+  .main { padding: 20px 14px 48px; }
+
+  /* Stats: 2x2 grid */
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .stat-card { padding: 14px; }
+  .stat-icon-wrap { width: 36px; height: 36px; }
+  .stat-icon-wrap :deep(svg) { width: 18px; height: 18px; }
+  .stat-num { font-size: 22px; }
+  .stat-label { font-size: 10px; }
+
+  /* Row: stack vertically */
+  .row {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 16px;
+    gap: 10px;
+  }
+  .row-main { min-width: 0; }
+  .row-meta {
+    justify-content: flex-start;
+    gap: 8px;
+  }
+  .row-actions { width: 100%; }
+  .row-actions .select { width: 100%; }
+
+  /* Drawer: full width on mobile */
+  .drawer { max-width: 100%; }
+  .field-grid { grid-template-columns: 1fr; }
+  .drawer-actions .btn { min-width: 0; }
 }
 
-/* ─── TRANSITIONS ─── */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-.pop-in {
-  animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes popIn {
-  from {
-    transform: scale(0.85);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+/* Small phone: 480px and below */
+@media (max-width: 480px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .stat-card { padding: 12px; gap: 10px; }
+  .stat-icon-wrap { width: 32px; height: 32px; border-radius: 10px; }
+  .stat-icon-wrap :deep(svg) { width: 16px; height: 16px; }
+  .stat-num { font-size: 20px; }
+
+  .panel-head { padding: 14px 14px; }
+  .panel-head .panel-title { font-size: 13px; }
+
+  .row { padding: 12px 14px; }
+  .row-title { font-size: 12.5px; }
+  .row-sub { font-size: 11px; }
+  .row-meta { font-size: 11px; gap: 6px; }
+
+  .row-meta .tag { font-size: 10px; padding: 2px 8px; }
+  .row-meta .status-dot { font-size: 10.5px; }
+
+  .avatar { width: 32px; height: 32px; font-size: 12px; }
+  .avatar-lg { width: 40px; height: 40px; font-size: 14px; }
+
+  .drawer-head { padding: 18px 16px 14px; }
+  .drawer-body { padding: 16px 16px 24px; gap: 18px; }
+
+  .topbar { margin-bottom: 16px; padding-bottom: 12px; }
+  .page-title { font-size: 18px; }
+  .page-sub { font-size: 11.5px; }
+
+  .confirm-box { max-width: 280px; padding: 24px 18px; }
 }
 </style>

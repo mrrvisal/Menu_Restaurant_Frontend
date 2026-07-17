@@ -80,7 +80,7 @@ async function submit() {
 
     const data = await auth.register(fd);
     successMsg.value = data.message || i18n.t.success;
-    setTimeout(() => router.push("/dashboard"), 2000);
+    setTimeout(() => router.push(`/verify-email?email=${encodeURIComponent(form.email.trim())}`), 2000);
   } catch (err) {
     errorMsg.value = err.response?.data?.error || err.message || i18n.t.error;
   } finally {
@@ -92,14 +92,17 @@ async function submit() {
 <style scoped>
 .page { min-height: 100vh; background: linear-gradient(135deg, #f0fdf4, #dcfce7); display: flex; align-items: center; justify-content: center; padding: 20px; }
 .card { background: white; border-radius: 22px; width: 100%; max-width: 500px; padding: 36px 28px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
+@media (max-width: 480px) { .card { padding: 28px 20px; } }
 .icon { font-size: 48px; margin-bottom: 8px; }
 .title { font-family: "Hanuman", serif; font-size: 20px; font-weight: 700; color: #14532d; margin-bottom: 20px; }
+@media (max-width: 480px) { .title { font-size: 17px; } }
 .section-title { font-family: "Hanuman", serif; font-size: 13px; font-weight: 700; color: #0f766e; text-align: left; margin: 16px 0 10px; padding-bottom: 6px; border-bottom: 1.5px solid #e8f5e9; }
 .form-group { margin-bottom: 12px; text-align: left; }
 .form-group label { font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 5px; display: block; }
 .input { width: 100%; padding: 10px 12px; border: 1.5px solid #bbf7d0; border-radius: 10px; font-size: 13px; font-family: inherit; outline: none; box-sizing: border-box; background: white; }
 .input:focus { border-color: #4ade80; }
 .btn { width: 100%; padding: 13px; background: linear-gradient(135deg, #0f766e, #22c55e); color: white; border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+@media (max-width: 480px) { .btn { padding: 11px; font-size: 14px; } }
 .btn:disabled { background: #9e9e9e; cursor: not-allowed; }
 .error-msg { background: #fbe9e7; border: 1.5px solid #ffccbc; border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #c62828; margin-bottom: 12px; }
 .success-msg { background: #e8f5e9; border: 1.5px solid #a5d6a7; border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #2d7a2d; margin-bottom: 12px; }

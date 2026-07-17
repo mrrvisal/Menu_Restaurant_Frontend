@@ -24,6 +24,7 @@ export const useAuthStore = defineStore("auth", () => {
   const restaurant = ref(savedRestaurant);
 
   const isLoggedIn = computed(() => !!token.value);
+  const isEmailVerified = computed(() => user.value?.emailVerified === true);
   const isOwner = computed(() => user.value?.role === "owner");
   const isSuperAdmin = computed(() => user.value?.role === "super_admin");
   const restaurantId = computed(() => restaurant.value?.id || null);
@@ -82,7 +83,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   return {
     token, user, restaurant,
-    isLoggedIn, isOwner, isSuperAdmin,
+    isLoggedIn, isEmailVerified, isOwner, isSuperAdmin,
     restaurantId, restaurantSlug,
     linkCode, telegramChatId, isTelegramLinked, defaultLanguage,
     login, register, logout, restoreToken, saveToStorage,

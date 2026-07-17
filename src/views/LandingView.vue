@@ -1412,7 +1412,7 @@ onUnmounted(() => {
 .footer {
   position: relative;
   padding: 50px 24px 24px;
-  background: linear-gradient(135deg, #0f766e 0%, #22c55e 50%, #16a34a 100%);
+  background: #166534;
   overflow: hidden;
 }
 .footer-bg-overlay {

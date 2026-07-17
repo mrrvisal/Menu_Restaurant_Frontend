@@ -68,6 +68,11 @@ router.beforeEach((to, from, next) => {
     return next("/login");
   }
 
+  // Block unverified users from accessing protected pages
+  if (to.meta.requiresAuth && auth.isLoggedIn && !auth.isEmailVerified) {
+    return next(`/verify-email?email=${encodeURIComponent(auth.user?.email || "")}`);
+  }
+
   if (to.meta.requiresSuperAdmin && !auth.isSuperAdmin) {
     return next("/admin");
   }

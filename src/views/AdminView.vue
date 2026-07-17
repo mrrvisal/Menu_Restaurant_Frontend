@@ -1,722 +1,337 @@
-<!-- frontend/src/views/AdminView.vue -->
+<!-- ═══════════════════════════════════════════════════════════
+   AdminView — v3.3 Fully Responsive
+   Fix: Complete responsive redesign
+   ═══════════════════════════════════════════════════════════ -->
 <template>
-  <div>
-    <!-- HEADER -->
-    <div class="header">
-      <div class="header-bg-overlay"></div>
-      <div class="header-bg-pattern"></div>
-      <div class="header-content">
-        <div class="header-logo-ring">
-          <img
-            :src="restaurantLogo"
-            class="header-logo"
-            alt="restaurant logo"
-          />
-        </div>
-        <div class="header-text">
-          <div class="header-restaurant-name">
-            {{ auth.restaurant?.name || "ភោជនីយដ្ឋាន" }}
+  <div class="root" :class="{ 'nav-open': showMobile }">
+
+    <!-- ─── MOBILE BAR ─── -->
+    <header class="mob">
+      <div class="mob-info">
+        <div class="mob-av"><img :src="restaurantLogo" alt="" /></div>
+        <span class="mob-label">{{ auth.restaurant?.name || 'ភោជនីយដ្ឋាន' }}</span>
+      </div>
+      <button class="mob-btn" @click="showMobile = !showMobile" aria-label="Menu" :aria-expanded="showMobile" aria-controls="admin-sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </button>
+    </header>
+
+    <!-- ─── SIDEBAR ─── -->
+    <aside class="side" id="admin-sidebar">
+      <div class="side-top">
+        <div class="side-brand">
+          <div class="side-icon"><img :src="restaurantLogo" alt="" /></div>
+          <div class="side-meta">
+            <span class="side-name">{{ auth.restaurant?.name || 'ភោជនីយដ្ឋាន' }}</span>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- ADMIN BAR -->
-    <div class="admin-bar">
-      <div class="admin-actions">
-        <button class="admin-add-btn" @click="openAdd">
-          <AppIcon name="add" :size="16" /> {{ i18n.t.add_food }}
+      <nav class="side-nav">
+        <button class="nav-i" :class="{ active: adminTab === 'foods' }" @click="adminTab = 'foods'; showMobile = false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 11h18M3 11v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8M3 11V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4"/></svg>
+          <span>{{ i18n.t.foods }}</span>
         </button>
-        <div class="admin-right">
-          <button class="lang-btn" @click="i18n.toggleLocale">
-            {{ i18n.locale === "km" ? "English" : "ភាសាខ្មែរ" }}
+        <button class="nav-i" :class="{ active: adminTab === 'categories' }" @click="adminTab = 'categories'; showMobile = false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z"/></svg>
+          <span>{{ i18n.t.categories }}</span>
+        </button>
+        <button class="nav-i" :class="{ active: adminTab === 'orders' }" @click="adminTab = 'orders'; fetchOrders(); showMobile = false">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+          <span>{{ i18n.t.orders }}</span>
+          <span v-if="orders.length" class="nav-badge">{{ orders.length }}</span>
+        </button>
+      </nav>
+
+      <div class="side-foot">
+        <button class="lang" @click="i18n.toggleLocale">{{ i18n.locale === 'km' ? 'EN' : 'ខ្មែរ' }}</button>
+        <button class="logout" @click="loggingOut = true">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          {{ i18n.t.logout }}
+        </button>
+      </div>
+    </aside>
+    <div class="scrim" @click="showMobile = false"></div>
+
+    <!-- ─── MAIN ─── -->
+    <main class="main">
+
+      <!-- Header -->
+      <div class="hdr">
+        <div class="hdr-l">
+          <h1 class="hdr-title">{{ adminTab === 'foods' ? i18n.t.foods : adminTab === 'categories' ? i18n.t.categories : i18n.t.orders }}</h1>
+        </div>
+        <div class="hdr-r">
+          <button class="ac ac-ghost ac-icon-only" @click="openQR" :title="i18n.t.generate_qr">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+            <span class="hdr-hide">{{ i18n.t.generate_qr }}</span>
           </button>
-          <button class="admin-add-cat-btn" @click="openCatForm()">
-            <AppIcon name="category" :size="16" /> {{ i18n.t.add_category }}
+          <button class="ac ac-ghost ac-icon-only" @click="openTelegramSettings()" :title="i18n.t.telegram">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m21 4-4.5 16-5.2-5.1L7 19l1.2-6L3 10.8 21 4Z"/></svg>
+            <span v-if="!isLinked" class="hdr-dot"></span>
+            <span class="hdr-hide">{{ i18n.t.telegram }}</span>
           </button>
-          <button class="admin-qr-btn" @click="showQR = true">
-            <AppIcon name="qr" :size="16" /> {{ i18n.t.generate_qr }}
+          <button class="ac ac-primary" @click="openPreview">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+            <span class="hdr-hide">{{ i18n.t.owner_preview }}</span>
           </button>
-          <button class="admin-profile-btn" @click="openProfile">
-            <AppIcon name="user" :size="16" /> {{ i18n.t.profile || "Profile" }}
-          </button>
-          <button
-            class="admin-telegram-btn"
-            @click="openTelegramSettings()"
-          >
-            <AppIcon name="telegram" :size="16" /> {{ i18n.t.telegram }}
-          </button>
-          <button class="admin-logout-btn" @click="loggingOut = true">
-            <AppIcon name="lock" :size="16" /> {{ i18n.t.logout }}
+          <button class="ac ac-primary ac-avatar" @click="openProfile" :title="i18n.t.profile">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           </button>
         </div>
       </div>
-    </div>
 
-    <!-- PREVIEW + DASHBOARD SUMMARY -->
-    <div class="dashboard-summary">
-      <div class="summary-card preview-card">
-        <div class="preview-card-glow"></div>
-        <div class="preview-card-bg-pattern">
-          <span class="pattern-dot"></span>
-          <span class="pattern-dot"></span>
-          <span class="pattern-dot"></span>
-          <span class="pattern-dot"></span>
-          <span class="pattern-dot"></span>
-          <span class="pattern-dot"></span>
-          <span class="pattern-dot"></span>
-          <span class="pattern-dot"></span>
-          <span class="pattern-dot"></span>
-          <span class="pattern-dot"></span>
-          <span class="pattern-dot"></span>
-          <span class="pattern-dot"></span>
-        </div>
-        <div class="summary-card-content">
-          <div class="preview-card-header">
-            <div class="preview-card-header-left">
-              <div class="preview-icon-wrapper">
-                <AppIcon name="eye" :size="30" />
-              </div>
-              <div>
-                <div class="summary-card-title">{{ i18n.t.owner_preview }}</div>
-                <p class="summary-card-subtitle">
-                  {{ i18n.t.guest_menu_experience }}
-                </p>
-              </div>
-            </div>
-            <span class="preview-live-badge">
-              <span class="live-dot"></span>
-              {{ i18n.t.live }}
-            </span>
+      <!-- Metrics -->
+      <div class="metrics">
+        <div class="metric metric-teal">
+          <div class="metric-icon mi-teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></svg></div>
+          <div class="metric-b">
+            <span class="metric-v">{{ Number(stats.totalRevenue || 0).toLocaleString() }}៛</span>
+            <span class="metric-l">{{ i18n.t.revenue }}</span>
           </div>
-          <p class="summary-card-text">
-            {{ i18n.t.preview_desc }}
-          </p>
-          <div class="preview-actions">
-            <div class="preview-url-box">
-              <span class="preview-url-icon">🔗</span>
-              <span class="preview-url-text">{{
-                previewMenuUrl !== "#"
-                  ? previewMenuUrl.slice(0, 40) + "..."
-                  : i18n.t.menu_url
-              }}</span>
-            </div>
-            <div class="summary-actions">
-              <button class="copy-btn" @click="copyPreviewLink">
-                <span class="btn-icon">{{
-                  previewLinkCopied ? "✅" : "📋"
-                }}</span>
-                <span>{{
-                  previewLinkCopied ? i18n.t.copied : i18n.t.copy_link
-                }}</span>
+          <div class="metric-glow"></div>
+        </div>
+        <div class="metric metric-green">
+          <div class="metric-icon mi-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></div>
+          <div class="metric-b">
+            <span class="metric-v">{{ stats.totalOrders || 0 }}</span>
+            <span class="metric-l">{{ i18n.t.orders }}</span>
+          </div>
+          <div class="metric-glow"></div>
+        </div>
+        <div class="metric metric-amber">
+          <div class="metric-icon mi-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+          <div class="metric-b">
+            <span class="metric-v">{{ foods.foods.length }}</span>
+            <span class="metric-l">{{ i18n.t.foods }}</span>
+          </div>
+          <div class="metric-glow"></div>
+        </div>
+      </div>
+
+      <!-- ──────── FOODS ──────── -->
+      <template v-if="adminTab === 'foods'">
+        <div class="bar">
+          <div class="bar-scroll">
+            <button v-for="cat in foods.categories" :key="cat.id" class="chip" :class="{ active: curCat === cat.id }" @click="curCat = cat.id; load()">{{ cat.label_km }}</button>
+          </div>
+          <div class="bar-acts">
+            <div class="srch">
+              <svg class="srch-i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input v-model="searchQ" :placeholder="i18n.t.search" @input="load()" />
+              <button v-if="searchQ" class="srch-x" aria-label="Clear search" @click="searchQ = ''; load()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
-              <button class="open-btn" @click="openPreview">
-                <span class="btn-icon">🚀</span>
-                <span>{{ i18n.t.open_menu }}</span>
-              </button>
             </div>
+            <button class="ac ac-primary" @click="openAdd">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+              <span class="btn-text">{{ i18n.t.add_food }}</span>
+            </button>
           </div>
         </div>
-      </div>
-      <div class="summary-card stats-card">
-        <div class="summary-card-bg"></div>
-        <div class="summary-card-content">
-          <div class="summary-card-top">
-            <AppIcon name="chart" :size="22" class="summary-card-icon" />
-            <span class="stats-period-badge">{{ i18n.t.today }}</span>
-          </div>
-          <div class="summary-card-title">{{ i18n.t.daily_revenue }}</div>
-          <div class="stats-values">
-            <div class="stats-item stats-item-revenue">
-              <div class="stats-number">
-                {{ Number(stats.totalRevenue || 0).toLocaleString() }}
-                <span class="stats-currency">៛</span>
-              </div>
-              <div class="stats-label">
-                <span class="stats-dot revenue-dot"></span>
-                {{ i18n.t.revenue }}
-              </div>
-            </div>
-            <div class="stats-divider"></div>
-            <div class="stats-item stats-item-orders">
-              <div class="stats-number">{{ stats.totalOrders || 0 }}</div>
-              <div class="stats-label">
-                <span class="stats-dot orders-dot"></span>
-                {{ i18n.t.orders }}
-              </div>
-            </div>
-          </div>
-          <div class="stats-filter">
-            <div class="stats-filter-group">
-              <label class="stats-filter-label">{{ i18n.t.from }}</label>
-              <input
-                type="date"
-                v-model="statsStartDate"
-                @change="fetchStats"
-              />
-            </div>
-            <div class="stats-filter-arrow">→</div>
-            <div class="stats-filter-group">
-              <label class="stats-filter-label">{{ i18n.t.to }}</label>
-              <input type="date" v-model="statsEndDate" @change="fetchStats" />
-            </div>
-          </div>
-          <div v-if="statsLoading" class="stats-loading">
-            <span class="stats-spinner"></span>
-            Loading...
-          </div>
-          <div v-else-if="statsError" class="stats-error">{{ statsError }}</div>
-        </div>
-      </div>
-    </div>
 
-    <!-- TABS: FOODS / CATEGORIES / ORDERS -->
-    <div class="admin-tabs">
-      <button
-        class="admin-tab"
-        :class="{ active: adminTab === 'foods' }"
-        @click="adminTab = 'foods'"
-      >
-        <AppIcon name="food" :size="16" /> ម្ហូប
-      </button>
-      <button
-        class="admin-tab"
-        :class="{ active: adminTab === 'categories' }"
-        @click="adminTab = 'categories'"
-      >
-        <AppIcon name="category" :size="16" /> ប្រភេទ
-      </button>
-      <button
-        class="admin-tab"
-        :class="{ active: adminTab === 'orders' }"
-        @click="
-          adminTab = 'orders';
-          fetchOrders();
-        "
-      >
-        <AppIcon name="clipboard" :size="16" /> ការកម្មង់
-      </button>
-    </div>
-
-    <!-- ─── FOODS MANAGEMENT ─── -->
-    <div v-if="adminTab === 'foods'">
-      <!-- TABS -->
-      <div class="tabs-wrap">
-        <div class="tabs">
-          <button
-            v-for="cat in foods.categories"
-            :key="cat.id"
-            class="tab"
-            :class="{ active: curCat === cat.id }"
-            @click="
-              curCat = cat.id;
-              load();
-            "
-          >
-            {{ cat.label_km }}
-          </button>
-        </div>
-      </div>
-
-      <!-- SEARCH -->
-      <div class="search-bar">
-        <div class="search-wrap">
-          <AppIcon name="search" :size="18" class="search-icon" />
-          <input
-            v-model="searchQ"
-            placeholder="ស្វែងរកម្ហូប..."
-            @input="load()"
-          />
-        </div>
-      </div>
-
-      <!-- GRID -->
-      <div class="menu-section">
-        <div v-if="foods.loading" class="empty">
-          <div class="empty-icon"><AppIcon name="clock" :size="40" /></div>
-          Loading...
-        </div>
+        <div v-if="foods.loading" class="empty"><div class="spinner"></div><p>{{ i18n.t.loading }}</p></div>
         <div v-else-if="!foods.foods.length" class="empty">
-          <div class="empty-icon"><AppIcon name="search" :size="40" /></div>
-          រកមិនឃើញ
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity=".3"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <p>{{ searchQ ? 'រកមិនឃើញ' : i18n.t.no_data }}</p>
+          <button v-if="!searchQ" class="ac ac-primary" @click="openAdd">{{ i18n.t.add_food }}</button>
         </div>
-        <div v-else class="food-grid">
-          <FoodCard
-            v-for="food in foods.foods"
-            :key="food.id"
-            :food="food"
-            is-admin
-            @delete="confirmDel($event)"
-            @toggle-status="foods.toggleStatus($event)"
-            @detail="
-              editingFood = $event;
-              showForm = true;
-            "
-          />
+        <div v-else class="grid">
+          <FoodCard v-for="food in foods.foods" :key="food.id" :food="food" is-admin
+            @delete="confirmDel($event)" @toggle-status="foods.toggleStatus($event)"
+            @detail="editingFood = $event; showForm = true" />
         </div>
-      </div>
-    </div>
+      </template>
 
-    <!-- ─── CATEGORIES MANAGEMENT ─── -->
-    <div v-else-if="adminTab === 'categories'" class="cat-mgmt-section">
-      <div class="cat-mgmt-header">
-        <span><AppIcon name="category" :size="18" /> គ្រប់គ្រងប្រភេទម្ហូប</span>
-        <button class="cat-mgmt-add-btn" @click="openCatForm()">
-          <AppIcon name="add" :size="14" /> បន្ថែម
-        </button>
-      </div>
-
-      <div v-if="!foods.categories.length" class="empty">
-        <div class="empty-icon"><AppIcon name="category" :size="40" /></div>
-        មិនទាន់មានប្រភេទទេ
-      </div>
-
-      <div v-else class="cat-list">
-        <div v-for="cat in foods.categories" :key="cat.id" class="cat-item">
-          <div class="cat-item-info">
-            <div class="cat-item-name">{{ cat.label_km }}</div>
+      <!-- ──────── CATEGORIES ──────── -->
+      <template v-if="adminTab === 'categories'">
+        <div class="bar"><div class="bar-acts"><button class="ac ac-primary" @click="openCatForm()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg> {{ i18n.t.add_category }}</button></div></div>
+        <div v-if="!foods.categories.length" class="empty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity=".3"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z"/></svg>
+          <p>{{ i18n.t.no_data }}</p>
+        </div>
+        <div v-else class="cat-grid">
+          <div v-for="cat in foods.categories" :key="cat.id" class="cat-c">
+            <span class="cat-n">{{ cat.label_km }}</span>
+            <div class="cat-acts">
+              <button class="ic ic-sm" aria-label="Edit category" @click="openCatForm(cat)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              </button>
+              <button class="ic ic-sm ic-red" aria-label="Delete category" @click="confirmDelCat(cat)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
           </div>
-          <div class="cat-item-right">
-            <button class="cat-item-edit" @click="openCatForm(cat)">
-              <AppIcon name="edit" :size="16" />
-            </button>
-            <button class="cat-item-del" @click="confirmDelCat(cat)">
-              <AppIcon name="trash" :size="16" />
+        </div>
+      </template>
+
+      <!-- ──────── ORDERS ──────── -->
+      <template v-if="adminTab === 'orders'">
+        <div class="bar">
+          <div class="bar-acts">
+            <span class="bar-count">{{ orders.length }} {{ i18n.t.orders }}</span>
+            <button class="ac ac-ghost" :disabled="ordersLoading" @click="fetchOrders">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              {{ ordersLoading ? i18n.t.loading : i18n.t.refresh || 'Refresh' }}
             </button>
           </div>
         </div>
-      </div>
-    </div>
-
-    <!-- ─── ORDERS MANAGEMENT ─── -->
-    <div v-else class="orders-section">
-      <div class="orders-header">
-        <span><AppIcon name="clipboard" :size="18" /> ការកម្មង់ថ្មីៗ</span>
-      </div>
-
-      <div v-if="ordersLoading" class="empty">
-        <div class="empty-icon"><AppIcon name="clock" :size="40" /></div>
-        Loading...
-      </div>
-
-      <div v-else-if="!orders.length" class="empty">
-        <div class="empty-icon"><AppIcon name="clipboard" :size="40" /></div>
-        មិនទាន់មានការកម្មង់ទេ
-      </div>
-
-      <div v-else class="orders-list">
-        <div v-for="order in orders" :key="order.id" class="order-card">
-          <div class="order-header">
-            <span class="order-id">#{{ order.id }}</span>
-            <span class="order-table"
-              ><AppIcon name="table" :size="14" /> តុ {{ order.table_no }}</span
-            >
-          </div>
-          <div class="order-time">{{ formatDate(order.created_at) }}</div>
-          <div class="order-items">
-            <div
-              v-for="(item, idx) in parseItems(order.items)"
-              :key="idx"
-              class="order-item"
-            >
-              <span>{{ item.name }}</span>
-              <span
-                >{{ item.qty }} ×
-                {{ Number(item.price).toLocaleString() }}៛</span
-              >
+        <div v-if="ordersLoading" class="empty"><div class="spinner"></div><p>{{ i18n.t.loading }}</p></div>
+        <div v-else-if="!orders.length" class="empty">
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity=".3"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+          <p>{{ i18n.t.no_data }}</p>
+        </div>
+        <div v-else class="order-grid">
+          <div v-for="order in orders" :key="order.id" class="order-c">
+            <div class="order-h">
+              <div class="order-hl">
+                <span class="order-id">#{{ order.id }}</span>
+                <span class="order-t"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="9"/></svg> {{ i18n.t.table }} {{ order.table_no }}</span>
+              </div>
+              <div class="order-m">
+                <span class="order-time">{{ formatDate(order.created_at) }}</span>
+              </div>
             </div>
+            <div class="order-items">
+              <div v-for="(item, idx) in parseItems(order.items)" :key="idx" class="order-i">
+                <span>{{ item.name }}</span>
+                <span class="order-p">{{ item.qty }} × {{ Number(item.price).toLocaleString() }}៛</span>
+              </div>
+            </div>
+            <div v-if="order.note" class="order-n"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> {{ order.note }}</div>
+            <div class="order-total">{{ i18n.t.total }}: <strong>{{ Number(order.total).toLocaleString() }}៛</strong></div>
           </div>
-          <div v-if="order.note" class="order-note">
-            <AppIcon name="note" :size="14" /> {{ order.note }}
-          </div>
-          <div class="order-total">
-            <AppIcon name="money" :size="14" /> សរុប:
-            {{ Number(order.total).toLocaleString() }}៛
-          </div>
+        </div>
+      </template>
+    </main>
+
+    <!-- ═══════ MODALS ═══════ -->
+
+    <FoodFormModal :show="showForm" :edit-food="editingFood" :categories="foods.categories"
+      @close="showForm = false; editingFood = null" @saved="load()" />
+
+    <!-- Delete Food -->
+    <Teleport to="body"><Transition name="fade">
+      <div v-if="deletingFood" class="overlay" @click.self="deletingFood = null">
+        <div class="dlg"><div class="dlg-i"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+          <div class="dlg-t">លុបម្ហូបនេះ?</div>
+          <div class="dlg-d">{{ deletingFood.name }}</div>
+          <div class="dlg-acts"><button class="btn btn-g" @click="deletingFood = null">{{ i18n.t.cancel }}</button><button class="btn btn-r" @click="doDelete">{{ i18n.t.delete }}</button></div>
         </div>
       </div>
-    </div>
+    </Transition></Teleport>
 
-    <!-- FOOD FORM MODAL -->
-    <FoodFormModal
-      :show="showForm"
-      :edit-food="editingFood"
-      :categories="foods.categories"
-      @close="
-        showForm = false;
-        editingFood = null;
-      "
-      @saved="load()"
-    />
+    <!-- Delete Category -->
+    <Teleport to="body"><Transition name="fade">
+      <div v-if="deletingCat" class="overlay" @click.self="deletingCat = null">
+        <div class="dlg"><div class="dlg-i"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div>
+          <div class="dlg-t">លុបប្រភេទនេះ?</div>
+          <div class="dlg-d">{{ deletingCat.label_km }}</div>
+          <div class="dlg-acts"><button class="btn btn-g" @click="deletingCat = null">{{ i18n.t.cancel }}</button><button class="btn btn-r" @click="doDeleteCat">{{ i18n.t.delete }}</button></div>
+        </div>
+      </div>
+    </Transition></Teleport>
 
-    <!-- CONFIRM DELETE FOOD -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="deletingFood"
-          class="modal-overlay"
-          @click.self="deletingFood = null"
-        >
-          <div class="confirm-box pop-in">
-            <div class="confirm-icon"><AppIcon name="trash" :size="36" /></div>
-            <div class="confirm-title">លុបម្ហូបនេះ?</div>
-            <div class="confirm-name">{{ deletingFood.name }}</div>
-            <div class="confirm-btns">
-              <button class="confirm-cancel" @click="deletingFood = null">
-                បោះបង់
-              </button>
-              <button class="confirm-delete" @click="doDelete">លុប</button>
-            </div>
+    <!-- Logout -->
+    <Teleport to="body"><Transition name="fade">
+      <div v-if="loggingOut" class="overlay" @click.self="loggingOut = false">
+        <div class="dlg"><div class="dlg-i dlg-i-r"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <div class="dlg-t">{{ i18n.t.logout }}</div>
+          <div class="dlg-d">{{ i18n.t.confirm_logout }}</div>
+          <div class="dlg-acts"><button class="btn btn-g" @click="loggingOut = false">{{ i18n.t.cancel }}</button><button class="btn btn-r" @click="confirmLogout">{{ i18n.t.logout }}</button></div>
+        </div>
+      </div>
+    </Transition></Teleport>
+
+    <!-- QR -->
+    <Teleport to="body"><Transition name="fade">
+      <div v-if="showQR" class="overlay" @click.self="showQR = false">
+        <div class="sheet">
+          <div class="sheet-h"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg> {{ i18n.t.generate_qr }}</span><button class="ic" aria-label="Close" @click="showQR = false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+          <div class="sheet-b">
+            <div class="qr-r"><input v-model="qrTableNumber" type="number" min="1" :placeholder="i18n.t.table_no" class="qr-inp" @keyup.enter="generateQR" /><button class="btn btn-primary" :disabled="qrLoading" @click="generateQR">{{ qrLoading ? '' : i18n.t.generate || 'Generate' }}</button></div>
+            <div v-if="qrError" class="msg msg-e"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg> {{ qrError }}</div>
+            <div v-if="qrCodeDataUrl" class="qr-p"><img :src="qrCodeDataUrl" :alt="'QR ' + qrTableNumber" /><span class="qr-l">{{ i18n.t.table }} {{ qrTableNumber }}</span><a :href="qrDownloadUrl" download class="btn btn-primary">{{ i18n.t.download_qr || 'Download' }}</a></div>
           </div>
         </div>
-      </Transition>
-    </Teleport>
+      </div>
+    </Transition></Teleport>
 
-    <!-- CONFIRM DELETE CATEGORY -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="deletingCat"
-          class="modal-overlay"
-          @click.self="deletingCat = null"
-        >
-          <div class="confirm-box pop-in">
-            <div class="confirm-icon"><AppIcon name="trash" :size="36" /></div>
-            <div class="confirm-title">លុបប្រភេទនេះ?</div>
-            <div class="confirm-name">{{ deletingCat.label_km }}</div>
-            <div class="confirm-btns">
-              <button class="confirm-cancel" @click="deletingCat = null">
-                បោះបង់
-              </button>
-              <button class="confirm-delete" @click="doDeleteCat">លុប</button>
-            </div>
+    <!-- Telegram -->
+    <Teleport to="body"><Transition name="fade">
+      <div v-if="showTelegramSettings" class="overlay" @click.self="showTelegramSettings = false">
+        <div class="sheet">
+          <div class="sheet-h"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m21 4-4.5 16-5.2-5.1L7 19l1.2-6L3 10.8 21 4Z"/></svg> {{ i18n.t.telegram_settings }}</span><button class="ic" aria-label="Close" @click="showTelegramSettings = false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+          <div class="sheet-b">
+            <div v-if="tgSuccess" class="msg msg-s">{{ tgSuccess }}</div>
+            <div v-if="tgError" class="msg msg-e">{{ tgError }}</div>
+            <div class="tg-c"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> {{ i18n.t.connect_telegram }}<br/></div>
+            <div class="tg-code"><span class="tg-lbl">{{ i18n.t.link_code || 'Link Code' }}</span>
+              <div class="tg-box" @click="copyLinkCode"><code class="tg-val">{{ displayLinkCode }}</code><button class="ic" aria-label="Copy link code"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg></button></div>
+              <div v-if="copied" class="msg msg-s">{{ i18n.t.copied }}</div></div>
+            <details class="tg-guide" :open="!isLinked"><summary>{{ i18n.t.how_it_works || 'How to connect' }}</summary>
+              <div class="tg-steps"><div class="tg-step"><span class="step-n">1</span> {{ i18n.t.tg_step_open }}</div>
+                <div class="tg-step"><span class="step-n">2</span> {{ i18n.t.tg_step_search_bot }} <strong>@digital_menu_khmer_bot</strong></div>
+                <div class="tg-step"><span class="step-n">3</span> {{ i18n.t.tg_step_press_start }} <code>/start</code></div>
+                <div class="tg-step"><span class="step-n">4</span> {{ i18n.t.tg_step_send_link }} <code>/link {{ displayLinkCode }}</code></div>
+                <div class="tg-step"><span class="step-n">5</span> {{ i18n.t.tg_step_done }}</div></div>
+            </details>
+            <div v-if="isLinked" class="tg-linked"><span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> {{ i18n.t.connected }}</span><button class="btn btn-g" @click="unlinkTelegram">{{ i18n.t.unlink || 'Unlink' }}</button></div>
+            <div v-else class="tg-warn">{{ i18n.t.not_connected_yet }}</div>
           </div>
         </div>
-      </Transition>
-    </Teleport>
+      </div>
+    </Transition></Teleport>
 
-    <!-- QR MODAL -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div v-if="showQR" class="modal-overlay" @click.self="showQR = false">
-          <div class="qr-modal pop-in">
-            <div class="qr-modal-header">
-              <span><AppIcon name="qr" :size="16" /> បង្កើត QR សម្រាប់តុ</span>
-              <button class="qr-close-btn" @click="showQR = false">✕</button>
-            </div>
-            <div class="qr-modal-body">
-              <div class="qr-input-row">
-                <input
-                  v-model="qrTableNumber"
-                  type="number"
-                  min="1"
-                  placeholder="លេខតុ..."
-                  class="qr-input"
-                  @keyup.enter="generateQR"
-                />
-                <button
-                  class="qr-gen-btn"
-                  @click="generateQR"
-                  :disabled="qrLoading"
-                >
-                  {{ qrLoading ? "" : "បង្កើត" }}
-                </button>
-              </div>
-              <div v-if="qrCodeDataUrl" class="qr-preview">
-                <img
-                  :src="qrCodeDataUrl"
-                  :alt="'QR for table ' + qrTableNumber"
-                  class="qr-img"
-                />
-                <div class="qr-table-label">តុទី {{ qrTableNumber }}</div>
-                <a :href="qrDownloadUrl" download class="qr-download-btn">
-                  <AppIcon name="download" :size="14" /> ទាញយក QR
-                </a>
-              </div>
-            </div>
+    <!-- Category Form -->
+    <Teleport to="body"><Transition name="fade">
+      <div v-if="showCatForm" class="overlay" @click.self="showCatForm = false">
+        <div class="sheet">
+          <div class="sheet-h"><span>{{ editingCat ? 'កែប្រែប្រភេទ' : 'បន្ថែមប្រភេទ' }}</span><button class="ic" aria-label="Close" @click="showCatForm = false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+          <div class="sheet-b">
+            <div v-if="catSuccess" class="msg msg-s">{{ catSuccess }}</div>
+            <div class="fld"><label class="fld-l">{{ i18n.t.add_category || 'Category Name' }} *</label>
+              <input v-model="catLabelKm" class="fld-i" :class="{ err: catErrors }" :placeholder="i18n.t.category" @input="catErrors = ''" />
+              <div v-if="catErrors" class="fld-e">{{ catErrors }}</div></div>
+            <button class="btn btn-primary btn-b" :disabled="catSubmitting" @click="submitCategory">{{ catSubmitting ? i18n.t.loading : editingCat ? i18n.t.save : i18n.t.add }}</button>
           </div>
         </div>
-      </Transition>
-    </Teleport>
+      </div>
+    </Transition></Teleport>
 
-    <!-- TELEGRAM SETTINGS MODAL -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="showTelegramSettings"
-          class="modal-overlay"
-          @click.self="showTelegramSettings = false"
-        >
-          <div class="modal-card pop-in">
-            <div class="modal-header">
-              <span class="modal-header-title"
-                ><AppIcon name="telegram" :size="18" /> ភ្ជាប់ Telegram</span
-              >
-              <button class="close-btn" @click="showTelegramSettings = false">
-                ✕
-              </button>
-            </div>
-            <div class="modal-form">
-              <div v-if="tgSuccess" class="form-success-msg">
-                {{ tgSuccess }}
-              </div>
-              <div v-if="tgError" class="tg-error-msg">
-                <AppIcon name="alert-circle" :size="14" /> {{ tgError }}
-              </div>
-
-              <div class="telegram-note">
-                <p>
-                  <AppIcon name="bell" :size="14" /> ភ្ជាប់ Telegram
-                  ដើម្បីទទួលការជូនដំណឹងរាល់ពេលមានការបញ្ជាទិញថ្មី!
-                </p>
-                <div class="telegram-bot-name">
-                  <AppIcon name="telegram" :size="14" /> Bot:
-                  <strong>@digital_menu_khmer_bot</strong>
-                </div>
-              </div>
-
-              <!-- Link Code Display -->
-              <div class="link-code-section">
-                <div class="link-code-label">លេខកូដភ្ជាប់របស់អ្នក៖</div>
-                <div class="link-code-box" @click="copyLinkCode">
-                  <span class="link-code-value">{{ displayLinkCode }}</span>
-                  <button class="link-code-copy-btn" title="ចម្លង">
-                    <AppIcon name="clipboard" :size="16" />
-                  </button>
-                </div>
-                <div v-if="copied" class="link-code-copied">
-                  <AppIcon name="check" :size="14" /> ចម្លងរួច!
-                </div>
-                <div class="link-code-hint">
-                  <span class="link-code-permanent"
-                    ><AppIcon name="lock" :size="12" />
-                    លេខកូដនេះមិនអាចប្តូរបានទេ</span
-                  >
-                </div>
-              </div>
-
-              <!-- Instructions -->
-              <details class="telegram-guide" :open="!isLinked">
-                <summary class="telegram-guide-summary">
-                  <AppIcon name="book-open" :size="14" /> របៀបភ្ជាប់ Telegram
-                </summary>
-                <div class="telegram-guide-content">
-                  <div class="guide-step">
-                    <span class="guide-step-num">1</span>
-                    <span>បើក Telegram របស់អ្នក</span>
-                  </div>
-                  <div class="guide-step">
-                    <span class="guide-step-num">2</span>
-                    <span
-                      >ស្វែងរក Bot
-                      <strong>@digital_menu_khmer_bot</strong></span
-                    >
-                  </div>
-                  <div class="guide-step">
-                    <span class="guide-step-num">3</span>
-                    <span
-                      >ចុច <strong>Start</strong> ឬផ្ញើ
-                      <code>/start</code></span
-                    >
-                  </div>
-                  <div class="guide-step">
-                    <span class="guide-step-num">4</span>
-                    <span
-                      >ផ្ញើ <code>/link <strong>លេខកូដ</strong></code> (ឧ.
-                      <code>/link {{ displayLinkCode }}</code
-                      >)</span
-                    >
-                  </div>
-                  <div class="guide-step">
-                    <span class="guide-step-num">5</span>
-                    <span
-                      >រួចរាល់!
-                      <AppIcon name="check" :size="14" />
-                      អ្នកនឹងទទួលបានការជូនដំណឹងរាល់ពេលមានការបញ្ជាទិញ</span
-                    >
-                  </div>
-                </div>
-              </details>
-
-              <!-- Status -->
-              <div v-if="isLinked" class="tg-linked-status">
-                <span class="tg-linked-badge"
-                  ><AppIcon name="check-circle" :size="14" /> ភ្ជាប់ Telegram
-                  រួចរាល់</span
-                >
-                <button class="tg-unlink-btn" @click="unlinkTelegram">
-                  លែងភ្ជាប់
-                </button>
-              </div>
-              <div v-else class="tg-not-linked">
-                ⚠️ មិនទាន់ភ្ជាប់ Telegram នៅឡើយទេ
-              </div>
-            </div>
+    <!-- Profile -->
+    <Teleport to="body"><Transition name="fade">
+      <div v-if="showProfile" class="overlay" @click.self="showProfile = false">
+        <div class="sheet">
+          <div class="sheet-h"><span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ i18n.t.profile || 'Profile' }}</span><button class="ic" aria-label="Close" @click="showProfile = false"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div>
+          <div class="sheet-b">
+            <div v-if="profileSuccess" class="msg msg-s">{{ profileSuccess }}</div>
+            <div v-if="profileError" class="msg msg-e">{{ profileError }}</div>
+            <div class="prof-l"><div class="prof-p"><img :src="profileLogoPreview || restaurantLogo" alt="" /></div>
+              <label class="prof-up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg> {{ i18n.t.change_logo || 'Change' }}
+                <input type="file" accept="image/*" hidden @change="onLogoChange" /></label></div>
+            <div class="fld"><label class="fld-l">{{ i18n.t.restaurant_name }} *</label>
+              <input v-model="profileName" class="fld-i" :placeholder="i18n.t.restaurant_name" /></div>
+            <button class="btn btn-primary btn-b" :disabled="profileSubmitting" @click="submitProfile">{{ profileSubmitting ? i18n.t.loading : i18n.t.save }}</button>
           </div>
         </div>
-      </Transition>
-    </Teleport>
+      </div>
+    </Transition></Teleport>
 
-    <!-- CONFIRM LOGOUT -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="loggingOut"
-          class="modal-overlay"
-          @click.self="loggingOut = false"
-        >
-          <div class="confirm-box pop-in">
-            <div class="confirm-icon"><AppIcon name="lock" :size="36" /></div>
-            <div class="confirm-title confirm-title--blue">
-              តើចង់ចេញពីប្រព័ន្ធ?
-            </div>
-            <div class="confirm-name">អ្នកនឹងត្រូវវិលត្រឡប់ទៅទំព័រចូល</div>
-            <div class="confirm-btns">
-              <button class="confirm-cancel" @click="loggingOut = false">
-                បោះបង់
-              </button>
-              <button class="confirm-logout" @click="confirmLogout">ចេញ</button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-
-    <!-- CATEGORY FORM MODAL (green theme matching FoodFormModal) -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="showCatForm"
-          class="modal-overlay"
-          @click.self="showCatForm = false"
-        >
-          <div class="modal-card pop-in">
-            <div class="modal-header">
-              <span class="modal-header-title">
-                {{ editingCat ? "កែប្រែប្រភេទ" : "បន្ថែមប្រភេទ" }}
-              </span>
-              <button class="close-btn" @click="showCatForm = false">✕</button>
-            </div>
-            <div class="modal-form">
-              <div v-if="catSuccess" class="form-success-msg">
-                {{ catSuccess }}
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">ឈ្មោះប្រភេទ *</label>
-                <input
-                  v-model="catLabelKm"
-                  class="form-input"
-                  :class="{ error: catErrors }"
-                  placeholder="e.g. ភេសជ្ជៈ, បង្អែម, ..."
-                  @input="catErrors = ''"
-                />
-                <div v-if="catErrors" class="field-err">{{ catErrors }}</div>
-              </div>
-
-              <button
-                class="submit-btn"
-                :disabled="catSubmitting"
-                @click="submitCategory"
-              >
-                {{
-                  catSubmitting
-                    ? "កំពុងរក្សាទុក..."
-                    : editingCat
-                    ? "រក្សាទុក"
-                    : "បន្ថែម"
-                }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
-
-    <!-- PROFILE MODAL -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div
-          v-if="showProfile"
-          class="modal-overlay"
-          @click.self="showProfile = false"
-        >
-          <div class="modal-card pop-in">
-            <div class="modal-header">
-              <span class="modal-header-title"
-                ><AppIcon name="user" :size="18" />
-                {{ i18n.t.profile || "កែប្រែហាង" }}</span
-              >
-              <button class="close-btn" @click="showProfile = false">✕</button>
-            </div>
-            <div class="modal-form">
-              <div v-if="profileSuccess" class="form-success-msg">
-                {{ profileSuccess }}
-              </div>
-              <div v-if="profileError" class="tg-error-msg">
-                {{ profileError }}
-              </div>
-
-              <!-- Logo preview -->
-              <div class="profile-logo-section">
-                <div class="profile-logo-preview">
-                  <img
-                    :src="profileLogoPreview || restaurantLogo"
-                    class="profile-logo-img"
-                    alt="logo preview"
-                  />
-                </div>
-                <label class="profile-logo-upload">
-                  <AppIcon name="camera" :size="16" />
-                  {{ i18n.t.change_logo || "ប្តូររូប" }}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    @change="onLogoChange"
-                  />
-                </label>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label"
-                  >{{ i18n.t.restaurant_name || "ឈ្មោះហាង" }} *</label
-                >
-                <input
-                  v-model="profileName"
-                  class="form-input"
-                  placeholder="e.g. ម្លប់ព្រឹក ដាលីន"
-                />
-              </div>
-
-              <button
-                class="submit-btn"
-                :disabled="profileSubmitting"
-                @click="submitProfile"
-              >
-                {{ profileSubmitting ? "កំពុងរក្សាទុក..." : "រក្សាទុក" }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useFoodsStore } from "@/stores/foods";
 import { useI18nStore } from "@/stores/i18n";
 import FoodCard from "@/components/FoodCard.vue";
 import FoodFormModal from "@/components/FoodFormModal.vue";
-import AppIcon from "@/components/AppIcon.vue";
 import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL;
-
 const router = useRouter();
 const auth = useAuthStore();
 const foods = useFoodsStore();
@@ -730,31 +345,15 @@ const editingFood = ref(null);
 const deletingFood = ref(null);
 const loggingOut = ref(false);
 const showQR = ref(false);
-
-const stats = ref({ totalRevenue: 0, totalOrders: 0, daily: [] });
-const statsLoading = ref(false);
-const statsError = ref("");
-const statsStartDate = ref(
-  new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-);
-const statsEndDate = ref(new Date().toISOString().slice(0, 10));
-const previewLinkCopied = ref(false);
-
-const previewMenuUrl = computed(() => {
-  if (!auth.restaurantId) return "#";
-  const origin = window?.location?.origin || "";
-  return `${origin}/menu?restaurant_id=${auth.restaurantId}`;
-});
-
-// Restaurant
-const restaurantLogo = computed(() => {
-  return (
-    auth.restaurant?.logoUrl ||
-    "https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png"
-  );
-});
-
-// ── Profile Modal ──
+const showMobile = ref(false);
+const showTelegramSettings = ref(false);
+const showCatForm = ref(false);
+const editingCat = ref(null);
+const catSubmitting = ref(false);
+const catSuccess = ref("");
+const catErrors = ref("");
+const catLabelKm = ref("");
+const deletingCat = ref(null);
 const showProfile = ref(false);
 const profileName = ref("");
 const profileLogoFile = ref(null);
@@ -763,1909 +362,1668 @@ const profileSubmitting = ref(false);
 const profileSuccess = ref("");
 const profileError = ref("");
 
-function openProfile() {
-  profileName.value = auth.restaurant?.name || "";
-  profileLogoFile.value = null;
-  profileLogoPreview.value = null;
-  profileSuccess.value = "";
-  profileError.value = "";
-  showProfile.value = true;
-}
-
-function onLogoChange(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  profileLogoFile.value = file;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    profileLogoPreview.value = ev.target.result;
-  };
-  reader.readAsDataURL(file);
-}
-
-async function submitProfile() {
-  if (!profileName.value.trim()) {
-    profileError.value = "សូមបញ្ចូលឈ្មោះហាង";
-    return;
-  }
-  profileSubmitting.value = true;
-  profileSuccess.value = "";
-  profileError.value = "";
-  try {
-    const formData = new FormData();
-    formData.append("name", profileName.value.trim());
-    if (profileLogoFile.value) {
-      formData.append("logo", profileLogoFile.value);
-    }
-    const res = await axios.patch(`${API_BASE}/api/auth/restaurant`, formData, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
-    if (res.data.restaurant) {
-      auth.restaurant.name = res.data.restaurant.name;
-      auth.restaurant.logoUrl = res.data.restaurant.logoUrl;
-      auth.saveToStorage();
-    }
-    profileSuccess.value = "រក្សាទុកបានជោគជ័យ!";
-    setTimeout(() => {
-      showProfile.value = false;
-    }, 1200);
-  } catch (err) {
-    profileError.value =
-      err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
-  } finally {
-    profileSubmitting.value = false;
-  }
-}
-
-// ── Telegram Settings (Link Code) ──
-const showTelegramSettings = ref(false);
 const tgSubmitting = ref(false);
 const tgSuccess = ref("");
 const tgError = ref("");
 const copied = ref(false);
 const tgLoading = ref(false);
-
 const displayLinkCode = computed(() => auth.linkCode || "------");
 const isLinked = computed(() => auth.isTelegramLinked);
 
-// Refresh restaurant data from server when opening Telegram settings
-async function openTelegramSettings() {
-  showTelegramSettings.value = true;
-  tgLoading.value = true;
-  tgSuccess.value = "";
-  tgError.value = "";
-  try {
-    const res = await axios.get(`${API_BASE}/api/auth/me`);
-    if (res.data.restaurant) {
-      auth.restaurant = res.data.restaurant;
-      auth.saveToStorage();
-    }
-  } catch (err) {
-    console.error("Failed to refresh restaurant data:", err);
-  } finally {
-    tgLoading.value = false;
-  }
-}
+const stats = ref({ totalRevenue: 0, totalOrders: 0, daily: [] });
+const statsLoading = ref(false);
+const statsError = ref("");
+const statsStartDate = ref(new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
+const statsEndDate = ref(new Date().toISOString().slice(0, 10));
+const previewLinkCopied = ref(false);
+const previewMenuUrl = computed(() => { if (!auth.restaurantId) return "#"; return `${window?.location?.origin || ""}/menu?restaurant_id=${auth.restaurantId}`; });
+const restaurantLogo = computed(() => auth.restaurant?.logoUrl || "https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png");
 
-async function copyLinkCode() {
-  try {
-    await navigator.clipboard.writeText(auth.linkCode || "");
-    copied.value = true;
-    setTimeout(() => {
-      copied.value = false;
-    }, 2000);
-  } catch {
-    const el = document.createElement("textarea");
-    el.value = auth.linkCode || "";
-    document.body.appendChild(el);
-    el.select();
-    document.execCommand("copy");
-    document.body.removeChild(el);
-    copied.value = true;
-    setTimeout(() => {
-      copied.value = false;
-    }, 2000);
-  }
-}
-
-async function unlinkTelegram() {
-  if (!confirm("តើចង់លែងភ្ជាប់ Telegram មែនទេ?")) return;
-  try {
-    await axios.patch(`${API_BASE}/api/auth/unlink-telegram`);
-    if (auth.restaurant) {
-      auth.restaurant.telegramChatId = null;
-      auth.saveToStorage();
-    }
-    tgSuccess.value = "លែងភ្ជាប់ Telegram រួចរាល់!";
-    setTimeout(() => {
-      tgSuccess.value = "";
-    }, 2000);
-  } catch (err) {
-    tgError.value = err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
-  }
-}
-
-// ── Orders ──
 const orders = ref([]);
 const ordersLoading = ref(false);
-
-async function fetchOrders() {
-  ordersLoading.value = true;
-  try {
-    const res = await axios.get(`${API_BASE}/api/orders`);
-    orders.value = res.data;
-  } catch (err) {
-    console.error("Fetch orders error:", err);
-  } finally {
-    ordersLoading.value = false;
-  }
-}
-
-function parseItems(items) {
-  try {
-    return typeof items === "string" ? JSON.parse(items) : items;
-  } catch {
-    return [];
-  }
-}
-
-function statusLabel(status) {
-  const labels = {
-    pending: "រង់ចាំ",
-    confirmed: "បញ្ជាក់",
-    preparing: "កំពុងរៀបចំ",
-    ready: "រួចរាល់",
-    served: "បានបម្រើ",
-    cancelled: "បោះបង់",
-  };
-  return labels[status] || status;
-}
-
-function formatDate(dateStr) {
-  const d = new Date(dateStr);
-  return d.toLocaleString("km-KH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
-
-async function updateOrderStatus(orderId, status) {
-  try {
-    await axios.patch(`${API_BASE}/api/orders/${orderId}/status`, { status });
-    const idx = orders.value.findIndex((o) => o.id === orderId);
-    if (idx !== -1) orders.value[idx].status = status;
-  } catch (err) {
-    alert("មិនអាចប្តូរស្ថានភាពកម្មង់បានទេ");
-  }
-}
-
-// ── Category Form ──
-const showCatForm = ref(false);
-const editingCat = ref(null);
-const catSubmitting = ref(false);
-const catSuccess = ref("");
-const catErrors = ref("");
-const catLabelKm = ref("");
-const deletingCat = ref(null);
-
-function openCatForm(cat = null) {
-  editingCat.value = cat;
-  catSuccess.value = "";
-  catErrors.value = "";
-  catLabelKm.value = cat ? cat.label_km : "";
-  showCatForm.value = true;
-}
-
-async function submitCategory() {
-  catSuccess.value = "";
-  catErrors.value = "";
-  if (!catLabelKm.value.trim()) {
-    catErrors.value = "សូមបញ្ចូលឈ្មោះប្រភេទ";
-    return;
-  }
-  catSubmitting.value = true;
-  try {
-    const data = { label_km: catLabelKm.value.trim() };
-    if (editingCat.value) {
-      await foods.updateCategory(editingCat.value.id, data);
-      catSuccess.value = "កែប្រែប្រភេទបានជោគជ័យ!";
-      setTimeout(() => {
-        showCatForm.value = false;
-        editingCat.value = null;
-        catSuccess.value = "";
-      }, 1200);
-    } else {
-      await foods.addCategory(data);
-      catSuccess.value = "បន្ថែមប្រភេទបានជោគជ័យ!";
-      catLabelKm.value = "";
-      setTimeout(() => {
-        catSuccess.value = "";
-      }, 1500);
-    }
-  } catch (err) {
-    catErrors.value = err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
-  } finally {
-    catSubmitting.value = false;
-  }
-}
-
-function confirmDelCat(cat) {
-  deletingCat.value = cat;
-}
-
-async function doDeleteCat() {
-  if (!deletingCat.value) return;
-  try {
-    await foods.deleteCategory(deletingCat.value.id);
-  } catch (err) {
-    alert(err.response?.data?.error || "លុបមិនបានជោគជ័យ");
-  }
-  deletingCat.value = null;
-}
-
-// ── QR Generator ──
 const qrTableNumber = ref("");
 const qrCodeDataUrl = ref("");
 const qrLoading = ref(false);
 const qrError = ref("");
+const qrDownloadUrl = computed(() => { if (!qrTableNumber.value) return "#"; let url = `${API_BASE}/api/qr/table/${qrTableNumber.value}?format=png`; if (auth.restaurantId) url += `&restaurant_id=${auth.restaurantId}`; return url; });
 
-const qrDownloadUrl = computed(() => {
-  if (!qrTableNumber.value) return "#";
-  let url = `${API_BASE}/api/qr/table/${qrTableNumber.value}?format=png`;
-  if (auth.restaurantId) {
-    url += `&restaurant_id=${auth.restaurantId}`;
-  }
-  return url;
-});
+function openProfile() { profileName.value = auth.restaurant?.name || ""; profileLogoFile.value = null; profileLogoPreview.value = null; profileSuccess.value = ""; profileError.value = ""; showProfile.value = true; }
+function onLogoChange(e) { const file = e.target.files[0]; if (!file) return; profileLogoFile.value = file; const reader = new FileReader(); reader.onload = (ev) => { profileLogoPreview.value = ev.target.result; }; reader.readAsDataURL(file); }
+async function submitProfile() { if (!profileName.value.trim()) { profileError.value = "សូមបញ្ចូលឈ្មោះហាង"; return; } profileSubmitting.value = true; profileSuccess.value = ""; profileError.value = ""; try { const formData = new FormData(); formData.append("name", profileName.value.trim()); if (profileLogoFile.value) formData.append("logo", profileLogoFile.value); const res = await axios.patch(`${API_BASE}/api/auth/restaurant`, formData, { headers: { "Content-Type": "multipart/form-data" } }); if (res.data.restaurant) { auth.restaurant.name = res.data.restaurant.name; auth.restaurant.logoUrl = res.data.restaurant.logoUrl; auth.saveToStorage(); } profileSuccess.value = "រក្សាទុកបានជោគជ័យ!"; setTimeout(() => { showProfile.value = false; }, 1200); } catch (err) { profileError.value = err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត"; } finally { profileSubmitting.value = false; } }
 
-async function generateQR() {
-  const num = parseInt(qrTableNumber.value);
-  if (!num || num < 1) {
-    qrError.value = "សូមបញ្ចូលលេខតុឲ្យបានត្រឹមត្រូវ";
-    return;
-  }
-  qrLoading.value = true;
-  qrError.value = "";
-  try {
-    let url = `${API_BASE}/api/qr/table/${num}`;
-    if (auth.restaurantId) {
-      url += `?restaurant_id=${auth.restaurantId}`;
-    }
-    const res = await axios.get(url);
-    qrCodeDataUrl.value = res.data.qrCode;
-  } catch (e) {
-    qrError.value =
-      "បង្កើត QR បរាជ័យ: " + (e.response?.data?.error || e.message);
-  } finally {
-    qrLoading.value = false;
-  }
-}
+async function openTelegramSettings() { showTelegramSettings.value = true; tgLoading.value = true; tgSuccess.value = ""; tgError.value = ""; try { const res = await axios.get(`${API_BASE}/api/auth/me`); if (res.data.restaurant) { auth.restaurant = res.data.restaurant; auth.saveToStorage(); } } catch (err) { console.error(err); } finally { tgLoading.value = false; } }
+async function copyLinkCode() { try { await navigator.clipboard.writeText(auth.linkCode || ""); copied.value = true; setTimeout(() => { copied.value = false; }, 2000); } catch { const el = document.createElement("textarea"); el.value = auth.linkCode || ""; document.body.appendChild(el); el.select(); document.execCommand("copy"); document.body.removeChild(el); copied.value = true; setTimeout(() => { copied.value = false; }, 2000); } }
+async function unlinkTelegram() { if (!confirm("តើចង់លែងភ្ជាប់ Telegram មែនទេ?")) return; try { await axios.patch(`${API_BASE}/api/auth/unlink-telegram`); if (auth.restaurant) { auth.restaurant.telegramChatId = null; auth.saveToStorage(); } tgSuccess.value = "លែងភ្ជាប់ Telegram រួចរាល់!"; setTimeout(() => { tgSuccess.value = ""; }, 2000); } catch (err) { tgError.value = err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត"; } }
 
-async function fetchStats() {
-  if (!auth.restaurantId) return;
-  statsLoading.value = true;
-  statsError.value = "";
-  try {
-    const res = await axios.get(`${API_BASE}/api/orders/stats`, {
-      params: {
-        start_date: statsStartDate.value,
-        end_date: statsEndDate.value,
-      },
-    });
-    stats.value = res.data;
-  } catch (err) {
-    statsError.value = err.response?.data?.error || "Failed to load stats";
-  } finally {
-    statsLoading.value = false;
-  }
-}
+async function fetchOrders() { ordersLoading.value = true; try { const res = await axios.get(`${API_BASE}/api/orders`); orders.value = res.data; } catch (err) { console.error(err); } finally { ordersLoading.value = false; } }
+function parseItems(items) { try { return typeof items === "string" ? JSON.parse(items) : items; } catch { return []; } }
+function statusLabel(status) { const labels = { pending: "Pending", confirmed: "Confirmed", preparing: "Preparing", ready: "Ready", served: "Served", cancelled: "Cancelled" }; return labels[status] || status; }
+function formatDate(dateStr) { const d = new Date(dateStr); return d.toLocaleString("km-KH", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" }); }
+async function updateOrderStatus(orderId, status) { try { await axios.patch(`${API_BASE}/api/orders/${orderId}/status`, { status }); const idx = orders.value.findIndex((o) => o.id === orderId); if (idx !== -1) orders.value[idx].status = status; } catch (err) { alert("មិនអាចប្តូរស្ថានភាពកម្មង់បានទេ"); } }
 
-function copyPreviewLink() {
-  if (!navigator.clipboard || previewMenuUrl.value === "#") return;
-  navigator.clipboard.writeText(previewMenuUrl.value);
-  previewLinkCopied.value = true;
-  setTimeout(() => {
-    previewLinkCopied.value = false;
-  }, 2000);
-}
+function openCatForm(cat = null) { editingCat.value = cat; catSuccess.value = ""; catErrors.value = ""; catLabelKm.value = cat ? cat.label_km : ""; showCatForm.value = true; }
+async function submitCategory() { catSuccess.value = ""; catErrors.value = ""; if (!catLabelKm.value.trim()) { catErrors.value = "សូមបញ្ចូលឈ្មោះប្រភេទ"; return; } catSubmitting.value = true; try { const data = { label_km: catLabelKm.value.trim() }; if (editingCat.value) { await foods.updateCategory(editingCat.value.id, data); catSuccess.value = "កែប្រែប្រភេទបានជោគជ័យ!"; setTimeout(() => { showCatForm.value = false; editingCat.value = null; catSuccess.value = ""; }, 1200); } else { await foods.addCategory(data); catSuccess.value = "បន្ថែមប្រភេទបានជោគជ័យ!"; catLabelKm.value = ""; setTimeout(() => { catSuccess.value = ""; }, 1500); } } catch (err) { catErrors.value = err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត"; } finally { catSubmitting.value = false; } }
+function confirmDelCat(cat) { deletingCat.value = cat; }
+async function doDeleteCat() { if (!deletingCat.value) return; try { await foods.deleteCategory(deletingCat.value.id); } catch (err) { alert(err.response?.data?.error || "លុបមិនបានជោគជ័យ"); } deletingCat.value = null; }
 
-function openPreview() {
-  if (previewMenuUrl.value === "#") return;
-  window.open(previewMenuUrl.value, "_blank");
-}
+function openQR() { qrError.value = ""; qrCodeDataUrl.value = ""; qrTableNumber.value = ""; showQR.value = true; }
+async function generateQR() { const num = parseInt(qrTableNumber.value); if (!num || num < 1) { qrError.value = "សូមបញ្ចូលលេខតុឲ្យបានត្រឹមត្រូវ"; return; } qrLoading.value = true; qrError.value = ""; try { let url = `${API_BASE}/api/qr/table/${num}`; if (auth.restaurantId) url += `?restaurant_id=${auth.restaurantId}`; const res = await axios.get(url); qrCodeDataUrl.value = res.data.qrCode; } catch (e) { qrError.value = "បង្កើត QR បរាជ័យ: " + (e.response?.data?.error || e.message); } finally { qrLoading.value = false; } }
 
-async function load() {
-  const params = {};
-  if (curCat.value) params.category = curCat.value;
-  if (searchQ.value) params.search = searchQ.value;
-  await foods.fetchFoods(params);
-}
+async function fetchStats() { if (!auth.restaurantId) return; statsLoading.value = true; statsError.value = ""; try { const res = await axios.get(`${API_BASE}/api/orders/stats`, { params: { start_date: statsStartDate.value, end_date: statsEndDate.value } }); stats.value = res.data; } catch (err) { statsError.value = err.response?.data?.error || "Failed to load stats"; } finally { statsLoading.value = false; } }
+function copyPreviewLink() { if (!navigator.clipboard || previewMenuUrl.value === "#") return; navigator.clipboard.writeText(previewMenuUrl.value); previewLinkCopied.value = true; setTimeout(() => { previewLinkCopied.value = false; }, 2000); }
+function openPreview() { if (previewMenuUrl.value === "#") return; window.open(previewMenuUrl.value, "_blank"); }
+async function load() { const params = {}; if (curCat.value) params.category = curCat.value; if (searchQ.value) params.search = searchQ.value; await foods.fetchFoods(params); }
+function openAdd() { editingFood.value = null; showForm.value = true; }
+function confirmDel(food) { deletingFood.value = food; }
+async function doDelete() { if (!deletingFood.value) return; await foods.deleteFood(deletingFood.value.id); deletingFood.value = null; }
+function confirmLogout() { auth.logout(); router.push("/login"); }
+function handleEscKey(e) { if (e.key !== "Escape") return; if (showForm.value) { showForm.value = false; editingFood.value = null; } else if (deletingFood.value) deletingFood.value = null; else if (deletingCat.value) deletingCat.value = null; else if (showQR.value) showQR.value = false; else if (showTelegramSettings.value) showTelegramSettings.value = false; else if (loggingOut.value) loggingOut.value = false; else if (showCatForm.value) showCatForm.value = false; else if (showProfile.value) showProfile.value = false; }
 
-function openAdd() {
-  editingFood.value = null;
-  showForm.value = true;
-}
-
-function confirmDel(food) {
-  deletingFood.value = food;
-}
-
-async function doDelete() {
-  if (!deletingFood.value) return;
-  await foods.deleteFood(deletingFood.value.id);
-  deletingFood.value = null;
-}
-
-function confirmLogout() {
-  auth.logout();
-  router.push("/login");
-}
-
-onMounted(async () => {
-  await foods.fetchCategories();
-  if (foods.categories.length) curCat.value = foods.categories[0].id;
-  await load();
-  fetchStats();
-});
+onMounted(async () => { await foods.fetchCategories(); if (foods.categories.length) curCat.value = foods.categories[0].id; await load(); fetchStats(); window.addEventListener("keydown", handleEscKey); });
+onUnmounted(() => { window.removeEventListener("keydown", handleEscKey); });
 </script>
 
+<style>
+:root {
+  --primary: #0f766e;
+  --primary-dark: #0d5e57;
+  --primary-light: #14b8a6;
+  --primary-glow: rgba(15, 118, 110, 0.15);
+  --primary-glow-strong: rgba(15, 118, 110, 0.25);
+  --green: #22c55e;
+  --green-dark: #16a34a;
+  --green-light: #86efac;
+  --green-glow: rgba(34, 197, 94, 0.2);
+  --amber: #f59e0b;
+  --amber-light: #fbbf24;
+  --red: #c62828;
+  --red-dark: #b71c1c;
+  --blue: #2563eb;
+  --ink: #14532d;
+  --ink-light: #1a7a4a;
+  --muted: #6b7280;
+  --muted-light: #9ca3af;
+  --text: #0f172a;
+  --surface: #ffffff;
+  --surface-green: #f0fdf4;
+  --border: #e2e8f0;
+  --border-green: #bbf7d0;
+}
+</style>
+
 <style scoped>
-/* ─── DASHBOARD SUMMARY ─── */
-.dashboard-summary {
+/* ═══════════════════════════════════════════════════════════
+   ADMIN VIEW v3.3 — Fully Responsive
+   ═══════════════════════════════════════════════════════════ */
+.root {
+  --sidebar: 240px;
   display: grid;
-  gap: 14px;
-  padding: 18px 16px 10px;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  max-width: 800px;
-  margin: 0 auto;
+  grid-template-columns: var(--sidebar) 1fr;
+  background: #f8fafc;
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-.summary-card {
-  position: relative;
-  background: #fff;
-  border: 1.5px solid #e6f3e8;
-  border-radius: 18px;
+
+/* ─── SIDEBAR ─── */
+.side {
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+.side-top {
+  padding: 24px 20px 16px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(135deg, var(--surface-green) 0%, var(--surface) 100%);
+}
+.side-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.side-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  background: var(--surface-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--border-green);
 }
-.summary-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.1);
+.side-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
-.summary-card-bg {
+.side-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.side-name {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.side-role {
+  font-size: 10.5px;
+  color: var(--primary);
+  font-weight: 600;
+}
+.side-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+.nav-i {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+  min-height: 42px;
+  flex-shrink: 0;
+}
+.nav-i:hover {
+  background: var(--surface-green);
+  color: var(--text);
+}
+.nav-i.active {
+  background: var(--surface-green);
+  color: var(--primary);
+  font-weight: 600;
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+.nav-i svg {
+  flex-shrink: 0;
+}
+.nav-i.active svg {
+  color: var(--primary);
+}
+.nav-badge {
+  margin-left: auto;
+  background: var(--primary);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  animation: pulse-badge 2s ease-in-out infinite;
+}
+@keyframes pulse-badge {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+.side-foot {
+  display: flex;
+  gap: 8px;
+  padding: 16px 14px 20px;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.lang, .logout {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+.lang {
+  background: var(--surface-green);
+  color: var(--ink);
+  border: 1px solid var(--border-green);
+}
+.lang:hover {
+  border-color: var(--primary);
+  background: #dcfce7;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(15, 118, 110, 0.1);
+}
+.logout {
+  background: none;
+  border: 1px solid transparent;
+  color: var(--red);
+  background: #fef2f2;
+}
+.logout:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  transform: translateY(-1px);
+}
+
+/* ─── MOBILE ─── */
+.mob { display: none; }
+.scrim { display: none; }
+
+/* ─── MAIN ─── */
+.main {
+  padding: 28px 32px 60px;
+  max-width: 1320px;
+  width: 100%;
+}
+
+/* Header */
+.hdr {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 2px solid var(--border-green);
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.hdr-l {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 150px;
+}
+.hdr-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+  margin: 0;
+  letter-spacing: -0.3px;
+}
+.hdr-title::before {
+  content: "✦ ";
+  color: var(--primary);
+}
+.hdr-sub {
+  font-size: 12px;
+  color: var(--muted-light);
+  margin-top: 2px;
+}
+.hdr-r {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.hdr-dot {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--amber);
+  border: 2px solid var(--surface);
+  animation: blink-dot 1.5s ease-in-out infinite;
+}
+@keyframes blink-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+.hdr-hide {
+  display: inline;
+}
+
+/* Action Buttons */
+.ac {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  position: relative;
+  min-height: 36px;
+  min-width: 36px;
+  flex-shrink: 0;
+  line-height: 1.2;
+  border: none;
+}
+.ac-ghost {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+.ac-ghost:hover {
+  border-color: var(--primary);
+  background: var(--surface-green);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+.ac-primary {
+  background: var(--primary);
+  color: white;
+  border: 1px solid var(--primary);
+}
+.ac-primary:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px var(--primary-glow-strong);
+}
+.ac-avatar {
+  padding: 8px;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  justify-content: center;
+  min-width: 36px;
+}
+.ac-icon-only {
+  padding: 8px 10px;
+}
+.ac:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.ac span {
+  display: inline-block;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Metrics */
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 28px;
+}
+.metric {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  transition: all 0.25s ease;
+  position: relative;
+  overflow: hidden;
+}
+.metric::before {
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
-  height: 4px;
-  pointer-events: none;
+  height: 3px;
+  background: var(--primary);
+  opacity: 0;
+  transition: opacity 0.25s ease;
 }
-.preview-card .summary-card-bg {
-  background: linear-gradient(90deg, #f59e0b, #fbbf24, #fcd34d);
+.metric:hover::before {
+  opacity: 1;
 }
-.stats-card .summary-card-bg {
-  background: linear-gradient(90deg, #0f766e, #22c55e, #86efac);
+.metric:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
-.preview-card {
-  background: linear-gradient(135deg, #fffbeb 0%, #fefce8 50%, #fff7ed 100%);
-  border-color: #fde68a;
-  position: relative;
-}
-.preview-card-glow {
+.metric-teal::before { background: var(--primary); }
+.metric-green::before { background: var(--green); }
+.metric-amber::before { background: var(--amber); }
+.metric-glow {
   position: absolute;
-  top: -40px;
-  right: -40px;
-  width: 120px;
-  height: 120px;
-  background: radial-gradient(
-    circle,
-    rgba(251, 191, 36, 0.15) 0%,
-    transparent 70%
-  );
+  top: -50%;
+  right: -20%;
+  width: 100px;
+  height: 100px;
   border-radius: 50%;
+  opacity: 0.05;
   pointer-events: none;
-  z-index: 0;
 }
-.preview-card-bg-pattern {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  overflow: hidden;
+.metric-teal .metric-glow {
+  background: var(--primary);
 }
-.pattern-dot {
-  position: absolute;
-  width: 4px;
-  height: 4px;
-  background: #fbbf24;
-  border-radius: 50%;
-  opacity: 0.15;
+.metric-green .metric-glow {
+  background: var(--green);
 }
-.pattern-dot:nth-child(1) {
-  top: 12%;
-  left: 8%;
+.metric-amber .metric-glow {
+  background: var(--amber);
 }
-.pattern-dot:nth-child(2) {
-  top: 25%;
-  left: 85%;
+.metric:hover .metric-glow {
+  opacity: 0.1;
+  transform: scale(1.2);
 }
-.pattern-dot:nth-child(3) {
-  top: 45%;
-  left: 15%;
-}
-.pattern-dot:nth-child(4) {
-  top: 60%;
-  left: 75%;
-}
-.pattern-dot:nth-child(5) {
-  top: 78%;
-  left: 22%;
-}
-.pattern-dot:nth-child(6) {
-  top: 35%;
-  left: 55%;
-}
-.pattern-dot:nth-child(7) {
-  top: 70%;
-  left: 50%;
-}
-.pattern-dot:nth-child(8) {
-  top: 15%;
-  left: 45%;
-}
-.pattern-dot:nth-child(9) {
-  top: 85%;
-  left: 70%;
-}
-.pattern-dot:nth-child(10) {
-  top: 50%;
-  left: 88%;
-}
-.pattern-dot:nth-child(11) {
-  top: 90%;
-  left: 10%;
-}
-.pattern-dot:nth-child(12) {
-  top: 5%;
-  left: 65%;
-}
-
-.preview-card-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-.preview-card-header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.preview-icon-wrapper {
-  position: relative;
+.metric-icon {
   width: 40px;
   height: 40px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.preview-icon {
-  font-size: 20px;
-  position: relative;
-  z-index: 1;
-}
-.preview-icon-ring::after {
-  content: "";
-  position: absolute;
-  inset: 2px;
-  border-radius: 10px;
-  background: #fffbeb;
-}
-.preview-live-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  background: linear-gradient(135deg, #dcfce7, #bbf7d0);
-  color: #166534;
-  border: 1px solid #86efac;
-  box-shadow: 0 2px 8px rgba(34, 197, 94, 0.2);
-}
-.live-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #22c55e;
-  animation: livePulse 1.5s ease-in-out infinite;
-}
-@keyframes livePulse {
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.5;
-    transform: scale(1.3);
-  }
-}
-.summary-card-subtitle {
-  font-size: 11px;
-  color: #a16207;
-  margin: 0;
-  font-weight: 500;
-}
-.preview-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-.preview-url-box {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #f8fdf9;
-  border: 1px solid #e6f3e8;
-  border-radius: 10px;
-  padding: 8px 12px;
-}
-.preview-url-icon {
-  font-size: 14px;
   flex-shrink: 0;
 }
-.preview-url-text {
-  font-size: 11px;
-  color: #6b7280;
-  font-family: "Courier New", monospace;
+.mi-teal {
+  background: #ccfbf1;
+  color: var(--primary);
+}
+.mi-green {
+  background: #dcfce7;
+  color: var(--green-dark);
+}
+.mi-amber {
+  background: #fef3c7;
+  color: var(--amber);
+}
+.metric-b {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.metric-v {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 100%;
 }
-.summary-card-content {
-  position: relative;
-  padding: 16px 18px 18px;
-  z-index: 1;
-}
-.summary-card-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 8px;
-}
-.summary-card-icon {
-  font-size: 22px;
-  line-height: 1;
-}
-.summary-card-badge {
+.metric-l {
   font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #dcfce7;
-  color: #166534;
-}
-.stats-period-badge {
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: #f0fdf4;
-  color: #0f766e;
-  border: 1px solid #bbf7d0;
-}
-.summary-card-title {
-  font-family: "Hanuman", serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: #14532d;
-  margin-bottom: 6px;
-}
-.summary-card-text {
-  font-size: 13px;
-  color: #6b7280;
-  margin: 0 0 14px;
-  line-height: 1.5;
-}
-.summary-actions {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-.copy-btn,
-.open-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: none;
-  border-radius: 999px;
-  padding: 9px 16px;
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-}
-.copy-btn {
-  background: #fef3c7;
-  color: #92400e;
-  border: 1px solid #fde68a;
-}
-.copy-btn:hover {
-  background: #fde68a;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(251, 191, 36, 0.3);
-}
-.open-btn {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #bbf7d0;
-}
-.open-btn:hover {
-  background: #bbf7d0;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3);
-}
-.btn-icon {
-  font-size: 14px;
-  line-height: 1;
-}
-.stats-values {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  margin-bottom: 14px;
-  background: #f8fdf9;
-  border: 1px solid #e6f3e8;
-  border-radius: 14px;
-  padding: 14px 16px;
-}
-.stats-item {
-  flex: 1;
-  text-align: center;
-}
-.stats-item-revenue {
-  text-align: left;
-}
-.stats-item-orders {
-  text-align: right;
-}
-.stats-divider {
-  width: 1px;
-  height: 40px;
-  background: #e6f3e8;
-  margin: 0 16px;
-  flex-shrink: 0;
-}
-.stats-number {
-  font-family: "Hanuman", serif;
-  font-size: 22px;
-  font-weight: 700;
-  color: #14532d;
-  line-height: 1.2;
-}
-.stats-currency {
-  font-size: 14px;
-  font-weight: 600;
-  color: #6b7280;
-  margin-left: 2px;
-}
-.stats-label {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: 4px;
+  color: var(--muted);
   font-weight: 500;
-}
-.stats-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  display: inline-block;
-}
-.revenue-dot {
-  background: #22c55e;
-}
-.orders-dot {
-  background: #0f766e;
-}
-.stats-filter {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: #374151;
-}
-.stats-filter-group {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  flex: 1;
-}
-.stats-filter-label {
-  font-size: 10px;
-  font-weight: 600;
-  color: #9ca3af;
   text-transform: uppercase;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.4px;
 }
-.stats-filter input {
-  border: 1.5px solid #d1fae5;
-  border-radius: 10px;
-  padding: 7px 10px;
-  font-size: 12px;
-  font-family: inherit;
-  color: #374151;
-  background: #f8fdf9;
-  outline: none;
-  transition: border-color 0.2s;
-  width: 100%;
-}
-.stats-filter input:focus {
-  border-color: #22c55e;
-}
-.stats-filter-arrow {
-  color: #d1d5db;
-  font-size: 16px;
-  font-weight: 300;
-  margin-top: 14px;
-  flex-shrink: 0;
-}
-.stats-loading {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #6b7280;
+
+/* Toolbar */
+.bar {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-.stats-spinner {
-  width: 14px;
-  height: 14px;
-  border: 2px solid #d1fae5;
-  border-top-color: #22c55e;
-  border-radius: 50%;
-  animation: statsSpin 0.6s linear infinite;
-  display: inline-block;
-}
-@keyframes statsSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-.stats-error {
-  margin-top: 10px;
-  font-size: 12px;
-  color: #dc2626;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  border-radius: 8px;
-  padding: 8px 12px;
-}
-.admin-bar {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 8px 14px;
-  background: #fff3e0;
-  border-bottom: 2px solid #ffb74d;
-  gap: 8px;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
   flex-wrap: wrap;
 }
-.admin-actions {
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-.admin-add-btn {
-  padding: 7px 14px;
-  background: var(--green-mid);
-  color: white;
-  border: none;
-  border-radius: 20px;
-  font-size: 12px;
-  font-family: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.admin-add-btn:hover {
-  background: var(--green-dark);
-}
-.lang-btn {
-  padding: 7px 14px;
-  background: var(--green-pale);
-  color: var(--green-dark);
-  border: 1.5px solid var(--green-soft);
-  border-radius: 20px;
-  font-size: 12px;
-  font-family: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-}
-.lang-btn:hover {
-  background: var(--green-soft);
-  color: var(--green-dark);
-  border-color: var(--green-mid);
-}
-.admin-add-cat-btn {
-  padding: 7px 14px;
-  background: #0f766e;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  font-size: 12px;
-  font-family: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  white-space: nowrap;
-}
-.admin-add-cat-btn:hover {
-  background: #0d5e57;
-}
-.admin-profile-btn {
-  padding: 7px 14px;
-  background: #0f766e;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  font-size: 12px;
-  font-family: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  white-space: nowrap;
-}
-.admin-profile-btn:hover {
-  background: #0d5e57;
-}
-.admin-telegram-btn {
-  padding: 7px 14px;
-  background: #0f766e;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  font-size: 12px;
-  font-family: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-  white-space: nowrap;
-}
-.admin-telegram-btn:hover {
-  background: #0d5e57;
-}
-.admin-logout-btn {
-  padding: 7px 14px;
-  background: #fbe9e7;
-  color: #c62828;
-  border: 1.5px solid #ffccbc;
-  border-radius: 20px;
-  font-size: 12px;
-  font-family: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.admin-right {
+.bar-scroll {
   display: flex;
   gap: 6px;
-  align-items: center;
-}
-.admin-qr-btn {
-  padding: 7px 14px;
-  background: #0f766e;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  font-size: 12px;
-  font-family: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.admin-qr-btn:hover {
-  background: #0d5e57;
-}
-.admin-logout-btn:hover {
-  background: #c62828;
-  color: white;
-}
-
-/* ADMIN TABS */
-.admin-tabs {
-  display: flex;
-  background: var(--white);
-  border-bottom: 2px solid var(--green-soft);
-}
-.admin-tab {
-  flex: 1;
-  padding: 12px;
-  font-size: 14px;
-  font-family: inherit;
-  font-weight: 600;
-  color: var(--text-light);
-  border: none;
-  background: none;
-  cursor: pointer;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-}
-.admin-tab.active {
-  color: var(--green-mid);
-  border-bottom-color: var(--green-mid);
-}
-
-/* FOODS TABS */
-.tabs-wrap {
-  background: var(--white);
-  border-bottom: 2px solid var(--green-soft);
   overflow-x: auto;
   scrollbar-width: none;
+  flex: 1;
+  padding: 2px 0;
+  min-width: 100px;
 }
-.tabs-wrap::-webkit-scrollbar {
+.bar-scroll::-webkit-scrollbar {
   display: none;
 }
-.tabs {
+.bar-acts {
   display: flex;
-  min-width: max-content;
-  padding: 0 8px;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
-.tab {
-  padding: 12px 14px;
-  font-size: 13px;
+.bar-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.chip {
+  padding: 6px 14px;
+  background: var(--surface);
+  border-radius: 999px;
+  font-size: 11px;
   font-family: inherit;
   font-weight: 500;
-  color: var(--text-light);
-  border: none;
-  background: none;
+  color: var(--muted);
   cursor: pointer;
   white-space: nowrap;
-  border-bottom: 3px solid transparent;
-  transition: all 0.2s;
-  position: relative;
-  top: 2px;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border);
+  min-height: 30px;
+  flex-shrink: 0;
 }
-.tab.active {
-  color: var(--green-mid);
-  border-bottom-color: var(--green-mid);
-  font-weight: 600;
+.chip:hover {
+  border-color: var(--primary);
+  color: var(--text);
+  transform: translateY(-1px);
+}
+.chip.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
 }
 
-.search-bar {
-  padding: 12px 16px;
-  background: var(--white);
-  border-bottom: 1px solid var(--green-soft);
-}
-.search-wrap {
+.srch {
   position: relative;
+  min-width: 150px;
+  flex: 1;
+  max-width: 280px;
 }
-.search-bar input {
+.srch input {
   width: 100%;
-  padding: 9px 14px 9px 38px;
-  border: 1.5px solid var(--green-soft);
-  border-radius: 24px;
-  font-size: 13px;
+  padding: 6px 24px 6px 30px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
   font-family: inherit;
-  background: var(--green-pale);
-  color: var(--text-dark);
+  color: var(--text);
+  background: var(--surface);
   outline: none;
+  transition: all 0.2s ease;
+  min-height: 32px;
 }
-.search-bar input:focus {
-  border-color: var(--green-light);
+.srch input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
 }
-.search-icon {
+.srch-i {
   position: absolute;
-  left: 12px;
+  left: 10px;
   top: 50%;
   transform: translateY(-50%);
+  color: var(--muted-light);
   pointer-events: none;
 }
-
-.menu-section {
-  padding: 12px 12px 40px;
+.srch-x {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface-green);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
 }
-.food-grid {
+.srch-x:hover {
+  background: var(--border-green);
+  color: var(--text);
+}
+
+/* Grid */
+.grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 12px;
 }
-@media (max-width: 1100px) {
-  .food-grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+
+/* Categories */
+.cat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
 }
-@media (max-width: 800px) {
-  .food-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
+.cat-c {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  transition: all 0.2s ease;
 }
-@media (max-width: 560px) {
-  .food-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.cat-c:hover {
+  border-color: var(--primary);
+  box-shadow: 0 2px 12px var(--primary-glow);
+  transform: translateY(-2px);
 }
-.empty {
-  text-align: center;
-  padding: 50px 20px;
-  color: var(--text-light);
+.cat-n {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
 }
-.empty-icon {
-  font-size: 46px;
-  margin-bottom: 10px;
+.cat-acts {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
-/* ─── CATEGORY MANAGEMENT ─── */
-.cat-mgmt-section {
-  padding: 16px;
-  max-width: 600px;
-  margin: 0 auto;
-}
-.cat-mgmt-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  font-family: "Hanuman", serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--green-dark);
-}
-.cat-mgmt-add-btn {
-  padding: 7px 14px;
-  background: var(--green-mid);
-  color: white;
-  border: none;
-  border-radius: 20px;
-  font-size: 12px;
-  font-family: inherit;
-  font-weight: 600;
+.ic {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
   cursor: pointer;
-  transition: background 0.2s;
-}
-.cat-mgmt-add-btn:hover {
-  background: var(--green-dark);
-}
-.cat-list {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
 }
-.cat-item {
+.ic:hover {
+  border-color: var(--primary);
+  background: var(--surface-green);
+  color: var(--primary);
+}
+.ic-sm {
+  width: 26px;
+  height: 26px;
+}
+.ic-red {
+  color: var(--red);
+}
+.ic-red:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: var(--red-dark);
+}
+
+/* Orders */
+.order-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+}
+.order-c {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  transition: all 0.25s ease;
+}
+.order-c:hover {
+  border-color: var(--primary);
+  box-shadow: 0 4px 16px var(--primary-glow);
+  transform: translateY(-2px);
+}
+.order-h {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: white;
-  border: 1.5px solid var(--green-soft);
-  border-radius: 14px;
-  padding: 12px 14px;
-  transition: border-color 0.2s;
+  gap: 8px;
+  margin-bottom: 15px;
+  flex-wrap: wrap;
 }
-.cat-item:hover {
-  border-color: var(--green-light);
-}
-.cat-item-info {
-  display: flex;
-  flex-direction: column;
-}
-.cat-item-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-dark);
-}
-.cat-item-right {
+.order-hl{
   display: flex;
   align-items: center;
   gap: 6px;
 }
-.cat-item-edit {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: none;
-  background: var(--green-pale);
-  cursor: pointer;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-.cat-item-edit:hover {
-  background: #d4edda;
-}
-.cat-item-del {
-  width: 30px;
-  height: 30px;
-  border-radius: 50%;
-  border: none;
-  background: #fbe9e7;
-  cursor: pointer;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-.cat-item-del:hover {
-  background: #ffccbc;
-}
-
-/* ─── ORDERS SECTION ─── */
-.orders-section {
-  padding: 16px;
-  max-width: 600px;
-  margin: 0 auto;
-}
-.orders-header {
-  font-family: "Hanuman", serif;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--green-dark);
-  margin-bottom: 16px;
-}
-.orders-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.order-card {
-  background: white;
-  border: 1.5px solid var(--green-soft);
-  border-radius: 14px;
-  padding: 14px;
-}
-.order-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 6px;
-}
 .order-id {
-  font-family: "Hanuman", serif;
   font-size: 14px;
   font-weight: 700;
-  color: var(--green-dark);
+  color: var(--ink);
 }
-.order-table {
-  font-size: 13px;
-  font-weight: 600;
-  color: #555;
+.order-id::before {
+  content: "📋 ";
+  font-size: 12px;
 }
-.order-status {
-  margin-left: auto;
+.order-t {
   font-size: 11px;
-  padding: 3px 8px;
-  border-radius: 12px;
-  font-weight: 600;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
-.order-status.pending {
+.order-m {
+  display: flex;
+  justify-content: flex-end;
+}
+.order-time {
+  font-size: 10px;
+  color: var(--muted-light);
+}
+.order-st {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.order-st.pending {
   background: #fef3c7;
   color: #92400e;
 }
-.order-status.confirmed {
+.order-st.confirmed {
   background: #dbeafe;
   color: #1e40af;
 }
-.order-status.preparing {
+.order-st.preparing {
   background: #fce7f3;
   color: #9d174d;
 }
-.order-status.ready {
+.order-st.ready {
   background: #dcfce7;
-  color: #166534;
+  color: var(--green-dark);
 }
-.order-status.served {
+.order-st.served {
   background: #d1fae5;
   color: #065f46;
 }
-.order-status.cancelled {
+.order-st.cancelled {
   background: #fbe9e7;
-  color: #c62828;
-}
-.order-time {
-  font-size: 11px;
-  color: #9ca3af;
-  margin-bottom: 8px;
+  color: var(--red);
 }
 .order-items {
-  border-top: 1px solid #e8f5e9;
-  padding-top: 8px;
+  border-top: 1px solid var(--border-green);
+  padding-top: 6px;
 }
-.order-item {
+.order-i {
   display: flex;
   justify-content: space-between;
-  font-size: 12px;
   padding: 3px 0;
-  color: #374151;
+  font-size: 11px;
 }
-.order-note {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #6b7280;
+.order-p {
+  color: var(--muted);
+  font-weight: 600;
+}
+.order-n {
+  margin-top: 4px;
+  font-size: 10px;
+  color: var(--muted);
   font-style: italic;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .order-total {
-  margin-top: 8px;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--green-dark);
-}
-.order-actions {
-  margin-top: 10px;
-}
-.order-status-select {
-  width: 100%;
-  padding: 8px;
-  border: 1.5px solid var(--green-soft);
-  border-radius: 8px;
-  font-size: 12px;
-  font-family: inherit;
-  background: white;
-  outline: none;
-}
-
-/* QR MODAL */
-.qr-modal {
-  background: white;
-  border-radius: 22px;
-  width: 90%;
-  max-width: 340px;
-  overflow: hidden;
-}
-.qr-modal-header {
-  background: linear-gradient(135deg, #0f766e, #22c55e);
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 14px;
-  font-weight: 700;
-  color: #fff;
-  font-family: "Hanuman", serif;
-}
-.qr-close-btn {
-  background: rgba(255, 255, 255, 0.2);
-  border: none;
-  color: #fff;
-  font-size: 16px;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background 0.2s;
-}
-.qr-close-btn:hover {
-  background: rgba(255, 255, 255, 0.4);
-}
-.qr-modal-body {
-  padding: 20px 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.qr-input-row {
-  display: flex;
-  gap: 8px;
-  width: 100%;
-  max-width: 300px;
-}
-.qr-input {
-  flex: 1;
-  padding: 9px 14px;
-  border: 1.5px solid var(--green-soft);
-  border-radius: 24px;
-  font-size: 15px;
-  font-family: inherit;
-  background: var(--green-pale);
-  color: var(--text-dark);
-  outline: none;
-}
-.qr-input:focus {
-  border-color: var(--green-light);
-}
-.qr-gen-btn {
-  padding: 9px 18px;
-  background: var(--green-mid);
-  color: white;
-  border: none;
-  border-radius: 24px;
-  font-size: 13px;
-  font-family: inherit;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: background 0.2s;
-}
-.qr-gen-btn:hover {
-  background: var(--green-dark);
-}
-.qr-gen-btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.qr-preview {
-  margin-top: 16px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-.qr-img {
-  width: 200px;
-  height: 200px;
-  border-radius: 12px;
-  border: 3px solid var(--green-soft);
-  object-fit: contain;
-}
-.qr-table-label {
   margin-top: 6px;
-  font-family: "Hanuman", serif;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--green-dark);
+  font-size: 12px;
+  color: var(--ink);
 }
-.qr-download-btn {
-  display: inline-block;
-  margin-top: 10px;
-  padding: 9px 22px;
-  background: #0f766e;
-  color: white;
-  border-radius: 24px;
-  font-size: 13px;
+.order-sel {
+  width: 100%;
+  margin-top: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 11px;
   font-family: inherit;
-  font-weight: 600;
-  text-decoration: none;
-  transition: background 0.2s;
+  background: var(--surface);
+  outline: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-height: 34px;
 }
-.qr-download-btn:hover {
-  background: #0d5e57;
+.order-sel:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.order-sel:hover {
+  border-color: var(--primary);
 }
 
-/* CONFIRM MODALS */
-.modal-overlay {
+/* Empty */
+.empty {
+  text-align: center;
+  padding: 56px 20px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.empty p {
+  margin: 0;
+  font-size: 13px;
+}
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ═══ MODALS ═══ */
+.overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 200;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 300;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
 }
-.confirm-box {
+.dlg {
   background: white;
-  border-radius: 22px;
+  border-radius: 16px;
   width: 90%;
-  max-width: 300px;
-  padding: 28px 22px;
+  max-width: 320px;
+  padding: 24px 20px;
   text-align: center;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-green);
 }
-.confirm-icon {
-  font-size: 36px;
-  margin-bottom: 8px;
-}
-.confirm-title {
-  font-family: "Hanuman", serif;
-  font-size: 17px;
-  font-weight: 700;
-  color: #c62828;
-  margin-bottom: 6px;
-}
-.confirm-title--blue {
-  color: #b71c1c;
-}
-.confirm-name {
-  font-size: 13px;
-  color: var(--text-mid);
-  margin-bottom: 18px;
-}
-.confirm-btns {
-  display: flex;
-  gap: 10px;
-}
-.confirm-cancel {
-  flex: 1;
-  padding: 11px;
-  background: var(--green-pale);
-  color: var(--green-dark);
-  border: none;
-  border-radius: 10px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.confirm-delete {
-  flex: 1;
-  padding: 11px;
-  background: #c62828;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-}
-.confirm-delete:hover {
-  background: #b71c1c;
-}
-.confirm-logout {
-  flex: 1;
-  padding: 11px;
-  background: #9f4040;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-family: inherit;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.confirm-logout:hover {
-  background: #7a2a2a;
-}
-
-/* TRANSITIONS */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.2s ease;
-}
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
-}
-.pop-in {
-  animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes popIn {
-  from {
-    transform: scale(0.85);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-/* ─── HEADER (Centered Layout) ─── */
-.header {
-  position: relative;
-  background: linear-gradient(135deg, #0f766e 0%, #22c55e 50%, #16a34a 100%);
-  padding: 36px 24px 32px;
+.sheet {
+  background: var(--surface);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
   overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-green);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+.sheet-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--surface-green);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.sheet-h span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary);
+}
+.sheet-b {
+  padding: 18px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-}
-.header-bg-overlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    ellipse at 50% 0%,
-    rgba(255, 255, 255, 0.08) 0%,
-    transparent 60%
-  );
-  pointer-events: none;
-}
-.header-bg-pattern {
-  position: absolute;
-  inset: 0;
-  opacity: 0.04;
-  background-image: radial-gradient(circle, #fff 1px, transparent 1px);
-  background-size: 32px 32px;
-  pointer-events: none;
-}
-.header-content {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
   gap: 14px;
-  max-width: 400px;
-  width: 100%;
 }
-.header-logo-ring {
-  width: 88px;
-  height: 88px;
-  border-radius: 50%;
+.dlg-i {
+  color: var(--red);
+  margin-bottom: 8px;
   display: flex;
-  align-items: center;
   justify-content: center;
-  overflow: hidden;
-  border: 3px solid rgba(255, 255, 255, 0.3);
-  box-shadow: 0 0 0 6px rgba(255, 255, 255, 0.1), 0 8px 24px rgba(0, 0, 0, 0.15);
-  background: rgba(255, 255, 255, 0.08);
-  transition: transform 0.3s ease;
 }
-.header-logo-ring:hover {
-  transform: scale(1.03);
+.dlg-i-r {
+  color: var(--red-dark);
 }
-.header-logo {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.header-text {
-  text-align: center;
-}
-.header-restaurant-name {
-  color: #fff;
-  font-family: "Hanuman", serif;
-  font-size: 22px;
+.dlg-t {
+  font-size: 15px;
   font-weight: 700;
-  line-height: 1.3;
-  margin: 0;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  color: var(--red);
+  margin-bottom: 4px;
 }
-.tg-error-msg {
-  background: #fef2f2;
-  border: 1.5px solid #fecaca;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-bottom: 14px;
-  font-size: 13px;
-  color: #dc2626;
-  font-weight: 600;
+.dlg-d {
+  font-size: 12px;
+  color: #374151;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+.dlg-acts {
+  display: flex;
+  gap: 8px;
+}
+.dlg-acts .btn {
+  flex: 1;
+  justify-content: center;
 }
 
-/* Profile Modal */
-.profile-logo-section {
+.btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  min-height: 36px;
+  min-width: 70px;
+}
+.btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+.btn-g {
+  background: var(--surface-green);
+  color: var(--ink);
+  border: 1px solid var(--border-green);
+}
+.btn-g:hover {
+  background: #dcfce7;
+}
+.btn-r {
+  background: var(--red);
+  color: white;
+}
+.btn-r:hover {
+  background: var(--red-dark);
+}
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+.btn-primary:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 16px var(--primary-glow-strong);
+}
+.btn-b {
+  width: 100%;
+  justify-content: center;
+}
+
+/* Form */
+.fld {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.fld-l {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.fld-i {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  color: var(--text);
+  transition: all 0.2s ease;
+  background: var(--surface);
+  box-sizing: border-box;
+  min-height: 36px;
+}
+.fld-i:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.fld-i.err {
+  border-color: var(--red);
+  background: #fff8f8;
+}
+.fld-e {
+  font-size: 10px;
+  color: var(--red);
+}
+
+.msg {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.msg-s {
+  background: var(--surface-green);
+  color: var(--green-dark);
+  border: 1px solid var(--border-green);
+}
+.msg-e {
+  background: #fef2f2;
+  color: var(--red);
+  border: 1px solid #fecaca;
+}
+
+/* QR */
+.qr-r {
+  display: flex;
+  gap: 8px;
+}
+.qr-inp {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  font-family: inherit;
+  background: var(--surface);
+  outline: none;
+  transition: all 0.2s ease;
+  min-height: 36px;
+}
+.qr-inp:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.qr-p {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 18px;
+  gap: 8px;
 }
-.profile-logo-preview {
-  width: 80px;
-  height: 80px;
+.qr-p img {
+  width: 160px;
+  height: 160px;
+  border-radius: 10px;
+  border: 2px solid var(--border-green);
+  object-fit: contain;
+}
+.qr-l {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Profile */
+.prof-l {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+.prof-p {
+  width: 64px;
+  height: 64px;
   border-radius: 50%;
   overflow: hidden;
-  border: 3px solid var(--green-soft);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border: 3px solid var(--border-green);
 }
-.profile-logo-img {
+.prof-p img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.profile-logo-upload {
+.prof-up {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  background: var(--green-pale);
-  color: var(--green-dark);
-  border: 1.5px solid var(--green-soft);
-  border-radius: 20px;
-  font-size: 12px;
+  padding: 5px 12px;
+  background: var(--surface-green);
+  border: 1px solid var(--border-green);
+  border-radius: 999px;
+  font-size: 10px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
+  min-height: 28px;
 }
-.profile-logo-upload:hover {
-  background: var(--green-soft);
+.prof-up:hover {
+  background: #dcfce7;
+  transform: translateY(-1px);
 }
 
-/* Link Code Section */
-.link-code-section {
-  margin-bottom: 12px;
+/* Telegram */
+.tg-c {
+  background: #fefce8;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #92400e;
+  line-height: 1.6;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tg-code {
   text-align: center;
 }
-.link-code-label {
-  font-size: 12px;
+.tg-lbl {
+  font-size: 10px;
   font-weight: 600;
-  color: #6b7280;
-  margin-bottom: 6px;
+  color: var(--muted);
+  margin-bottom: 4px;
+  display: block;
 }
-.link-code-box {
+.tg-box {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  background: #f0fdf4;
-  border: 2px dashed #16a34a;
-  border-radius: 12px;
-  padding: 10px 18px;
+  gap: 6px;
+  background: var(--surface-green);
+  border: 2px dashed var(--primary);
+  border-radius: 8px;
+  padding: 6px 12px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.2s ease;
 }
-.link-code-box:hover {
+.tg-box:hover {
   background: #dcfce7;
-  border-color: #15803d;
+  border-color: var(--primary-dark);
+  transform: scale(1.02);
 }
-.link-code-value {
-  font-family: "Courier New", monospace;
-  font-size: 24px;
-  font-weight: 800;
-  color: #14532d;
-  letter-spacing: 4px;
-}
-.link-code-copy-btn {
-  background: none;
-  border: none;
+.tg-val {
   font-size: 18px;
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: 2px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+}
+.tg-guide {
+  font-size: 11px;
+  color: var(--primary);
+}
+.tg-guide summary {
   cursor: pointer;
-  padding: 2px;
-  transition: transform 0.15s;
-}
-.link-code-copy-btn:hover {
-  transform: scale(1.2);
-}
-.link-code-copied {
-  font-size: 12px;
-  color: #16a34a;
   font-weight: 600;
+  padding: 3px 0;
+}
+.tg-guide summary:hover {
+  color: var(--primary-dark);
+}
+.tg-steps {
+  background: var(--surface-green);
+  border: 1px solid var(--border-green);
+  border-radius: 8px;
+  padding: 10px;
   margin-top: 4px;
 }
-.link-code-hint {
-  margin-top: 8px;
-}
-.link-code-regenerate-btn {
-  background: none;
-  border: 1.5px solid #d1d5db;
-  border-radius: 8px;
-  padding: 5px 12px;
-  font-size: 11px;
-  font-family: inherit;
-  color: #6b7280;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.link-code-regenerate-btn:hover {
-  border-color: #16a34a;
-  color: #16a34a;
-}
-.tg-linked-status {
+.tg-step {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  margin-top: 12px;
-  padding: 10px 12px;
-  background: #f0fdf4;
-  border: 1.5px solid #bbf7d0;
-  border-radius: 10px;
-}
-.tg-linked-badge {
-  font-size: 12px;
-  font-weight: 600;
-  color: #166534;
-}
-.tg-unlink-btn {
-  background: #fbe9e7;
-  border: 1.5px solid #ffccbc;
-  border-radius: 8px;
-  padding: 5px 10px;
+  gap: 6px;
+  margin-bottom: 4px;
   font-size: 11px;
-  font-family: inherit;
-  color: #c62828;
-  cursor: pointer;
-  transition: all 0.2s;
+  color: var(--text);
 }
-.tg-unlink-btn:hover {
-  background: #ffccbc;
-}
-.tg-not-linked {
-  margin-top: 12px;
-  padding: 10px 12px;
-  background: #fefce8;
-  border: 1.5px solid #fde68a;
-  border-radius: 10px;
-  font-size: 12px;
-  color: #92400e;
-  text-align: center;
-}
-
-/* Telegram Guide */
-.telegram-note {
-  background: #fefce8;
-  border: 1.5px solid #fde68a;
-  border-radius: 10px;
-  padding: 10px 12px;
-  margin-bottom: 10px;
-  text-align: left;
-  font-size: 12px;
-  color: #92400e;
-  line-height: 1.5;
-}
-.telegram-note p {
-  margin: 4px 0;
-}
-.telegram-bot-name {
-  margin-top: 6px;
-  padding-top: 6px;
-  border-top: 1px solid #fde68a;
-  font-size: 12px;
-  color: #92400e;
-}
-.telegram-guide {
-  margin-bottom: 12px;
-  text-align: left;
-}
-.telegram-guide-summary {
-  font-size: 12px;
-  font-weight: 600;
-  color: #0f766e;
-  cursor: pointer;
-  padding: 6px 0;
-  user-select: none;
-}
-.telegram-guide-summary:hover {
-  color: #14532d;
-}
-.telegram-guide-content {
-  background: #f0fdf4;
-  border: 1.5px solid #bbf7d0;
-  border-radius: 10px;
-  padding: 12px;
-  margin-top: 6px;
-}
-.guide-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 8px;
-  font-size: 12px;
-  color: #374151;
-  line-height: 1.4;
-}
-.guide-step:last-child {
+.tg-step:last-child {
   margin-bottom: 0;
 }
-.guide-step-num {
-  flex-shrink: 0;
-  width: 20px;
-  height: 20px;
+.step-n {
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  background: #16a34a;
+  background: var(--primary);
   color: white;
-  font-size: 11px;
+  font-size: 8px;
   font-weight: 700;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
 }
-.guide-step code {
-  background: #e8f5e9;
-  padding: 1px 5px;
+.tg-step code {
+  background: var(--surface-green);
+  padding: 1px 4px;
   border-radius: 4px;
+  color: var(--primary);
+}
+.tg-linked {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--surface-green);
+  border: 1px solid var(--border-green);
+  border-radius: 8px;
+  padding: 8px 12px;
   font-size: 11px;
-  color: #166534;
+  color: var(--green-dark);
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.tg-linked span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tg-warn {
+  background: #fefce8;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #92400e;
+  text-align: center;
 }
 
-/* ─── CATEGORY FORM MODAL (reuses FoodFormModal styles) ─── */
-.modal-card {
-  background: white;
-  border-radius: 22px;
-  width: 100%;
-  max-width: 420px;
-  max-height: 88vh;
-  overflow-y: auto;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+/* Transitions */
+.fade-enter-active, .fade-leave-active {
+  transition: opacity 0.15s ease;
 }
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 18px 18px 0;
+.fade-enter-from, .fade-leave-to {
+  opacity: 0;
 }
-.modal-header-title {
-  font-family: "Hanuman", serif;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--green-dark);
+
+/* Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }
-.close-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: var(--green-pale);
-  border: none;
-  cursor: pointer;
-  font-size: 17px;
-  font-weight: 700;
-  color: var(--green-dark);
+
+/* ════════════════════════════════════════════════
+   RESPONSIVE BREAKPOINTS
+   ════════════════════════════════════════════════ */
+
+/* Tablets and smaller desktops */
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  .metrics {
+    gap: 10px;
+  }
+  .main {
+    padding: 20px 24px 50px;
+  }
 }
-.modal-form {
-  padding: 14px 18px 22px;
+
+/* Tablets and large phones */
+@media (max-width: 900px) {
+  .root {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Mobile Header */
+  .mob {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 90;
+  }
+  .mob-btn {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: var(--ink);
+    position: relative;
+    flex-shrink: 0;
+  }
+  .mob-btn:hover {
+    border-color: var(--primary);
+  }
+  .mob-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    min-width: 0;
+  }
+  .mob-av {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    overflow: hidden;
+    border: 1px solid var(--border-green);
+    flex-shrink: 0;
+  }
+  .mob-av img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .mob-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .mob-alert {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--amber);
+    animation: blink-dot 1.5s ease-in-out infinite;
+  }
+
+  /* Sidebar - Slide out */
+  .side {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 280px;
+    max-width: 80vw;
+    z-index: 220;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    height: 100vh;
+    border-right: 1px solid var(--border);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
+  }
+  .nav-open .side {
+    transform: translateX(0);
+  }
+  .nav-open .scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 210;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+
+  .main {
+    padding: 16px 16px 40px;
+  }
+
+  /* Hide text on small screens */
+  .hdr-hide {
+    display: none;
+  }
+  .hdr-title::before {
+    content: "✦ ";
+  }
+
+  /* Metrics - 2 columns */
+  .metrics {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .metric {
+    padding: 14px 16px;
+  }
+  .metric-icon {
+    width: 36px;
+    height: 36px;
+  }
+  .metric-v {
+    font-size: 18px;
+  }
+
+  /* Grid - 3 columns */
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  /* Toolbar - stack */
+  .bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .bar-acts {
+    flex-wrap: wrap;
+  }
+  .bar-scroll {
+    order: 2;
+  }
+  .srch {
+    min-width: 0;
+    flex: 1;
+    max-width: none;
+  }
+
+  /* Orders - 1 column */
+  .order-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Categories */
+  .cat-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+
+  /* Buttons - smaller on mobile */
+  .ac {
+    padding: 6px 12px;
+    font-size: 11px;
+    min-height: 32px;
+    min-width: 32px;
+  }
+  .hdr-r .ac {
+    padding: 6px 10px;
+  }
+  .ac span {
+    max-width: 80px;
+  }
+  .ac-avatar {
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    padding: 6px;
+  }
+  .ac-icon-only {
+    padding: 6px 8px;
+  }
+  .btn {
+    min-height: 34px;
+    min-width: 60px;
+    font-size: 11px;
+    padding: 6px 12px;
+  }
+
+  /* Header */
+  .hdr {
+    padding-bottom: 14px;
+    margin-bottom: 16px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+  .hdr-title {
+    font-size: 20px;
+  }
+  .hdr-r {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
 }
-.form-group {
-  margin-bottom: 14px;
+
+/* Small phones */
+@media (max-width: 480px) {
+  .main {
+    padding: 12px 10px 32px;
+  }
+  
+  .hdr-title {
+    font-size: 18px;
+  }
+  
+  /* Metrics - 1 column on very small screens */
+  .metrics {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .metric {
+    padding: 12px 14px;
+  }
+  .metric-v {
+    font-size: 17px;
+  }
+
+  /* Grid - 2 columns */
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
+
+  /* Categories - 1 column */
+  .cat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Orders */
+  .order-c {
+    padding: 12px;
+  }
+
+  /* Modals - full width */
+  .sheet {
+    max-width: 100%;
+    margin: 8px;
+    border-radius: 12px;
+  }
+  .sheet-h {
+    padding: 14px 16px;
+    font-size: 13px;
+  }
+  .sheet-b {
+    padding: 14px;
+    gap: 12px;
+  }
+  .dlg {
+    padding: 20px 16px;
+  }
+
+  /* QR */
+  .qr-r {
+    flex-direction: column;
+  }
+  .qr-p img {
+    width: 140px;
+    height: 140px;
+  }
+
+  /* Chips - wrap */
+  .bar-scroll {
+    gap: 4px;
+  }
+  .chip {
+    padding: 4px 10px;
+    font-size: 10px;
+    min-height: 26px;
+  }
+
+  /* Buttons - even smaller */
+  .ac {
+    padding: 4px 10px;
+    font-size: 10px;
+    min-height: 28px;
+    min-width: 28px;
+  }
+  .ac span {
+    max-width: 60px;
+  }
+  .ac-avatar {
+    width: 28px;
+    height: 28px;
+    min-width: 28px;
+    padding: 4px;
+  }
+  .ac-icon-only {
+    padding: 4px 6px;
+  }
+  .btn {
+    min-height: 30px;
+    min-width: 50px;
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+
+  .order-sel {
+    min-height: 30px;
+    font-size: 10px;
+    padding: 4px 8px;
+  }
+  .fld-i {
+    min-height: 32px;
+    font-size: 11px;
+    padding: 6px 8px;
+  }
+  .qr-inp {
+    min-height: 32px;
+    font-size: 11px;
+    padding: 6px 10px;
+  }
 }
-.form-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--text-mid);
-  margin-bottom: 5px;
-  display: block;
+
+/* Very small phones */
+@media (max-width: 380px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .hdr-r {
+    gap: 4px;
+  }
+  .ac span {
+    max-width: 40px;
+  }
 }
-.form-input {
-  width: 100%;
-  padding: 10px 12px;
-  border: 1.5px solid var(--green-soft);
-  border-radius: 10px;
-  font-size: 13px;
-  font-family: inherit;
-  outline: none;
-  color: var(--text-dark);
-  transition: border 0.2s;
-  background: white;
-  box-sizing: border-box;
-}
-.form-input:focus {
-  border-color: var(--green-light);
-}
-.form-input.error {
-  border-color: #e53935;
-  background: #fff8f8;
-}
-.field-err {
-  font-size: 11px;
-  color: #e53935;
-  margin-top: 4px;
-}
-.field-hint {
-  font-size: 11px;
-  color: #9ca3af;
-  margin-top: 3px;
-}
-.field-hint a {
-  color: #16a34a;
-}
-.form-success-msg {
-  background: #e8f5e9;
-  border: 1.5px solid #a5d6a7;
-  border-radius: 10px;
-  padding: 10px 14px;
-  margin-bottom: 14px;
-  font-size: 13px;
-  color: #2d7a2d;
-  font-weight: 600;
-}
-.submit-btn {
-  width: 100%;
-  padding: 13px;
-  background: var(--green-mid);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.submit-btn:hover {
-  background: var(--green-dark);
-}
-.submit-btn:disabled {
-  background: #9e9e9e;
-  cursor: not-allowed;
+
+/* Landscape phones */
+@media (max-height: 600px) and (orientation: landscape) {
+  .side {
+    padding-bottom: 10px;
+  }
+  .side-top {
+    padding: 12px 16px 10px;
+  }
+  .side-nav {
+    padding: 6px 8px;
+    gap: 1px;
+  }
+  .nav-i {
+    padding: 6px 10px;
+    min-height: 32px;
+    font-size: 12px;
+  }
+  .side-foot {
+    padding: 8px 12px 12px;
+  }
+  .main {
+    padding: 12px 16px 30px;
+  }
+  .metrics {
+    gap: 6px;
+  }
+  .metric {
+    padding: 10px 12px;
+  }
+  .metric-icon {
+    width: 30px;
+    height: 30px;
+  }
+  .metric-v {
+    font-size: 16px;
+  }
 }
 </style>

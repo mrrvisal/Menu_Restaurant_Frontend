@@ -98,12 +98,28 @@ function getCategoryEmoji(category) {
 }
 
 .food-card-body { padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
+@media (max-width: 480px) {
+  .food-card-body { padding: 8px; gap: 4px; }
+}
 .food-card-name { font-family: 'Hanuman', serif; font-size: 14px; font-weight: 700; line-height: 1.3; }
+@media (max-width: 480px) {
+  .food-card-name { font-size: 12px; }
+}
+.food-card-price { font-size: 14px; font-weight: 700; color: var(--green-dark); }
+@media (max-width: 480px) {
+  .food-card-price { font-size: 12px; }
+  .add-cart-btn { padding: 4px 8px; font-size: 10px; }
+  .status-toggle-btn { font-size: 9px; padding: 2px 6px; }
+}
 .food-card-footer {
   display: flex; justify-content: space-between;
   align-items: center; margin-top: auto; gap: 4px; flex-wrap: wrap;
 }
-.food-card-price { font-size: 14px; font-weight: 700; color: var(--green-dark); }
+@media (max-width: 480px) {
+  .food-card-footer { flex-direction: column; align-items: stretch; gap: 6px; }
+  .food-card-footer .add-cart-btn,
+  .food-card-footer .status-toggle-btn { width: 100%; justify-content: center; }
+}
 
 .status-toggle-btn {
   font-size: 10px; padding: 3px 8px; border-radius: 20px;
