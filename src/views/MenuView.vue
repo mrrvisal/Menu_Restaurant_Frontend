@@ -11,7 +11,8 @@
         <div class="header-logo-ring">
           <img
             :src="
-              restaurantInfo?.logo_url ||
+              auth.restaurant?.logoUrl ||
+              auth.restaurant?.logo_url ||
               'https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png'
             "
             class="header-logo"
@@ -302,18 +303,49 @@ const tableFromQR = computed(() => {
 });
 
 async function loadRestaurant() {
-  if (!restaurantId.value) {
-    restaurantInfo.value = null;
-    return;
+  let merged = null;
+
+  // 1) Fetch fresh restaurant data from the public API (when we have an id).
+  if (restaurantId.value) {
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/restaurants/${restaurantId.value}`
+      );
+      merged = res.data;
+    } catch (err) {
+      console.error("Failed to fetch restaurant:", err);
+      merged = null;
+    }
   }
-  try {
-    const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/restaurants/${restaurantId.value}`
-    );
-    restaurantInfo.value = res.data;
-  } catch (err) {
-    restaurantInfo.value = null;
+
+  // 2) Fall back to the owner's restaurant from the auth store. This has the
+  //    logo already (from /api/auth/me) and covers cases where the visitor
+  //    is the logged-in owner viewing /menu without a restaurant_id param,
+  //    or where the fetch returned no/old-format logo.
+  let authed = null;
+  if (auth.restaurants.length) {
+    authed =
+      auth.restaurants.find((r) => r.id === Number(restaurantId.value)) ||
+      auth.restaurant ||
+      null;
   }
+
+  if (authed && !merged) {
+    merged = { ...authed };
+  }
+
+  if (merged) {
+    // Normalize the logo field so both camelCase and snake_case work.
+    const logo =
+      merged.logoUrl ||
+      merged.logo_url ||
+      (authed ? authed.logoUrl || authed.logo_url : null) ||
+      null;
+    merged.logoUrl = logo;
+    merged.logo_url = logo;
+  }
+
+  restaurantInfo.value = merged;
 }
 
 let searchTimer = null;

@@ -45,6 +45,25 @@
             }}</span>
           </div>
         </div>
+
+        <!-- Restaurant Switcher (one account may manage many restaurants) -->
+        <div class="side-rest" v-if="auth.restaurants.length > 1">
+          <select
+            class="rest-switch"
+            :value="auth.restaurantId"
+            @change="onSwitchRestaurant($event)"
+          >
+            <option
+              v-for="r in auth.restaurants"
+              :key="r.id"
+              :value="r.id"
+              >{{ r.name }}</option
+            >
+          </select>
+        </div>
+        <button class="side-add-rest" @click="openAddRestaurant">
+          + {{ i18n.t.add_restaurant || "បន្ថែមភោជនីយដ្ឋាន" }}
+        </button>
       </div>
 
       <nav class="side-nav">
@@ -301,6 +320,34 @@
           </div>
           <div class="metric-glow"></div>
         </div>
+      </div>
+
+      <!-- Menu (one menu per restaurant) + gating -->
+      <div class="menustrip">
+        <div class="menustrip-label">{{ i18n.t.menu }}</div>
+        <div v-if="!auth.restaurantId" class="menustrip-empty">
+          <span>{{ i18n.t.need_restaurant || "សូមបង្កើតភោជនីយដ្ឋានជាមុន" }}</span>
+          <button class="btn btn-primary btn-sm" @click="openAddRestaurant">
+            {{ i18n.t.add_restaurant || "+ បង្កើតភោជនីយដ្ឋាន" }}
+          </button>
+        </div>
+        <template v-else-if="!foods.menus.length">
+          <div class="menustrip-empty">
+            <span>{{ i18n.t.need_menu || "សូមបង្កើតមីនុយជាមុន" }}</span>
+            <button
+              class="btn btn-primary btn-sm"
+              :disabled="menuCreating"
+              @click="ensureDefaultMenu()"
+            >
+              {{ menuCreating ? i18n.t.loading : (i18n.t.create_menu || "បង្កើតមីនុយ") }}
+            </button>
+          </div>
+        </template>
+        <template v-else>
+          <div class="menu-single">
+            <span class="menu-single-name">{{ i18n.t.default_menu }}</span>
+          </div>
+        </template>
       </div>
 
       <!-- ──────── FOODS ──────── -->
@@ -648,6 +695,83 @@
       @saved="load()"
     />
 
+    <!-- Add Restaurant (one account → many restaurants) -->
+    <Teleport to="body"
+      ><Transition name="fade">
+        <div
+          v-if="showAddRestaurant"
+          class="overlay"
+          @click.self="showAddRestaurant = false"
+        >
+          <div class="sheet">
+            <div class="sheet-h">
+              <span
+                ><svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path
+                    d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4M9 11h.01M15 11h.01M9 15h.01M15 15h.01"
+                  />
+                </svg>
+                {{ i18n.t.create_restaurant || "New Restaurant" }}</span
+              ><button
+                class="ic"
+                aria-label="Close"
+                @click="showAddRestaurant = false"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div class="sheet-b">
+              <div v-if="addRestaurantMsg" class="msg msg-s">
+                {{ addRestaurantMsg }}
+              </div>
+              <div v-if="addRestaurantError" class="msg msg-e">
+                {{ addRestaurantError }}
+              </div>
+              <div class="fld">
+                <label class="fld-l"
+                  >{{ i18n.t.restaurant_name }} *</label
+                >
+                <input
+                  v-model="addRestaurantName"
+                  class="fld-i"
+                  :placeholder="i18n.t.restaurant_name_ph || ''"
+                  @keyup.enter="submitAddRestaurant"
+                />
+              </div>
+              <button
+                class="btn btn-primary btn-b"
+                :disabled="addRestaurantSubmitting"
+                @click="submitAddRestaurant"
+              >
+                {{
+                  addRestaurantSubmitting
+                    ? i18n.t.loading
+                    : i18n.t.add_restaurant
+                }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition></Teleport
+    >
+
     <!-- Delete Food -->
     <Teleport to="body"
       ><Transition name="fade">
@@ -805,7 +929,7 @@
                   :disabled="qrLoading"
                   @click="generateQR"
                 >
-                  {{ qrLoading ? "" : i18n.t.generate || "Generate" }}
+                  {{ qrLoading ? "i18n.t.generating" : i18n.t.generate || "Generate" }}
                 </button>
               </div>
               <div v-if="qrError" class="msg msg-e">
@@ -1440,10 +1564,15 @@ async function generateQR() {
   try {
     let url = `${API_BASE}/api/qr/table/${num}`;
     if (auth.restaurantId) url += `?restaurant_id=${auth.restaurantId}`;
+    // force=1 regenerates the QR with the restaurant's current logo
+    // so the embedded logo is always up to date.
+    url += `&force=1`;
     const res = await axios.get(url);
     qrCodeDataUrl.value = res.data.qrCode;
     qrDownloadUrl.value = res.data.qrCode;
-    if (res.data.alreadyExists) {
+    // Only warn about "already exists" when it was a plain cached hit
+    // (no regeneration). When updated=true the logo was refreshed instead.
+    if (res.data.alreadyExists && !res.data.updated) {
       qrError.value = `QR សម្រាប់តុលេខ ${num} មានរួចហើយ។ កំណត់តុលេខថ្មីដើម្បីបង្កើត QR ថ្មី។`;
     }
   } catch (e) {
@@ -1495,9 +1624,112 @@ function openPreview() {
 }
 async function load() {
   const params = {};
+  if (auth.currentMenuId) params.menu_id = auth.currentMenuId;
   if (curCat.value) params.category = curCat.value;
   if (searchQ.value) params.search = searchQ.value;
   await foods.fetchFoods(params);
+}
+
+// ─── RESTAURANT SWITCHING / CREATION ───────────────────────
+async function onSwitchRestaurant(e) {
+  const id = Number(e.target.value);
+  auth.setCurrentRestaurant(id);
+  curCat.value = "";
+  searchQ.value = "";
+  await initForRestaurant();
+}
+
+const showAddRestaurant = ref(false);
+const addRestaurantName = ref("");
+const addRestaurantSubmitting = ref(false);
+const addRestaurantMsg = ref("");
+const addRestaurantError = ref("");
+
+function openAddRestaurant() {
+  addRestaurantName.value = "";
+  addRestaurantMsg.value = "";
+  addRestaurantError.value = "";
+  showAddRestaurant.value = true;
+}
+
+async function submitAddRestaurant() {
+  addRestaurantError.value = "";
+  addRestaurantMsg.value = "";
+  if (!addRestaurantName.value.trim()) {
+    addRestaurantError.value = "សូមបញ្ចូលឈ្មោះភោជនីយដ្ឋាន";
+    return;
+  }
+  addRestaurantSubmitting.value = true;
+  try {
+    const res = await axios.post(
+      `${API_BASE}/api/auth/restaurants`,
+      { name: addRestaurantName.value.trim() }
+    );
+    // Refresh the restaurants list
+    await auth.fetchMe();
+    if (res.data.restaurant) auth.setCurrentRestaurant(res.data.restaurant.id);
+    await initForRestaurant();
+    addRestaurantMsg.value = "បង្កើតភោជនីយដ្ឋានបានជោគជ័យ!";
+    setTimeout(() => {
+      showAddRestaurant.value = false;
+    }, 1100);
+  } catch (err) {
+    addRestaurantError.value =
+      err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
+  } finally {
+    addRestaurantSubmitting.value = false;
+  }
+}
+
+// ─── MENU HANDLING (one menu per restaurant) ───────────────
+const menuCreating = ref(false);
+
+async function ensureDefaultMenu() {
+  if (!auth.restaurantId) return;
+  if (menuCreating.value) return;
+  menuCreating.value = true;
+  try {
+    const created = await foods.addMenu("Default Menu");
+    auth.setCurrentMenu(created.id);
+    await foods.fetchMenus();
+    await refreshCurrentMenuSelection();
+    await initForRestaurant();
+  } catch (err) {
+    console.error("Could not create menu:", err);
+  } finally {
+    menuCreating.value = false;
+  }
+}
+
+// Ensure currentMenuId points to an existing menu; default to first.
+function refreshCurrentMenuSelection() {
+  if (
+    !auth.currentMenuId ||
+    !foods.menus.some((m) => m.id === auth.currentMenuId)
+  ) {
+    auth.setCurrentMenu(foods.menus.length ? foods.menus[0].id : null);
+  }
+}
+
+async function loadCategories() {
+  const params = {};
+  if (auth.currentMenuId) params.menu_id = auth.currentMenuId;
+  await foods.fetchCategories(params);
+}
+
+async function initForRestaurant() {
+  // Load menus for the (new) current restaurant
+  await foods.fetchMenus();
+  refreshCurrentMenuSelection();
+  // When switching restaurants, drop the previous menu's category selection
+  curCat.value = "";
+  searchQ.value = "";
+  await loadCategories();
+  await load();
+  fetchStats();
+  // Reconnect the order stream to the selected restaurant
+  disconnectOrderStream();
+  connectOrderStream();
 }
 function openAdd() {
   editingFood.value = null;
@@ -1517,7 +1749,8 @@ function confirmLogout() {
 }
 function handleEscKey(e) {
   if (e.key !== "Escape") return;
-  if (showForm.value) {
+  if (showAddRestaurant.value) showAddRestaurant.value = false;
+  else if (showForm.value) {
     showForm.value = false;
     editingFood.value = null;
   } else if (deletingFood.value) deletingFood.value = null;
@@ -1648,7 +1881,11 @@ function disconnectOrderStream() {
 }
 
 onMounted(async () => {
-  await foods.fetchCategories();
+  // Refresh restaurants list (in case a new one was added elsewhere)
+  await auth.fetchMe();
+  await foods.fetchMenus();
+  refreshCurrentMenuSelection();
+  await loadCategories();
   if (foods.categories.length) curCat.value = foods.categories[0].id;
   await load();
   fetchStats();
@@ -1725,6 +1962,53 @@ onUnmounted(() => {
     var(--surface-green) 0%,
     var(--surface) 100%
   );
+}
+/* Restaurant switcher (one account → many restaurants) */
+.side-rest {
+  margin-top: 14px;
+}
+.rest-switch {
+  width: 100%;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: 1px solid var(--border-green);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rest-switch:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.side-add-rest {
+  width: 100%;
+  margin-top: 10px;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px dashed var(--primary);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--primary);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.side-add-rest:hover {
+  background: var(--surface-green);
+  border-color: var(--primary-dark);
+  border-style: solid;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px var(--primary-glow);
 }
 .side-brand {
   display: flex;
@@ -2132,6 +2416,97 @@ onUnmounted(() => {
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.4px;
+}
+
+/* Menu selector strip (restaurant → menu gating) */
+.menustrip {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding: 10px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.menustrip-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--primary);
+  flex-shrink: 0;
+  padding-right: 10px;
+  border-right: 1px solid var(--border);
+}
+.menustrip-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+.menustrip-tabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  flex: 1;
+}
+.menu-single {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+.menu-single-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  min-height: 28px;
+}
+.menutab {
+  padding: 6px 14px;
+  border: 1px solid var(--border-green);
+  border-radius: 999px;
+  background: var(--surface-green);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--ink);
+  cursor: pointer;
+  white-space: nowrap;
+  min-height: 30px;
+  transition: all 0.2s ease;
+}
+.menutab:hover {
+  border-color: var(--primary);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+.menutab.active {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #fff;
+  box-shadow: 0 4px 12px var(--primary-glow-strong);
+}
+.menutab-add {
+  background: transparent;
+  border: 1px dashed var(--primary);
+  color: var(--primary);
+}
+.menutab-add:hover {
+  background: var(--surface-green);
+  border-style: solid;
 }
 
 /* Toolbar */
@@ -2680,6 +3055,13 @@ onUnmounted(() => {
 .btn-b {
   width: 100%;
   justify-content: center;
+}
+.btn-sm {
+  min-height: 28px;
+  min-width: 0;
+  padding: 4px 12px;
+  font-size: 11px;
+  border-radius: 6px;
 }
 
 /* Form */

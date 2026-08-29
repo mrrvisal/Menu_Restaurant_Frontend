@@ -247,18 +247,6 @@
             <p>{{ i18n.t.footer_desc }}</p>
           </div>
         </div>
-        <div class="footer-links">
-          <div class="footer-col">
-            <h4>{{ i18n.t.product || 'Product' }}</h4>
-            <a href="#features">{{ i18n.t.features }}</a>
-            <a href="#how-it-works">{{ i18n.t.how_it_works }}</a>
-            <a href="#demo-menu">{{ i18n.t.menu }}</a>
-          </div>
-          <div class="footer-col">
-            <h4>{{ i18n.t.support || 'Support' }}</h4>
-            <router-link to="/register">{{ i18n.t.register }}</router-link>
-          </div>
-        </div>
       </div>
       <div class="footer-divider"></div>
       <div class="footer-bottom">
@@ -345,17 +333,22 @@ const sampleFoods = [
     img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249571/images_1_khv5yn.jpg",
   },
 ];
-
+let screenHandler = null;
 let scrollHandler = null;
 onMounted(() => {
   scrollHandler = () => {
     scrolled.value = window.scrollY > 40;
   };
   window.addEventListener("scroll", scrollHandler, { passive: true });
+  screenHandler = () => {
+    if (window.innerWidth > 820) mobileOpen.value = false;
+  };
+  window.addEventListener("resize", screenHandler, { passive: true });
 });
 
 onUnmounted(() => {
   if (scrollHandler) window.removeEventListener("scroll", scrollHandler);
+  if (screenHandler) window.removeEventListener("resize", screenHandler);
 });
 </script>
 
@@ -393,15 +386,23 @@ onUnmounted(() => {
   transition: all 0.35s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .navbar-scrolled {
-  background: rgba(255, 255, 255, 0.88);
+  max-width: calc(100% - 48px);
+  margin: auto;
+  border-radius: clamp(0px, 2vw, 20px);
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(16px) saturate(180%);
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06), 0 4px 20px rgba(0, 0, 0, 0.04);
-  padding: 8px 0;
+  padding: 10px 0;
+  
+
+  width: 95%;
+  max-width: 1200px;
+  margin: 12px auto;
 }
 .nav-inner {
   max-width: 1180px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -538,9 +539,12 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 4px;
   padding: 16px 24px 20px;
-  background: rgba(255,255,255,0.96);
-  backdrop-filter: blur(12px);
+  background: rgba(255, 255, 255, 0.55);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid #e5e7eb;
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
+  border-radius: 0 0 12px 12px;
 }
 .mobile-link, .mobile-btn {
   padding: 10px 12px;
@@ -1123,7 +1127,7 @@ onUnmounted(() => {
 
 /* Phone mockup */
 .phone-mockup {
-  max-width: 560px;
+  max-width: 580px;
   margin-left: auto;
   border-radius: 24px;
   background: #fff;
@@ -1297,6 +1301,10 @@ onUnmounted(() => {
   color: rgba(255,255,255,0.15);
   margin-bottom: 20px;
   line-height: 1;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.step-card:hover .step-number {
+  color: rgba(255,255,255,0.7);
 }
 .step-card h3 {
   margin: 0 0 8px;
@@ -1427,12 +1435,12 @@ onUnmounted(() => {
   width: min(1180px, 100%);
   margin: 0 auto;
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   gap: 40px;
   flex-wrap: wrap;
 }
 .footer-brand {
-  max-width: 320px;
+  max-width: 400px;
   display: flex;
   align-items: flex-start;
   gap: 14px;

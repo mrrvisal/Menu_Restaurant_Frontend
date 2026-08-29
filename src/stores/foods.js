@@ -2,25 +2,75 @@
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import axios from "axios";
+import { useAuthStore } from "./auth";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export const useFoodsStore = defineStore("foods", () => {
+  const auth = useAuthStore();
   const foods = ref([]);
   const categories = ref([]);
+  const menus = ref([]);
   const loading = ref(false);
   const error = ref(null);
 
-  async function fetchCategories(params = {}) {
-    const res = await axios.get(`${API_BASE_URL}/api/categories`, { params });
+  // The currently active restaurant (for owner actions)
+  function activeRestaurantId() {
+    return auth.restaurantId;
+  }
+
+  async function fetchMenus(restaurantId = null) {
+    const id = restaurantId || activeRestaurantId();
+    if (!id) {
+      menus.value = [];
+      return;
+    }
+    const res = await axios.get(`${API_BASE_URL}/api/menus`, {
+      params: { restaurant_id: id },
+    });
+    menus.value = res.data;
+  }
+
+  async function addMenu(name) {
+    const id = activeRestaurantId();
+    const res = await axios.post(`${API_BASE_URL}/api/menus`, {
+      restaurant_id: id,
+      name,
+    });
+    menus.value.push(res.data);
+    return res.data;
+  }
+
+  async function updateMenu(id, name) {
+    const res = await axios.patch(`${API_BASE_URL}/api/menus/${id}`, { name });
+    const idx = menus.value.findIndex((m) => m.id === id);
+    if (idx !== -1) menus.value[idx] = res.data;
+    return res.data;
+  }
+
+  async function deleteMenu(id) {
+    await axios.delete(`${API_BASE_URL}/api/menus/${id}`);
+    menus.value = menus.value.filter((m) => m.id !== id);
+    foods.value = foods.value.filter((f) => f.menu_id !== id);
+    categories.value = categories.value.filter((c) => c.menu_id !== id);
+  }
+
+  async function fetchCategories(params = {}, restaurantId = null) {
+    const id = restaurantId || activeRestaurantId();
+    const res = await axios.get(`${API_BASE_URL}/api/categories`, {
+      params: { restaurant_id: id, ...params },
+    });
     categories.value = res.data;
   }
 
-  async function fetchFoods(params = {}) {
+  async function fetchFoods(params = {}, restaurantId = null) {
     loading.value = true;
     error.value = null;
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/foods`, { params });
+      const id = restaurantId || activeRestaurantId();
+      const res = await axios.get(`${API_BASE_URL}/api/foods`, {
+        params: { restaurant_id: id, ...params },
+      });
       // Transform img to img_url for frontend compatibility
       foods.value = res.data.map((food) => ({
         ...food,
@@ -34,6 +84,9 @@ export const useFoodsStore = defineStore("foods", () => {
   }
 
   async function addFood(formData) {
+    const id = activeRestaurantId();
+    formData.append("restaurant_id", id);
+    if (auth.currentMenuId) formData.append("menu_id", auth.currentMenuId);
     const res = await axios.post(`${API_BASE_URL}/api/foods`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
@@ -59,7 +112,12 @@ export const useFoodsStore = defineStore("foods", () => {
   }
 
   async function addCategory(data) {
-    const res = await axios.post(`${API_BASE_URL}/api/categories`, data);
+    const id = activeRestaurantId();
+    const res = await axios.post(`${API_BASE_URL}/api/categories`, {
+      restaurant_id: id,
+      menu_id: auth.currentMenuId,
+      ...data,
+    });
     categories.value.push(res.data);
     return res.data;
   }
@@ -82,18 +140,9 @@ export const useFoodsStore = defineStore("foods", () => {
   }
 
   return {
-    foods,
-    categories,
-    loading,
-    error,
-    fetchCategories,
-    fetchFoods,
-    addFood,
-    updateFood,
-    toggleStatus,
-    deleteFood,
-    addCategory,
-    updateCategory,
-    deleteCategory,
+    foods, categories, menus, loading, error,
+    fetchCategories, fetchFoods, fetchMenus, addMenu, updateMenu, deleteMenu,
+    addFood, updateFood, toggleStatus, deleteFood,
+    addCategory, updateCategory, deleteCategory,
   };
 });

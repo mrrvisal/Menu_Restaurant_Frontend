@@ -8,13 +8,6 @@
         <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
         <div v-if="successMsg" class="success-msg">{{ successMsg }}</div>
 
-        <div class="section-title">{{ i18n.t.restaurant_name }}</div>
-
-        <div class="form-group">
-          <label>{{ i18n.t.restaurant_name }} *</label>
-          <input v-model="form.restaurantName" class="input" :placeholder="i18n.t.restaurant_name" required />
-        </div>
-
         <div class="section-title">{{ i18n.t.login }}</div>
 
         <div class="form-group">
@@ -25,6 +18,8 @@
           <label>{{ i18n.t.password }} *</label>
           <input v-model="form.password" type="password" class="input" :placeholder="i18n.t.password" minlength="6" required />
         </div>
+
+        <p class="hint">{{ i18n.t.register_restaurant_hint || "After verifying your email, you can create your restaurant." }}</p>
 
         <button type="submit" class="btn" :disabled="submitting">
           {{ submitting ? i18n.t.loading : i18n.t.register }}
@@ -48,37 +43,22 @@ const auth = useAuthStore();
 const i18n = useI18nStore();
 
 const form = reactive({
-  restaurantName: "", logoFile: null,
-  email: "", fullName: "", password: "",
+  email: "",
+  password: "",
 });
 const errorMsg = ref("");
 const successMsg = ref("");
 const submitting = ref(false);
-const logoPreview = ref("");
-
-function onLogoChange(e) {
-  const file = e.target.files[0];
-  if (file) {
-    form.logoFile = file;
-    const reader = new FileReader();
-    reader.onload = (ev) => { logoPreview.value = ev.target.result; };
-    reader.readAsDataURL(file);
-  }
-}
 
 async function submit() {
   errorMsg.value = "";
   successMsg.value = "";
   submitting.value = true;
   try {
-    const fd = new FormData();
-    fd.append("email", form.email.trim());
-    fd.append("password", form.password);
-    fd.append("fullName", form.fullName.trim());
-    fd.append("restaurantName", form.restaurantName.trim());
-    if (form.logoFile) fd.append("logo", form.logoFile);
-
-    const data = await auth.register(fd);
+    const data = await auth.register({
+      email: form.email.trim(),
+      password: form.password,
+    });
     successMsg.value = data.message || i18n.t.success;
     setTimeout(() => router.push(`/verify-email?email=${encodeURIComponent(form.email.trim())}`), 2000);
   } catch (err) {
@@ -107,6 +87,7 @@ async function submit() {
 .error-msg { background: #fbe9e7; border: 1.5px solid #ffccbc; border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #c62828; margin-bottom: 12px; }
 .success-msg { background: #e8f5e9; border: 1.5px solid #a5d6a7; border-radius: 8px; padding: 8px 12px; font-size: 13px; color: #2d7a2d; margin-bottom: 12px; }
 .links { margin-top: 12px; font-size: 13px; color: #6b7280; }
+.hint { font-size: 12px; color: #6b7280; text-align: left; margin: 2px 0 10px; line-height: 1.5; }
 .links a { color: #16a34a; font-weight: 600; text-decoration: none; }
 .logo-preview { margin-top: 6px; }
 .logo-preview img { width: 60px; height: 60px; object-fit: cover; border-radius: 10px; border: 2px solid #bbf7d0; }
