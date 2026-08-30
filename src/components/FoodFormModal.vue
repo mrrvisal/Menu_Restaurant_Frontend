@@ -30,11 +30,16 @@
               </div>
               <div class="form-group">
                 <label class="form-label">ប្រភេទ *</label>
-                <select v-model="form.category" class="form-input">
-                  <option v-for="cat in categories" :key="cat.id" :value="cat.id">
-                    {{ cat.label_km }}
-                  </option>
-                </select>
+                <AppSelect
+                  v-model="form.category"
+                  block
+                  size="md"
+                  tone="soft"
+                  :options="categories"
+                  option-value="id"
+                  option-label="label_km"
+                  placeholder="ជ្រើសរើសប្រភេទ"
+                />
               </div>
             </div>
 
@@ -63,10 +68,16 @@
             <!-- Status -->
             <div class="form-group">
               <label class="form-label">ស្ថានភាព</label>
-              <select v-model="form.status" class="form-input">
-                <option value="available">មាន (Available)</option>
-                <option value="unavailable">អស់ (Unavailable)</option>
-              </select>
+              <AppSelect
+                v-model="form.status"
+                block
+                size="md"
+                tone="soft"
+                :options="[
+                  { value: 'available', label: 'មាន (Available)' },
+                  { value: 'unavailable', label: 'អស់ (Unavailable)' },
+                ]"
+              />
             </div>
 
             <button class="submit-btn" :disabled="submitting" @click="submit">
@@ -82,6 +93,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { useFoodsStore } from '@/stores/foods';
+import AppSelect from '@/components/AppSelect.vue';
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -246,7 +258,7 @@ async function submit() {
 .form-input {
   width: 100%; padding: 10px 12px; border: 1.5px solid var(--green-soft);
   border-radius: 10px; font-size: 13px; font-family: inherit;
-  outline: none; color: var(--text-dark); transition: border .2s; background: white;
+  outline: none; color: var(--text-dark); transition: border .2s; background-color: white;
 }
 .form-input:focus { border-color: var(--green-light); }
 .form-input.error { border-color: #e53935; background: #fff8f8; }

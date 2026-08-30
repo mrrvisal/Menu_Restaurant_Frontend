@@ -1,7 +1,7 @@
 <template>
   <div class="shell" :class="{ 'nav-open': mobileNavOpen }">
     <!-- MOBILE TOP BAR -->
-    <div class="mobile-bar">
+    <div class="mobile-bar sel-light">
       <div class="mark "><img width="40" src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png" alt=""></div>
       <span class="mobile-bar-title">{{ t.super_admin }}</span>
       <button class="icon-btn" @click="mobileNavOpen = !mobileNavOpen" aria-label="Toggle navigation">
@@ -135,15 +135,18 @@
             </div>
 
             <div class="row-actions" @click.stop>
-              <select
-                :value="user.status"
-                @change="updateUserStatus(user.id, $event.target.value)"
-                class="select"
-              >
-                <option value="active">{{ t.activate }}</option>
-                <option value="suspended">{{ t.suspend }}</option>
-                <option value="inactive">Inactive</option>
-              </select>
+              <AppSelect
+                size="sm"
+                variant="teal"
+                min-width="110px"
+                :model-value="user.status"
+                :options="[
+                  { value: 'active', label: t.activate },
+                  { value: 'suspended', label: t.suspend },
+                  { value: 'inactive', label: 'Inactive' },
+                ]"
+                @update:model-value="(v) => updateUserStatus(user.id, v)"
+              />
             </div>
           </div>
         </div>
@@ -244,15 +247,18 @@
               </div>
 
               <div class="drawer-actions">
-                <select
-                  :value="selectedUser.status"
-                  @change="updateModalUserStatus($event.target.value)"
-                  class="select select-block"
-                >
-                  <option value="active">{{ t.activate }}</option>
-                  <option value="suspended">{{ t.suspend }}</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+                <AppSelect
+                  block
+                  size="sm"
+                  variant="teal"
+                  :model-value="selectedUser.status"
+                  :options="[
+                    { value: 'active', label: t.activate },
+                    { value: 'suspended', label: t.suspend },
+                    { value: 'inactive', label: 'Inactive' },
+                  ]"
+                  @update:model-value="updateModalUserStatus"
+                />
 
                 <button
                   v-if="!selectedUser.email_verified_at"
@@ -358,6 +364,7 @@ import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useI18nStore } from "@/stores/i18n";
 import AppIcon from "@/components/AppIcon.vue";
+import AppSelect from "@/components/AppSelect.vue";
 import axios from "axios";
 
 const router = useRouter();
@@ -950,7 +957,7 @@ function confirmLogout() {
   font-size: 12px;
   font-family: inherit;
   color: var(--text);
-  background: var(--surface);
+  background-color: var(--surface);
   outline: none;
   cursor: pointer;
   min-width: 100px;

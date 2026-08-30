@@ -48,18 +48,17 @@
 
         <!-- Restaurant Switcher (one account may manage many restaurants) -->
         <div class="side-rest" v-if="auth.restaurants.length > 1">
-          <select
-            class="rest-switch"
-            :value="auth.restaurantId"
-            @change="onSwitchRestaurant($event)"
-          >
-            <option
-              v-for="r in auth.restaurants"
-              :key="r.id"
-              :value="r.id"
-              >{{ r.name }}</option
-            >
-          </select>
+          <AppSelect
+            block
+            size="sm"
+            tone="soft"
+            variant="teal"
+            :model-value="auth.restaurantId"
+            :options="auth.restaurants"
+            option-value="id"
+            option-label="name"
+            @update:model-value="onSwitchRestaurant"
+          />
         </div>
         <button class="side-add-rest" @click="openAddRestaurant">
           + {{ i18n.t.add_restaurant || "បន្ថែមភោជនីយដ្ឋាន" }}
@@ -929,7 +928,7 @@
                   :disabled="qrLoading"
                   @click="generateQR"
                 >
-                  {{ qrLoading ? "i18n.t.generating" : i18n.t.generate || "Generate" }}
+                  {{ qrLoading ? i18n.t.generating : i18n.t.generate || "Generate" }}
                 </button>
               </div>
               <div v-if="qrError" class="msg msg-e">
@@ -1262,6 +1261,7 @@ import { useFoodsStore } from "@/stores/foods";
 import { useI18nStore } from "@/stores/i18n";
 import FoodCard from "@/components/FoodCard.vue";
 import FoodFormModal from "@/components/FoodFormModal.vue";
+import AppSelect from "@/components/AppSelect.vue";
 import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -1631,8 +1631,8 @@ async function load() {
 }
 
 // ─── RESTAURANT SWITCHING / CREATION ───────────────────────
-async function onSwitchRestaurant(e) {
-  const id = Number(e.target.value);
+async function onSwitchRestaurant(value) {
+  const id = Number(value);
   auth.setCurrentRestaurant(id);
   curCat.value = "";
   searchQ.value = "";
@@ -1973,7 +1973,7 @@ onUnmounted(() => {
   padding: 8px 10px;
   border: 1px solid var(--border-green);
   border-radius: 8px;
-  background: var(--surface);
+  background-color: var(--surface);
   color: var(--ink);
   font-family: inherit;
   font-size: 12px;
@@ -1987,6 +1987,35 @@ onUnmounted(() => {
 .rest-switch:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-glow);
+}
+/* ── Restaurant-switcher options (the dropdown list) ──────────
+   Built on top of the shared .app-select option design, tuned
+   for the sidebar. Chrome/Edge/Safari render these; Firefox
+   uses its native list.                                          */
+.rest-switch option {
+  background-color: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 500;
+  padding: 9px 12px;
+  line-height: 1.45;
+}
+.rest-switch option:hover,
+.rest-switch option:active,
+.rest-switch option:focus {
+  background-color: var(--surface-green);
+  color: var(--primary);
+}
+.rest-switch option:checked {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: #fff;
+  font-weight: 600;
+}
+.rest-switch option:disabled,
+.rest-switch option[value=""] {
+  color: var(--muted-light);
+  font-style: italic;
 }
 .side-add-rest {
   width: 100%;
@@ -2359,6 +2388,7 @@ onUnmounted(() => {
   border-radius: 50%;
   opacity: 0.05;
   pointer-events: none;
+  transition: all 0.25s ease;
 }
 .metric-teal .metric-glow {
   background: var(--primary);

@@ -1,0 +1,127 @@
+/* ============================================================
+   GLOBAL CUSTOM SELECT — shared design with options
+   ============================================================
+   Replaces the native browser <select> control everywhere in the
+   app: no default OS arrow, no platform-specific chrome — instead
+   a branded chevron + brand colors, for a consistent look.
+
+   USAGE
+   -----
+     <select class="app-select">…</select>                    // base
+     <select class="app-select app-select--block">…</select>  // full width
+     <select class="app-select app-select--sm">…</select>     // compact
+     <select class="app-select app-select--ghost">…</select>  // transparent bg
+     <select class="app-select app-select--teal">…</select>   // teal chevron
+
+   OPTIONS (modifier classes)
+   --------------------------
+     .app-select           base — strips the native look + brand chevron
+     .app-select--block    width: 100%
+     .app-select--sm       compact size (rows, chips, toolbars)
+     .app-select--ghost    transparent background (sidebar pills)
+     .app-select--teal     teal chevron variant (Admin/SuperAdmin brand)
+
+   NOTES
+   -----
+   A few declarations use !important on purpose so the custom
+   chevron + its spacing always win, even when a scoped local class
+   (e.g. .rest-switch, .form-input) also sets `background`/`padding`.
+   The element's own local rules still control color, border,
+   min-height, focus, etc.
+
+   Import once in main.js:  import "./assets/select.css";
+   ============================================================ */
+
+.app-select {
+  /* brand chevron (green by default; .app-select--teal swaps it) */
+  --app-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23166634' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+
+  /* tell the OS to render a light dropdown (no dark-mode listbox) */
+  color-scheme: light;
+
+  /* strip the native OS appearance + default arrow */
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+
+  /* custom chevron (kept independent of background-color so a
+     local `background: …` shorthand cannot erase it) */
+  background-image: var(--app-select-arrow) !important;
+  background-repeat: no-repeat !important;
+  background-position: right 10px center !important;
+  background-size: 14px 14px !important;
+
+  /* reserve space for the chevron regardless of local padding */
+  padding-right: 32px !important;
+
+  cursor: pointer;
+}
+.app-select::-ms-expand {
+  display: none; /* hide legacy IE/Edge arrow */
+}
+
+/* ─────────── OPTION LIST — shared design ───────────
+   Native <select> dropdowns are OS-rendered, so styling is
+   best-effort (Chrome/Edge/Safari apply most of this; Firefox
+   is limited). It still looks great in the default (closed)
+   state and in the drop-down list where supported.           */
+.app-select option {
+  background-color: #ffffff;
+  color: #0f172a;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 14px;
+  line-height: 1.4;
+}
+.app-select option:hover,
+.app-select option:active,
+.app-select option:focus {
+  background-color: #f0fdf4;
+  color: #166534;
+}
+.app-select option:checked {
+  background: linear-gradient(135deg, #166534, #22c55e);
+  color: #ffffff;
+  font-weight: 600;
+}
+.app-select option:disabled,
+.app-select option[value=""] {
+  color: #9ca3af;
+  font-weight: 400;
+  font-style: italic;
+}
+
+/* ── option styling for the teal variant (Admin/SuperAdmin) ── */
+.app-select--teal option:hover,
+.app-select--teal option:active,
+.app-select--teal option:focus {
+  background-color: #f0fdf4;
+  color: #0f766e;
+}
+.app-select--teal option:checked {
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: #ffffff;
+}
+
+/* ─────────── OPTIONS (modifiers) ─────────── */
+.app-select--block {
+  width: 100%;
+}
+
+.app-select--sm {
+  min-height: 30px;
+  font-size: 11px;
+  background-position: right 7px center !important;
+  background-size: 12px 12px !important;
+  padding-right: 26px !important;
+}
+
+.app-select--ghost {
+  background-color: transparent;
+  border-color: #bbf7d0;
+}
+
+.app-select--teal {
+  --app-select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%230f766e' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+}

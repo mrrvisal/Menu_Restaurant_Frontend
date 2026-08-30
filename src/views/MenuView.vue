@@ -2,7 +2,7 @@
 <template>
   <div class="page">
     <!-- HEADER -->
-    <div class="header">
+    <div class="header sel-light">
       <div class="header-bg-overlay"></div>
       <div class="header-bg-pattern"></div>
       <div class="header-blob header-blob-1"></div>

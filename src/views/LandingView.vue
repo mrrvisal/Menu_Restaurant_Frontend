@@ -1,5 +1,8 @@
 <template>
   <div class="landing">
+    <!-- 3D WebGL stage (fixed full-viewport background) -->
+    <Hero3D />
+
     <!-- NAVBAR -->
     <nav class="navbar" :class="{ 'navbar-scrolled': scrolled }">
       <div class="nav-inner">
@@ -76,7 +79,7 @@
             </div>
           </div>
           <aside class="hero-visual">
-            <div class="hero-card">
+            <div class="hero-card" v-tilt="{ max: 14, translate: 12 }">
               <div class="hero-card-header">
                 <div class="hero-card-dots">
                   <span></span><span></span><span></span>
@@ -124,7 +127,7 @@
             <p class="section-text">{{ i18n.t.owner_problem_desc }}</p>
           </div>
           <div class="problems-grid">
-            <article v-for="benefit in ownerBenefits" :key="benefit.title" class="problem-card">
+            <article v-for="benefit in ownerBenefits" :key="benefit.title" class="problem-card" v-tilt="{ max: 9 }">
               <div class="problem-card-num">{{ benefit.value }}</div>
               <h3>{{ i18n.t[benefit.title] }}</h3>
               <p>{{ i18n.t[benefit.desc] }}</p>
@@ -141,7 +144,7 @@
           <p class="section-text centered">{{ i18n.t.why_choose_us_desc }}</p>
         </div>
         <div class="features-grid">
-          <article v-for="feature in features" :key="feature.key" class="feature-card" :style="{ '--delay': `${features.indexOf(feature) * 0.06}s` }">
+          <article v-for="feature in features" :key="feature.key" class="feature-card" v-tilt="{ max: 9 }" :style="{ '--delay': `${features.indexOf(feature) * 0.06}s` }">
             <div class="feature-icon" v-html="feature.icon"></div>
             <h3>{{ i18n.t[feature.key + "_title"] }}</h3>
             <p>{{ i18n.t[feature.key + "_desc"] }}</p>
@@ -162,9 +165,9 @@
               <span><AppIcon name="phone" :size="14" /> Photo menu</span>
             </div>
           </div>
-          <div class="phone-mockup">
-            <div class="phone-notch"></div>
-            <div class="phone-header">
+          <div class="phone-mockup" v-tilt="{ max: 10, translate: 10 }">
+            <div class="phone-notch sel-light"></div>
+            <div class="phone-header sel-light">
               <div class="phone-restaurant">
                 <div class="phone-restaurant-avatar">{{ logoInitials }}</div>
                 <div>
@@ -200,7 +203,7 @@
           <p class="section-text centered">{{ i18n.t.how_it_works_desc }}</p>
         </div>
         <div class="steps-timeline">
-          <div v-for="(step, index) in steps" :key="step.title" class="step-card" :style="{ '--i': index }">
+          <div v-for="(step, index) in steps" :key="step.title" class="step-card sel-light" v-tilt="{ max: 10 }" :style="{ '--i': index }">
             <div class="step-number">{{ String(index + 1).padStart(2, "0") }}</div>
             <div class="step-connector" v-if="index < steps.length - 1"></div>
             <h3>{{ i18n.t[step.title] }}</h3>
@@ -235,7 +238,7 @@
     </main>
 
     <!-- FOOTER -->
-    <footer class="footer">
+    <footer class="footer sel-light">
       <div class="footer-bg-overlay"></div>
       <div class="footer-inner">
         <div class="footer-brand">
@@ -259,6 +262,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import { useI18nStore } from "@/stores/i18n";
+import Hero3D from "@/components/Hero3D.vue";
+import AppIcon from "@/components/AppIcon.vue";
+import { vTilt } from "@/composables/useTilt3D";
 
 const i18n = useI18nStore();
 const mobileOpen = ref(false);
@@ -357,10 +363,22 @@ onUnmounted(() => {
    BASE
    ============================================================ */
 .landing {
+  position: relative;
   min-height: 100vh;
-  background: #f8fbf9;
+  background: linear-gradient(180deg, rgba(248, 251, 249, 0.72) 0%, rgba(240, 253, 244, 0.6) 50%, rgba(248, 251, 249, 0.72) 100%);
   color: #1a2e1e;
   font-family: "Kantumruy Pro", "Hanuman", "Noto Sans Khmer", system-ui, sans-serif;
+}
+
+/* Keep DOM content above the fixed WebGL stage */
+.landing main {
+  position: relative;
+  z-index: 1;
+}
+.problems-section,
+.features-section,
+.steps-section {
+  background: linear-gradient(180deg, rgba(248, 251, 249, 0.8) 0%, rgba(240, 253, 244, 0.68) 100%);
 }
 .landing :where(a, button) {
   transition: transform 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
@@ -389,7 +407,7 @@ onUnmounted(() => {
   max-width: calc(100% - 48px);
   margin: auto;
   border-radius: clamp(0px, 2vw, 20px);
-  background: rgba(255, 255, 255, 0.55);
+  background: rgba(255, 255, 255, 0.7);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   backdrop-filter: blur(16px) saturate(180%);
   padding: 10px 0;
@@ -593,7 +611,7 @@ onUnmounted(() => {
   align-items: center;
   overflow: hidden;
   padding: 100px 24px 60px;
-  background: linear-gradient(160deg, #f0fdf4 0%, #dcfce7 30%, #f0fdf4 60%, #e8f5e9 100%);
+  background: linear-gradient(160deg, rgba(240, 253, 244, 0.5) 0%, rgba(220, 252, 231, 0.42) 30%, rgba(240, 253, 244, 0.5) 60%, rgba(232, 245, 233, 0.55) 100%);
 }
 .hero-bg-shapes {
   position: absolute;
@@ -752,10 +770,31 @@ onUnmounted(() => {
 .hero-card {
   background: #fff;
   border-radius: 20px;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.06), 0 8px 24px rgba(0,0,0,0.04);
-  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   overflow: hidden;
-  transform: translateZ(0);
+  position: relative;
+  transform: perspective(1000px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0);
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease;
+  will-change: transform;
+}
+.hero-card.is-tilt {
+  transition: transform 90ms linear, box-shadow 0.3s ease;
+}
+/* cursor-tracking glare */
+.hero-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  background: radial-gradient(70% 60% at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.5), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.hero-card.is-tilt::after {
+  opacity: 1;
 }
 .hero-card-header {
   display: flex;
@@ -795,6 +834,8 @@ onUnmounted(() => {
   padding: 12px 14px;
   border-radius: 12px;
   background: #f0fdf4;
+  transform: translate3d(calc(var(--tx, 0px) * -0.35), calc(var(--ty, 0px) * -0.35), 0);
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .hero-order-avatar {
   width: 44px; height: 44px;
@@ -864,6 +905,8 @@ onUnmounted(() => {
   font-size: 13px;
   color: #6b7280;
   font-weight: 600;
+  transform: translate3d(calc(var(--tx, 0px) * 0.3), calc(var(--ty, 0px) * 0.3), 0);
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .hero-order-total strong {
   font-size: 18px;
@@ -987,14 +1030,19 @@ onUnmounted(() => {
   padding: 24px;
   border-radius: 16px;
   background: #fff;
-  border: 1px solid rgba(0,0,0,0.04);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  transition: all 0.25s;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0);
+  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
+  will-change: transform;
 }
 .problem-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.05);
-  border-color: rgba(34,197,94,0.2);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0) translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+.problem-card.is-tilt {
+  transition: transform 80ms linear, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 .problem-card-num {
   width: 36px; height: 36px;
@@ -1053,14 +1101,19 @@ onUnmounted(() => {
   padding: 28px;
   border-radius: 16px;
   background: #fff;
-  border: 1px solid rgba(0,0,0,0.04);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0);
+  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  will-change: transform;
 }
 .feature-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0,0,0,0.06);
-  border-color: rgba(34,197,94,0.15);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0) translateY(-4px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
+  border-color: rgba(34, 197, 94, 0.15);
+}
+.feature-card.is-tilt {
+  transition: transform 80ms linear, box-shadow 0.3s ease, border-color 0.3s ease;
 }
 .feature-icon {
   width: 48px;
@@ -1095,7 +1148,7 @@ onUnmounted(() => {
    ============================================================ */
 .demo-section {
   padding: 80px 24px;
-  background: #f0fdf4;
+  background: rgba(240, 253, 244, 0.45);
 }
 .demo-inner {
   width: min(1180px, 100%);
@@ -1131,10 +1184,30 @@ onUnmounted(() => {
   margin-left: auto;
   border-radius: 24px;
   background: #fff;
-  box-shadow: 0 20px 60px rgba(0,0,0,0.08);
-  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   overflow: hidden;
   position: relative;
+  transform: perspective(1100px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0);
+  transition: transform 0.5s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease;
+  will-change: transform;
+}
+.phone-mockup.is-tilt {
+  transition: transform 90ms linear, box-shadow 0.3s ease;
+}
+.phone-mockup::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  border-radius: inherit;
+  background: radial-gradient(70% 60% at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.35), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.phone-mockup.is-tilt::after {
+  opacity: 1;
 }
 .phone-notch {
   height: 24px;
@@ -1289,11 +1362,16 @@ onUnmounted(() => {
   padding: 28px;
   border-radius: 16px;
   background: linear-gradient(135deg, #14532d, #166534);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0);
+  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease;
+  will-change: transform;
 }
 .step-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 32px rgba(22,101,52,0.25);
+  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0) translateY(-4px);
+  box-shadow: 0 12px 32px rgba(22, 101, 52, 0.25);
+}
+.step-card.is-tilt {
+  transition: transform 80ms linear, box-shadow 0.3s ease;
 }
 .step-number {
   font-size: 28px;
@@ -1342,7 +1420,7 @@ onUnmounted(() => {
 .cta-section {
   position: relative;
   padding: 100px 24px;
-  background: linear-gradient(160deg, #f0fdf4 0%, #dcfce7 30%, #f0fdf4 60%, #e8f5e9 100%);
+  background: linear-gradient(160deg, rgba(240, 253, 244, 0.5) 0%, rgba(220, 252, 231, 0.42) 30%, rgba(240, 253, 244, 0.5) 60%, rgba(232, 245, 233, 0.55) 100%);
   text-align: center;
   overflow: hidden;
 }
@@ -1419,8 +1497,11 @@ onUnmounted(() => {
    ============================================================ */
 .footer {
   position: relative;
+  z-index: 1;
   padding: 50px 24px 24px;
-  background: #166534;
+  background: rgba(22, 101, 52, 0.92);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
   overflow: hidden;
 }
 .footer-bg-overlay {

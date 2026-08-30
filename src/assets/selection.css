@@ -1,0 +1,86 @@
+/* ============================================================
+   GLOBAL CUSTOM SELECTION — shared design with options
+   ============================================================
+   Replaces the native browser text-highlight everywhere in the
+   app with a branded highlight matching the project palette,
+   so the default blue highlight is never used.
+
+   HOW THE "OPTIONS" WORK
+   ----------------------
+   Everything is driven by inherited CSS custom properties, so
+   you can switch or restyle the selection from anywhere:
+
+     --sel-bg          highlight background color
+     --sel-color       highlighted text color
+     --sel-text-shadow optional glow behind the selected text
+     --sel-caret       caret color for inputs (brand polish)
+
+   READY-MADE VARIANT CLASSES (drop on any element/section):
+
+     .sel-brand   default — dark green bg  + mint text     (light sections)
+     .sel-light   light mint bg            + deep green text (dark sections)
+     .sel-teal    teal bg                  + pale teal text
+     .sel-amber   amber bg                 + deep brown text
+     .sel-none    transparent bg           + dark text     ("no highlight")
+
+   EXAMPLES
+   --------
+     <header class="sel-teal">…</header>          <!-- header variant -->
+     <footer class="sel-light">…</footer>         <!-- dark footer -->
+     .my-box { --sel-bg: #0f766e; --sel-color: #ccfbf1; }
+
+   Import once in main.js:  import "./assets/selection.css";
+   ============================================================ */
+
+/* 1 · Defaults (brand green — matches --green-dark palette) */
+:root {
+  --sel-bg: #166534;
+  --sel-color: #d1fae5;
+  --sel-text-shadow: 0 0 0 rgba(0, 0, 0, 0);
+  --sel-caret: #16a34a;
+}
+
+/* 2 · Apply the custom highlight to every element in the app */
+::selection {
+  background: var(--sel-bg);
+  color: var(--sel-color);
+  text-shadow: var(--sel-text-shadow);
+}
+::-moz-selection {
+  background: var(--sel-bg);
+  color: var(--sel-color);
+}
+/* Safari keeps a blue glow behind ::selection — neutralise it */
+::-webkit-selection {
+  background: var(--sel-bg);
+  color: var(--sel-color);
+  text-shadow: var(--sel-text-shadow);
+}
+
+/* 3 · Inputs & textareas get a matching caret */
+input,
+textarea {
+  caret-color: var(--sel-caret);
+}
+
+/* 4 · Option variants (use on any element or section) */
+.sel-brand {
+  --sel-bg: #166534;
+  --sel-color: #d1fae5;
+}
+.sel-light {
+  --sel-bg: #d1fae5;
+  --sel-color: #14532d;
+}
+.sel-teal {
+  --sel-bg: #0f766e;
+  --sel-color: #ccfbf1;
+}
+.sel-amber {
+  --sel-bg: #f59e0b;
+  --sel-color: #431407;
+}
+.sel-none {
+  --sel-bg: transparent;
+  --sel-color: #0f172a;
+}
