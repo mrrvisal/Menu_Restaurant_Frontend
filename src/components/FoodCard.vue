@@ -2,7 +2,7 @@
 <template>
   <div class="food-card" @click="$emit('detail', food)">
     <!-- Admin delete button -->
-    <button v-if="isAdmin" class="card-delete-btn" @click.stop="$emit('delete', food)">✕</button>
+    <button v-if="isAdmin" class="card-delete-btn" @click.stop="$emit('delete', food)"><AppIcon name="x" :size="14" /></button>
 
     <!-- Image -->
     <div class="food-card-img">
@@ -31,7 +31,8 @@
         <template v-else>
           <button v-if="food.status === 'unavailable'" class="add-cart-btn unavail" disabled><AppIcon name="x-circle" :size="14" /> អស់</button>
           <button v-else class="add-cart-btn" @click.stop="$emit('add-cart', food)">
-            {{ cartQty > 0 ? `🛒 (${cartQty})` : '+ ដាក់' }}
+            <template v-if="cartQty > 0"><AppIcon name="cart" :size="14" /> ({{ cartQty }})</template>
+            <template v-else>+ ដាក់</template>
           </button>
         </template>
       </div>

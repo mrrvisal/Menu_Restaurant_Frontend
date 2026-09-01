@@ -6,7 +6,7 @@
         <div class="modal-card pop-in">
           <div class="modal-header">
             <span class="modal-header-title">{{ editFood ? 'កែប្រែ' : 'បន្ថែមម្ហូប' }}</span>
-            <button class="close-btn" @click="$emit('close')">✕</button>
+            <button class="close-btn" @click="$emit('close')"><AppIcon name="x" :size="16" /></button>
           </div>
           <div class="modal-form">
             <div v-if="successMsg" class="form-success-msg">{{ successMsg }}</div>
@@ -54,14 +54,14 @@
                   style="display:none"
                   @change="onFileChange" 
                 />
-                <div class="img-upload-icon">🖼️</div>
+                <div class="img-upload-icon"><AppIcon name="image" :size="36" /></div>
                 <div class="img-upload-text">ចុចដើម្បីជ្រើសរូបភាព</div>
                 <div class="img-upload-sub">JPG, PNG, WEBP · max 5MB</div>
               </div>
               <div v-if="errors.img" class="field-err">{{ errors.img }}</div>
               <div v-if="previewUrl" class="img-preview-wrap">
                 <img :src="previewUrl" class="img-preview" alt="preview" />
-                <button class="img-remove-btn" @click.prevent="removeImage">✕</button>
+                <button class="img-remove-btn" @click.prevent="removeImage"><AppIcon name="x" :size="12" /></button>
               </div>
             </div>
 
@@ -94,6 +94,7 @@
 import { ref, watch } from 'vue';
 import { useFoodsStore } from '@/stores/foods';
 import AppSelect from '@/components/AppSelect.vue';
+import AppIcon from '@/components/AppIcon.vue';
 
 const props = defineProps({
   show: { type: Boolean, default: false },
@@ -275,7 +276,7 @@ async function submit() {
   transition: all .2s; background: var(--green-pale);
 }
 .img-upload-area:hover { border-color: var(--green-mid); background: #d4edda; }
-.img-upload-icon { font-size: 28px; margin-bottom: 6px; }
+.img-upload-icon { margin-bottom: 6px; color: var(--green-mid); line-height: 1; display: flex; justify-content: center; }
 .img-upload-text { font-size: 12px; color: var(--text-mid); font-weight: 600; }
 .img-upload-sub  { font-size: 11px; color: var(--text-light); margin-top: 2px; }
 .img-preview-wrap { margin-top: 10px; position: relative; }

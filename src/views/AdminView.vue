@@ -1084,7 +1084,7 @@
                   {{ i18n.t.unlink || "Unlink" }}
                 </button>
               </div>
-              <div v-else class="tg-warn">{{ i18n.t.not_connected_yet }}</div>
+              <div v-else class="tg-warn"><AppIcon name="alert-circle" :size="14" /> {{ i18n.t.not_connected_yet }}</div>
             </div>
           </div>
         </div>
@@ -1262,6 +1262,7 @@ import { useI18nStore } from "@/stores/i18n";
 import FoodCard from "@/components/FoodCard.vue";
 import FoodFormModal from "@/components/FoodFormModal.vue";
 import AppSelect from "@/components/AppSelect.vue";
+import AppIcon from "@/components/AppIcon.vue";
 import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL;

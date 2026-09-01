@@ -88,7 +88,7 @@
               </div>
               <div class="hero-card-body">
                 <div class="hero-order-restaurant">
-                  <div class="hero-order-avatar">{{ logoInitials }}</div>
+                  <div class="hero-order-avatar"><img src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png" width="40" alt=""></div>
                   <div>
                     <strong>Digital Menu</strong>
                     <span>Table QR checkout</span>
@@ -110,7 +110,9 @@
             <div class="hero-floating hero-floating-1">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
             </div>
-            <div class="hero-floating hero-floating-2">✦</div>
+            <div class="hero-floating hero-floating-2">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2l2.4 7.6L22 12l-7.6 2.4L12 22l-2.4-7.6L2 12l7.6-2.4z"/></svg>
+            </div>
             <div class="hero-floating hero-floating-3">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/></svg>
             </div>
@@ -160,26 +162,26 @@
             <h2 class="section-title">{{ i18n.t.sample_menu_title }}</h2>
             <p class="section-text">{{ i18n.t.sample_menu_desc }}</p>
             <div class="demo-tags">
-              <span><AppIcon name="qr" :size="14" /> Live table QR</span>
-              <span><AppIcon name="activity" :size="14" /> Fast checkout</span>
-              <span><AppIcon name="phone" :size="14" /> Photo menu</span>
+              <span><AppIcon name="qr" :size="14" /> {{ i18n.t.live_table_qr }}</span>
+              <span><AppIcon name="activity" :size="14" /> {{ i18n.t.fast_checkout }}</span>
+              <span><AppIcon name="image" :size="14" /> {{ i18n.t.photo_menu }}</span>
             </div>
           </div>
           <div class="phone-mockup" v-tilt="{ max: 10, translate: 10 }">
             <div class="phone-notch sel-light"></div>
             <div class="phone-header sel-light">
               <div class="phone-restaurant">
-                <div class="phone-restaurant-avatar">{{ logoInitials }}</div>
+                <div class="phone-restaurant-avatar"><img data-v-6b7d1e37="" src="https://res.cloudinary.com/daji2ml3y/image/upload/v1777712294/ChatGPT_Image_May_2_2026_03_39_44_PM-Picsart-BackgroundRemover_1_x4yi9t.png" width="60" alt=""></div>
                 <div>
-                  <strong>ម្លប់ព្រឹក ដាលីន</strong>
-                  <span>Mlob Pring Dalin Restaurant</span>
+                  <strong>ម្លប់ព្រឹកដាលីន</strong>
+                  <span>Mlob Pring Dalin</span>
                 </div>
               </div>
             </div>
             <div class="phone-categories">
-              <button class="phone-cat active">Hot dishes</button>
-              <button class="phone-cat">Drinks</button>
-              <button class="phone-cat">Dessert</button>
+              <button class="phone-cat active">{{ i18n.t.general_foods }}</button>
+              <button class="phone-cat">{{ i18n.t.drinks }}</button>
+              <button class="phone-cat">{{ i18n.t.dessert }}</button>
             </div>
             <div class="phone-foods">
               <div v-for="food in sampleFoods" :key="food.id" class="phone-food-item">
@@ -310,7 +312,7 @@ const sampleFoods = [
   },
   {
     id: 2,
-    name: "ត្ត្រីបំពង",
+    name: "ត្រីបំពង",
     price: 20000,
     img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249185/560100192_1294493769028479_7023791370470250097_n_q8rlo8.jpg",
   },
@@ -498,7 +500,7 @@ onUnmounted(() => {
   background: rgba(34, 197, 94, 0.08);
 }
 .primary-btn {
-  background: #166534;
+      background: linear-gradient(135deg, #166534, #22c55e);
   color: #fff;
   text-decoration: none;
   font-size: 13px;
@@ -840,8 +842,9 @@ onUnmounted(() => {
 .hero-order-avatar {
   width: 44px; height: 44px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #166534, #22c55e);
+  /* background: linear-gradient(135deg, #166534, #22c55e); */
   color: #fff;
+  border: 1px solid #22c55e;
   font-weight: 800;
   font-size: 14px;
   display: flex;
@@ -1181,7 +1184,6 @@ onUnmounted(() => {
 /* Phone mockup */
 .phone-mockup {
   max-width: 580px;
-  margin-left: auto;
   border-radius: 24px;
   background: #fff;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
@@ -1226,7 +1228,7 @@ onUnmounted(() => {
 }
 .phone-header {
   padding: 16px;
-  background: linear-gradient(135deg, #14532d, #166534);
+  background: linear-gradient(135deg, #166534, #22c55e);
 }
 .phone-restaurant {
   display: flex;
@@ -1275,7 +1277,7 @@ onUnmounted(() => {
   transition: all 0.15s;
 }
 .phone-cat.active {
-  background: #166534;
+  background: linear-gradient(135deg, #166534, #22c55e);
   color: #fff;
 }
 .phone-foods {
@@ -1361,7 +1363,7 @@ onUnmounted(() => {
   position: relative;
   padding: 28px;
   border-radius: 16px;
-  background: linear-gradient(135deg, #14532d, #166534);
+  background: linear-gradient(135deg, #166534, #22c55e);
   transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0);
   transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease;
   will-change: transform;
@@ -1376,13 +1378,13 @@ onUnmounted(() => {
 .step-number {
   font-size: 28px;
   font-weight: 900;
-  color: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.7);
   margin-bottom: 20px;
   line-height: 1;
   transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .step-card:hover .step-number {
-  color: rgba(255,255,255,0.7);
+  color: rgba(255,255,255,1);
 }
 .step-card h3 {
   margin: 0 0 8px;
@@ -1499,7 +1501,7 @@ onUnmounted(() => {
   position: relative;
   z-index: 1;
   padding: 50px 24px 24px;
-  background: rgba(22, 101, 52, 0.92);
+  background: linear-gradient(135deg, #166534, #22c55e);
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
   overflow: hidden;
@@ -1539,6 +1541,7 @@ onUnmounted(() => {
   justify-content: center;
   flex-shrink: 0;
   border: 1px solid rgba(255, 255, 255, 0.15);
+  filter: brand-logo(0.8) brightness(1.5) contrast(1.2);
 }
 .footer-brand strong {
   display: block;

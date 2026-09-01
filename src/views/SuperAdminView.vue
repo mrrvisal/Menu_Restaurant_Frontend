@@ -211,7 +211,7 @@
                   <div class="drawer-sub">{{ selectedUser.email }}</div>
                 </div>
               </div>
-              <button class="icon-btn" @click="selectedUser = null" aria-label="Close">✕</button>
+              <button class="icon-btn" @click="selectedUser = null" aria-label="Close"><AppIcon name="x" :size="16" /></button>
             </div>
 
             <div class="drawer-body">
@@ -297,7 +297,7 @@
                   <div class="drawer-sub">{{ selectedRestaurant.owner_email }}</div>
                 </div>
               </div>
-              <button class="icon-btn" @click="selectedRestaurant = null" aria-label="Close">✕</button>
+              <button class="icon-btn" @click="selectedRestaurant = null" aria-label="Close"><AppIcon name="x" :size="16" /></button>
             </div>
 
             <div class="drawer-body">

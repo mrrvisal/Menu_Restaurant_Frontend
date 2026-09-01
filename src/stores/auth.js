@@ -103,6 +103,23 @@ export const useAuthStore = defineStore("auth", () => {
     return res.data;
   }
 
+  // Sign in with Google (credential = Google ID token from Google Identity Services)
+  async function loginWithGoogle(credential) {
+    const res = await axios.post(`${API_BASE_URL}/api/auth/google`, { credential });
+    token.value = res.data.token;
+    user.value = res.data.user;
+    restaurants.value = Array.isArray(res.data.restaurants)
+      ? res.data.restaurants
+      : res.data.restaurant
+        ? [res.data.restaurant]
+        : [];
+    if (!currentRestaurantId.value && restaurants.value.length) {
+      currentRestaurantId.value = restaurants.value[0].id;
+    }
+    saveToStorage();
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
+  }
+
   // Fetch latest user + restaurants from the backend
   async function fetchMe() {
     const res = await axios.get(`${API_BASE_URL}/api/auth/me`);
@@ -152,7 +169,7 @@ export const useAuthStore = defineStore("auth", () => {
     isLoggedIn, isEmailVerified, isOwner, isSuperAdmin,
     restaurantId, restaurantSlug,
     linkCode, telegramChatId, isTelegramLinked, defaultLanguage,
-    login, register, fetchMe, logout, restoreToken, saveToStorage,
+    login, register, loginWithGoogle, fetchMe, logout, restoreToken, saveToStorage,
     setCurrentRestaurant, updateCurrentRestaurant, setCurrentMenu, currentMenuId,
   };
 });

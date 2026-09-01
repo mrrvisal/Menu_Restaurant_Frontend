@@ -8,7 +8,7 @@
             <!-- HEADER -->
             <div class="modal-header">
               <span class="modal-header-title"><AppIcon name="clipboard" :size="18" /> តារាងការបញ្ជាទិញ</span>
-              <button class="close-btn" @click="$emit('close')">✕</button>
+              <button class="close-btn" @click="$emit('close')"><AppIcon name="x" :size="16" /></button>
             </div>
 
             <!-- EMPTY STATE -->
@@ -100,7 +100,9 @@
                   :disabled="sending"
                   @click="submitOrder"
                 >
-                  <span v-if="sending" class="spinner">⏳</span>
+                  <span v-if="sending" class="spinner">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                  </span>
                   <svg
                     v-else
                     width="18"
@@ -158,15 +160,6 @@ watch(
 const sending = ref(false);
 const feedback = reactive({ success: false, error: false, errorMsg: "" });
 
-function getCategoryEmoji(category) {
-  const emojis = {
-    "made-to-order": "🍽️",
-    "ready-cooked": "🍱",
-    dessert: "🍰",
-  };
-  return emojis[category] || "🍽️";
-}
-
 function showFeedback(type, msg = "") {
   feedback.success = type === "success";
   feedback.error = type === "error";
@@ -179,7 +172,7 @@ function showFeedback(type, msg = "") {
 
 async function submitOrder() {
   if (!tableNo.value.trim()) {
-    showFeedback("error", "⚠️ សូមបញ្ចូលលេខតុជាមុន");
+    showFeedback("error", "សូមបញ្ចូលលេខតុជាមុន");
     return;
   }
   sending.value = true;

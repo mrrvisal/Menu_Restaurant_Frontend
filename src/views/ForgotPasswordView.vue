@@ -1,7 +1,9 @@
 <template>
   <div class="page">
     <div class="card pop-in">
-      <div class="icon">🔑</div>
+      <div class="icon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+      </div>
       <div class="title">{{ i18n.t.reset_password }}</div>
       <form @submit.prevent="submit">
         <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
@@ -42,7 +44,8 @@ async function submit() {
 <style scoped>
 .page { min-height: 100vh; background: linear-gradient(135deg, #f0fdf4, #dcfce7); display: flex; align-items: center; justify-content: center; padding: 20px; }
 .card { background: white; border-radius: 22px; width: 100%; max-width: 400px; padding: 36px 28px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.08); }
-.icon { font-size: 48px; margin-bottom: 8px; }
+.icon { width: 68px; height: 68px; margin: 0 auto 14px; border-radius: 20px; background: linear-gradient(135deg, #0f766e, #22c55e); display: flex; align-items: center; justify-content: center; color: white; box-shadow: 0 8px 20px rgba(15, 118, 110, 0.28); }
+.icon svg { display: block; }
 .title { font-family: "Hanuman", serif; font-size: 20px; font-weight: 700; color: #14532d; margin-bottom: 20px; }
 .form-group { margin-bottom: 14px; text-align: left; }
 .form-group label { font-size: 12px; font-weight: 600; color: #6b7280; margin-bottom: 5px; display: block; }

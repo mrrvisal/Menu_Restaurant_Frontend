@@ -73,7 +73,7 @@
               load();
             "
           >
-            ✕
+            <AppIcon name="x" :size="14" />
           </button>
         </div>
       </div>
