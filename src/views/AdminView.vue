@@ -1238,6 +1238,80 @@
                   :placeholder="i18n.t.restaurant_name"
                 />
               </div>
+
+              <!-- ─── THEME COLOR ─── -->
+              <div class="fld">
+                <label class="fld-l">{{ i18n.t.theme_color || "Theme color" }}</label>
+                <div class="swatches">
+                  <button
+                    v-for="c in theme.presets"
+                    :key="c.value"
+                    type="button"
+                    class="swatch"
+                    :class="{ active: theme.primary === c.value }"
+                    :style="{ background: c.value }"
+                    :title="c.name"
+                    :aria-label="c.name"
+                    @click="theme.setPrimary(c.value)"
+                  >
+                    <svg
+                      v-if="theme.primary === c.value"
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="#fff"
+                      stroke-width="3"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  </button>
+                  <label
+                    class="swatch swatch-custom"
+                    :title="i18n.t.theme_custom || 'Pick any color'"
+                  >
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <circle cx="12" cy="12" r="10" />
+                      <path
+                        d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2v-1c0-1.1.9-2 2-2h1a4 4 0 0 0 4-4c0-6.08-4.92-11-9-11z"
+                      />
+                      <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
+                      <circle cx="12" cy="7.5" r="1" fill="currentColor" />
+                      <circle cx="16.5" cy="10.5" r="1" fill="currentColor" />
+                    </svg>
+                    <input
+                      type="color"
+                      class="swatch-input"
+                      :value="theme.primary"
+                      @input="onCustomColor"
+                    />
+                  </label>
+                </div>
+                <div class="swatch-meta">
+                  <input
+                    class="fld-i hex-in"
+                    :value="theme.primary"
+                    maxlength="7"
+                    spellcheck="false"
+                    placeholder="#0f766e"
+                    @change="applyHexInput"
+                    @keyup.enter="$event.target.blur()"
+                  />
+                  <button type="button" class="btn btn-g btn-sm" @click="resetTheme">
+                    {{ i18n.t.theme_reset || "Reset" }}
+                  </button>
+                </div>
+              </div>
+
               <button
                 class="btn btn-primary btn-b"
                 :disabled="profileSubmitting"
@@ -1263,6 +1337,7 @@ import FoodCard from "@/components/FoodCard.vue";
 import FoodFormModal from "@/components/FoodFormModal.vue";
 import AppSelect from "@/components/AppSelect.vue";
 import AppIcon from "@/components/AppIcon.vue";
+import { useThemeStore } from "@/stores/theme";
 import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -1270,6 +1345,7 @@ const router = useRouter();
 const auth = useAuthStore();
 const foods = useFoodsStore();
 const i18n = useI18nStore();
+const theme = useThemeStore();
 
 const adminTab = ref("foods");
 const curCat = ref("");
@@ -1345,6 +1421,21 @@ function openProfile() {
   profileSuccess.value = "";
   profileError.value = "";
   showProfile.value = true;
+}
+
+// ─── THEME COLOR PICKER ─────────────────────────────────────
+function onCustomColor(e) {
+  // <input type="color"> fires continuously while dragging → live preview
+  theme.setPrimary(e.target.value);
+}
+function applyHexInput(e) {
+  const raw = (e.target?.value || "").trim();
+  const norm = raw.startsWith("#") ? raw : "#" + raw;
+  // Invalid hex → revert the field to the current color
+  if (!theme.setPrimary(norm)) e.target.value = theme.primary;
+}
+function resetTheme() {
+  theme.reset();
 }
 function onLogoChange(e) {
   const file = e.target.files[0];
@@ -2174,7 +2265,7 @@ onUnmounted(() => {
 }
 .lang:hover {
   border-color: var(--primary);
-  background: #dcfce7;
+  background: var(--tint-hover, #dcfce7);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(15, 118, 110, 0.1);
 }
@@ -2414,11 +2505,11 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 .mi-teal {
-  background: #ccfbf1;
+  background: var(--tint-hover, #ccfbf1);
   color: var(--primary);
 }
 .mi-green {
-  background: #dcfce7;
+  background: var(--tint-hover, #dcfce7);
   color: var(--green-dark);
 }
 .mi-amber {
@@ -2806,7 +2897,7 @@ onUnmounted(() => {
   color: #9d174d;
 }
 .order-st.ready {
-  background: #dcfce7;
+  background: var(--tint-hover, #dcfce7);
   color: var(--green-dark);
 }
 .order-st.served {
@@ -2894,12 +2985,12 @@ onUnmounted(() => {
   border-color: #f9a8d4;
 }
 .order-status-btn.st-ready {
-  background: #dcfce7;
+  background: var(--tint-hover, #dcfce7);
   color: var(--green-dark);
-  border-color: #bbf7d0;
+  border-color: var(--border-green, #bbf7d0);
 }
 .order-status-btn.st-ready:hover {
-  background: #bbf7d0;
+  background: var(--border-green, #bbf7d0);
   border-color: #86efac;
 }
 .order-status-btn.st-served {
@@ -3066,7 +3157,7 @@ onUnmounted(() => {
   border: 1px solid var(--border-green);
 }
 .btn-g:hover {
-  background: #dcfce7;
+  background: var(--tint-hover, #dcfce7);
 }
 .btn-r {
   background: var(--red);
@@ -3228,8 +3319,69 @@ onUnmounted(() => {
   min-height: 28px;
 }
 .prof-up:hover {
-  background: #dcfce7;
+  background: var(--tint-hover, #dcfce7);
   transform: translateY(-1px);
+}
+
+/* Theme color picker */
+.swatches {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.swatch {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.swatch:hover {
+  transform: scale(1.12);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+}
+.swatch.active {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--primary-glow-strong);
+}
+.swatch-custom {
+  position: relative;
+  background: conic-gradient(
+    #ef4444,
+    #f59e0b,
+    #22c55e,
+    #06b6d4,
+    #6366f1,
+    #ec4899,
+    #ef4444
+  );
+  color: #fff;
+  overflow: hidden;
+}
+.swatch-input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+.swatch-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.hex-in {
+  max-width: 110px;
+  font-family: "SFMono-Regular", Consolas, monospace;
+  text-transform: lowercase;
 }
 
 /* Telegram */
@@ -3267,7 +3419,7 @@ onUnmounted(() => {
   transition: all 0.2s ease;
 }
 .tg-box:hover {
-  background: #dcfce7;
+  background: var(--tint-hover, #dcfce7);
   border-color: var(--primary-dark);
   transform: scale(1.02);
 }

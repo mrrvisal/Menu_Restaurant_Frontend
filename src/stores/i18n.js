@@ -47,6 +47,9 @@ const translations = {
     pw_rule_lower: "អក្សរតូច (a-z)",
     pw_rule_digit: "លេខ (0-9)",
     pw_rule_special: "អក្សរពិសេស (!@#$…)",
+    theme_color: "ពណ៌សំខាន់",
+    theme_custom: "ជ្រើសរើសពណ៌ផ្ទាល់ខ្លួន",
+    theme_reset: "ដូចដើម",
     pw_invalid: "ពាក្យសម្ងាត់មិនទាន់ត្រឹមត្រូវតាមការណែនាំទេ",
     restaurant_name: "ឈ្មោះភោជនីយដ្ឋាន",
     restaurant_name_en: "ឈ្មោះភោជនីយដ្ឋាន (អង់គ្លេស)",
@@ -462,6 +465,9 @@ const translations = {
     fast_checkout: "Fast Checkout",
     photo_menu: "Photo Menu",
     pw_rule_special: "One special character (!@#$…)",
+    theme_color: "Theme color",
+    theme_custom: "Pick any color",
+    theme_reset: "Reset",
   },
 };
 

@@ -341,20 +341,91 @@ const sampleFoods = [
     img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249571/images_1_khv5yn.jpg",
   },
 ];
+/* ------------------------------------------------------------
+   PROGRESSIVE TOP FADE (instant, covers cards too)
+   When content scrolls up and crosses a line FADE_LINE px from
+   the top of the screen, the part above that line becomes opacity
+   0 immediately — for text AND for the card/container elements
+   (hero card, feature cards, phone mockup, step cards, images…).
+   FADE_BAND = 0 gives a hard instant cut (no trailing fade).
+   ------------------------------------------------------------ */
+const FADE_LINE = 60; // px from top of screen where content disappears
+const FADE_BAND = 0;  // 0 = instant hide. Increase (e.g. 40) for a softer fade
+
 let screenHandler = null;
 let scrollHandler = null;
+let fadeRaf = null;
+let fadeTargets = [];
+
+// Everything that fades: all text AND the card/container elements themselves.
+const FADE_SELECTOR =
+  "h1, h2, h3, p, strong, a, button, span, img, li, " +
+  ".hero-badge, .hero-title, .hero-subtitle, .hero-primary, .hero-secondary, .hero-stat, .hero-actions, " +
+  ".hero-card, .hero-order-restaurant, .hero-order-items, .hero-order-item, .hero-order-img, .hero-order-total, .hero-floating, " +
+  ".problem-card, .feature-card, .feature-icon, " +
+  ".phone-mockup, .phone-header, .phone-restaurant, .phone-restaurant-avatar, .phone-categories, .phone-cat, " +
+  ".phone-foods, .phone-food-item, .phone-food-img, .phone-food-info, " +
+  ".demo-tags span, " +
+  ".step-card, .step-number, .step-connector, " +
+  ".cta-inner, .cta-icon-wrapper, .cta-btn";
+
+function collectFadeTargets() {
+  const mainEl = document.querySelector(".landing main");
+  fadeTargets = mainEl ? Array.from(mainEl.querySelectorAll(FADE_SELECTOR)) : [];
+}
+
+function clearMask(el) {
+  el.style.maskImage = "";
+  el.style.webkitMaskImage = "";
+}
+
+function applyFade() {
+  for (let i = 0; i < fadeTargets.length; i++) {
+    const el = fadeTargets[i];
+    const top = el.getBoundingClientRect().top;
+    const crossed = FADE_LINE - top; // px of this element already above the line
+
+    if (crossed <= 0) {
+      // Fully below the line — keep it 100% visible
+      if (!el.style.maskImage) continue;
+      clearMask(el);
+      continue;
+    }
+
+    const start = Math.min(crossed, el.offsetHeight || 1);
+    const end = start + FADE_BAND;
+    const grad = `linear-gradient(to bottom, transparent 0, transparent ${start}px, #000 ${end}px, #000 100%)`;
+    el.style.webkitMaskImage = grad;
+    el.style.maskImage = grad;
+  }
+}
+
+function requestFade() {
+  if (fadeRaf) return;
+  fadeRaf = requestAnimationFrame(() => {
+    fadeRaf = null;
+    applyFade();
+  });
+}
+
 onMounted(() => {
+  collectFadeTargets();
+  applyFade();
   scrollHandler = () => {
-    scrolled.value = window.scrollY > 40;
+    scrolled.value = window.scrollY > 40; // navbar background (unchanged)
+    requestFade();
   };
   window.addEventListener("scroll", scrollHandler, { passive: true });
   screenHandler = () => {
     if (window.innerWidth > 820) mobileOpen.value = false;
+    collectFadeTargets();
+    applyFade();
   };
   window.addEventListener("resize", screenHandler, { passive: true });
 });
 
 onUnmounted(() => {
+  if (fadeRaf) cancelAnimationFrame(fadeRaf);
   if (scrollHandler) window.removeEventListener("scroll", scrollHandler);
   if (screenHandler) window.removeEventListener("resize", screenHandler);
 });
@@ -953,10 +1024,6 @@ onUnmounted(() => {
   .hero-inner {
     grid-template-columns: 1fr;
     gap: 40px;
-  }
-  .hero-visual {
-    max-width: 500px;
-    margin: 0 auto;
   }
 }
 @media (max-width: 640px) {

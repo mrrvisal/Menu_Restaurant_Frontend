@@ -10,4 +10,9 @@ import './assets/select.css';
 const app = createApp(App);
 app.use(createPinia());
 app.use(router);
+
+// Restore the logged-in user's saved theme color before mounting
+import { useThemeStore } from './stores/theme';
+useThemeStore().load();
+
 app.mount('#app');
