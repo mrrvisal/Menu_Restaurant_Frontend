@@ -58,3 +58,32 @@ export function lighten(hex, t) {
 export function darken(hex, t) {
   return mix(hex, "#000000", t);
 }
+
+// WCAG-relative luminance of a hex color (0 = black … 1 = white)
+export function relativeLuminance(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  const toLin = (v) => {
+    const s = v / 255;
+    return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  };
+  return 0.2126 * toLin(r) + 0.7152 * toLin(g) + 0.0722 * toLin(b);
+}
+
+// True when a color is light enough that white text on it would be unreadable
+export function isLightColor(hex) {
+  return relativeLuminance(hex) > 0.6;
+}
+
+// Foreground color to place ON a primary-colored background.
+// Dark primaries → white text; light/white primaries → dark text.
+export function onColor(hex) {
+  if (!isValidHex(normalizeHex(hex))) return "#ffffff";
+  return isLightColor(hex) ? darken(hex, 0.8) : "#ffffff";
+}
+
+// An accent/border/icon variant that is always visible on white surfaces.
+// Light primaries get darkened just enough to read; dark primaries pass through.
+export function strongColor(hex) {
+  if (!isValidHex(normalizeHex(hex))) return hex;
+  return isLightColor(hex) ? darken(hex, 0.55) : hex;
+}

@@ -1,6 +1,6 @@
 <!-- frontend/src/views/MenuView.vue -->
 <template>
-  <div class="page">
+  <div class="page" :style="menuThemeStyle">
     <!-- HEADER -->
     <div class="header sel-light">
       <div class="header-bg-overlay"></div>
@@ -231,7 +231,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from "vue";
+import { ref, computed, onMounted, watch, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useFoodsStore } from "@/stores/foods";
 import { useCartStore } from "@/stores/cart";
@@ -239,6 +239,13 @@ import { useAuthStore } from "@/stores/auth";
 import FoodCard from "@/components/FoodCard.vue";
 import CartModal from "@/components/CartModal.vue";
 import AppIcon from "@/components/AppIcon.vue";
+import {
+  normalizeHex,
+  lighten,
+  darken,
+  hexToRgba,
+} from "@/utils/color.mjs";
+import { THEME_VARS, buildThemePalette } from "@/utils/themePalette.mjs";
 import axios from "axios";
 
 const route = useRoute();
@@ -254,6 +261,42 @@ const showCart = ref(false);
 const selectedFood = ref(null);
 const initialized = ref(false);
 const restaurantInfo = ref(null);
+
+// The owner's chosen theme color (restaurant.theme_color) drives the whole
+// customer preview palette. When the restaurant has none saved, the original
+// green design is used untouched.
+const menuThemeStyle = computed(() => {
+  const input =
+    restaurantInfo.value?.themeColor || restaurantInfo.value?.theme_color;
+  const vars = buildThemePalette(input);
+  if (!vars) return {};
+  const hex = normalizeHex(input);
+  return {
+    ...vars,
+    "--header-grad": `linear-gradient(145deg, ${darken(hex, 0.12)} 0%, ${lighten(hex, 0.12)} 55%, ${hex} 100%)`,
+  };
+});
+
+// The food-detail modal is Teleported to <body>, so it can't inherit the CSS
+// variables from `.page`. Push them to <html> too (and clean them up on leave)
+// so EVERYTHING — including teleported modals — uses the owner's color.
+watch(
+  () =>
+    restaurantInfo.value?.themeColor || restaurantInfo.value?.theme_color || "",
+  (val) => {
+    const vars = buildThemePalette(val);
+    const root = document.documentElement.style;
+    THEME_VARS.forEach((name) => {
+      if (vars && vars[name]) root.setProperty(name, vars[name]);
+      else root.removeProperty(name);
+    });
+  },
+  { immediate: true }
+);
+onUnmounted(() => {
+  const root = document.documentElement.style;
+  THEME_VARS.forEach((name) => root.removeProperty(name));
+});
 
 const restaurantSlug = computed(() => route.query.slug || null);
 
@@ -471,7 +514,10 @@ function goAdmin() {
    ============================================================ */
 .header {
   position: relative;
-  background: linear-gradient(145deg, #0f766e 0%, #22c55e 55%, #16a34a 100%);
+  background: var(
+    --header-grad,
+    linear-gradient(145deg, #0f766e 0%, #22c55e 55%, #16a34a 100%)
+  );
   background-size: 200% 200%;
   animation: headerGradientShift 8s ease-in-out infinite;
   padding: 40px 20px 56px;
@@ -539,7 +585,7 @@ function goAdmin() {
 .header-blob-2 {
   width: 140px;
   height: 140px;
-  background: rgba(20, 83, 45, 0.25);
+  background: var(--header-blob2, rgba(20, 83, 45, 0.25));
   bottom: -80px;
   left: -40px;
   animation: floatBlob2 9s ease-in-out infinite;
@@ -648,10 +694,10 @@ function goAdmin() {
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--header-fg, rgba(255, 255, 255, 0.75));
 }
 .header-title {
-  color: #fff;
+  color: var(--header-fg, #fff);
   font-size: 23px;
   font-weight: 800;
   margin: 0;
@@ -739,7 +785,7 @@ function goAdmin() {
   letter-spacing: 0.01em;
 }
 .tab.active {
-  color: #fff;
+  color: var(--on-primary, #fff);
   font-weight: 700;
   background: linear-gradient(135deg, var(--green-mid), var(--green-light));
   box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
@@ -784,7 +830,7 @@ function goAdmin() {
   box-sizing: border-box;
 }
 .search-bar input:focus {
-  border-color: var(--green-light);
+  border-color: var(--green-strong, var(--green-light));
   background: #fff;
   box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.14);
 }
@@ -868,7 +914,7 @@ function goAdmin() {
   margin: 0 auto 16px;
   border-radius: 50%;
   background: var(--green-pale);
-  color: var(--green-mid);
+  color: var(--green-strong, var(--green-mid));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1159,8 +1205,8 @@ function goAdmin() {
   font-weight: 600;
 }
 .detail-status.available {
-  background: #dcfce7;
-  color: #166534;
+  background: var(--green-pale, #dcfce7);
+  color: var(--green-dark, #166534);
 }
 .detail-status.unavailable {
   background: #fee2e2;
@@ -1181,7 +1227,7 @@ function goAdmin() {
 .detail-price {
   font-size: 25px;
   font-weight: 800;
-  color: var(--green-mid);
+  color: var(--green-strong, var(--green-mid));
   margin-bottom: 22px;
 }
 @media (max-width: 480px) {
@@ -1198,7 +1244,7 @@ function goAdmin() {
   width: 100%;
   padding: 16px;
   background: linear-gradient(135deg, var(--green-mid), var(--green-light));
-  color: #fff;
+  color: var(--on-primary, #fff);
   border: none;
   border-radius: 16px;
   font-size: 15px;

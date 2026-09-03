@@ -2,6 +2,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import axios from "axios";
+import { useThemeStore } from "@/stores/theme";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -83,6 +84,8 @@ export const useAuthStore = defineStore("auth", () => {
     }
     saveToStorage();
     axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
+    // Load this account's own theme color (defaults to brand teal)
+    useThemeStore().load();
   }
 
   async function register(payload) {
@@ -118,6 +121,7 @@ export const useAuthStore = defineStore("auth", () => {
     }
     saveToStorage();
     axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
+    useThemeStore().load();
   }
 
   // Fetch latest user + restaurants from the backend
@@ -128,6 +132,7 @@ export const useAuthStore = defineStore("auth", () => {
       ? res.data.restaurants
       : [];
     saveToStorage();
+    useThemeStore().load();
     return res.data;
   }
 
@@ -151,6 +156,9 @@ export const useAuthStore = defineStore("auth", () => {
     user.value = null;
     restaurants.value = [];
     currentRestaurantId.value = null;
+    // Reset the UI to the brand color WITHOUT overwriting this user's saved
+    // choice (persist=false) — so the next account on this device starts clean
+    useThemeStore().reset({ persist: false });
     localStorage.removeItem("admin_token");
     localStorage.removeItem("admin_user");
     localStorage.removeItem("admin_restaurants");

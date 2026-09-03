@@ -50,6 +50,11 @@ const translations = {
     theme_color: "ពណ៌សំខាន់",
     theme_custom: "ជ្រើសរើសពណ៌ផ្ទាល់ខ្លួន",
     theme_reset: "ដូចដើម",
+    sidebar_position: "ទីតាំងរបារចំហៀង",
+    sb_left: "ឆ្វេង",
+    sb_right: "ស្ដាំ",
+    sb_top: "ខាងលើ",
+    sb_bottom: "ខាងក្រោម",
     pw_invalid: "ពាក្យសម្ងាត់មិនទាន់ត្រឹមត្រូវតាមការណែនាំទេ",
     restaurant_name: "ឈ្មោះភោជនីយដ្ឋាន",
     restaurant_name_en: "ឈ្មោះភោជនីយដ្ឋាន (អង់គ្លេស)",
@@ -468,6 +473,11 @@ const translations = {
     theme_color: "Theme color",
     theme_custom: "Pick any color",
     theme_reset: "Reset",
+    sidebar_position: "Sidebar position",
+    sb_left: "Left",
+    sb_right: "Right",
+    sb_top: "Top",
+    sb_bottom: "Bottom",
   },
 };
 

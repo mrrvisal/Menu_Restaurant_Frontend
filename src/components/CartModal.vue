@@ -567,8 +567,8 @@ async function submitOrder() {
 .order-btn {
   flex: 1;
   padding: 12px 16px;
-  background: linear-gradient(135deg, #0f766e 0%, #22c55e 100%);
-  color: white;
+  background: linear-gradient(135deg, var(--primary, #0f766e) 0%, var(--primary-light, #22c55e) 100%);
+  color: var(--on-primary, #fff);
   border: none;
   border-radius: 12px;
   font-size: 14px;
@@ -583,7 +583,7 @@ async function submitOrder() {
   box-shadow: 0 4px 14px rgba(15, 118, 110, 0.35);
 }
 .order-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0d6761 0%, #16a34a 100%);
+  background: linear-gradient(135deg, var(--primary-dark, #0d6761) 0%, var(--primary, #16a34a) 100%);
   transform: translateY(-1px);
   box-shadow: 0 6px 18px rgba(15, 118, 110, 0.4);
 }

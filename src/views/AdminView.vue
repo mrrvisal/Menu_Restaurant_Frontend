@@ -3,7 +3,10 @@
    Fix: Complete responsive redesign
    ═══════════════════════════════════════════════════════════ -->
 <template>
-  <div class="root" :class="{ 'nav-open': showMobile }">
+  <div
+    class="root"
+    :class="['layout-' + (sidebarPosition || 'left'), { 'nav-open': showMobile }]"
+  >
     <!-- ─── MOBILE BAR ─── -->
     <header class="mob">
       <div class="mob-info">
@@ -1252,7 +1255,7 @@
                     :style="{ background: c.value }"
                     :title="c.name"
                     :aria-label="c.name"
-                    @click="theme.setPrimary(c.value)"
+                    @click="onPresetColor(c.value)"
                   >
                     <svg
                       v-if="theme.primary === c.value"
@@ -1260,7 +1263,7 @@
                       height="14"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke="#fff"
+                      stroke="currentColor"
                       stroke-width="3"
                       stroke-linecap="round"
                       stroke-linejoin="round"
@@ -1312,6 +1315,50 @@
                 </div>
               </div>
 
+              <!-- ─── SIDEBAR POSITION ─── -->
+              <div class="fld">
+                <label class="fld-l">{{ i18n.t.sidebar_position || "Sidebar position" }}</label>
+                <div class="layout-options">
+                  <button
+                    v-for="pos in ['left', 'right', 'top', 'bottom']"
+                    :key="pos"
+                    type="button"
+                    class="layout-opt"
+                    :class="{ active: sidebarPosition === pos }"
+                    :title="i18n.t['sb_' + pos] || pos"
+                    @click="applySidebarPosition(pos)"
+                  >
+                    <svg
+                      width="20"
+                      height="20"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linejoin="round"
+                    >
+                      <template v-if="pos === 'left'">
+                        <rect x="3" y="4" width="5" height="16" rx="1.5" />
+                        <rect x="10" y="4" width="11" height="16" rx="1.5" />
+                      </template>
+                      <template v-else-if="pos === 'right'">
+                        <rect x="3" y="4" width="11" height="16" rx="1.5" />
+                        <rect x="16" y="4" width="5" height="16" rx="1.5" />
+                      </template>
+                      <template v-else-if="pos === 'top'">
+                        <rect x="4" y="3" width="16" height="5" rx="1.5" />
+                        <rect x="4" y="10" width="16" height="11" rx="1.5" />
+                      </template>
+                      <template v-else>
+                        <rect x="4" y="3" width="16" height="11" rx="1.5" />
+                        <rect x="4" y="16" width="16" height="5" rx="1.5" />
+                      </template>
+                    </svg>
+                    <span>{{ i18n.t['sb_' + pos] || pos }}</span>
+                  </button>
+                </div>
+              </div>
+
               <button
                 class="btn btn-primary btn-b"
                 :disabled="profileSubmitting"
@@ -1356,6 +1403,7 @@ const deletingFood = ref(null);
 const loggingOut = ref(false);
 const showQR = ref(false);
 const showMobile = ref(false);
+let desktopBreakpointQuery = null;
 const showTelegramSettings = ref(false);
 const showCatForm = ref(false);
 const editingCat = ref(null);
@@ -1420,22 +1468,86 @@ function openProfile() {
   profileLogoPreview.value = null;
   profileSuccess.value = "";
   profileError.value = "";
+  syncRestaurantTheme();
   showProfile.value = true;
 }
 
 // ─── THEME COLOR PICKER ─────────────────────────────────────
+// Applies the color live, keeps the per-user editor preference, updates the
+// cached restaurant AND debounce-saves to the server so the customer-facing
+// menu / preview page uses the same color.
+const themeSaveTimer = ref(null);
+
+function applyThemeColor(color, opts = {}) {
+  if (!theme.setPrimary(color)) return false;
+  if (auth.restaurant) {
+    auth.restaurant.themeColor = color;
+    auth.saveToStorage();
+  }
+  if (opts.debounce !== false) {
+    clearTimeout(themeSaveTimer.value);
+    themeSaveTimer.value = setTimeout(() => saveThemeToServer(color), 400);
+  }
+  return true;
+}
+async function saveThemeToServer(color) {
+  try {
+    await axios.patch(`${API_BASE}/api/auth/theme`, {
+      themeColor: color,
+      restaurant_id: auth.restaurantId,
+    });
+  } catch (err) {
+    console.error("Failed to save theme to server:", err);
+  }
+}
 function onCustomColor(e) {
-  // <input type="color"> fires continuously while dragging → live preview
-  theme.setPrimary(e.target.value);
+  applyThemeColor(e.target.value);
+}
+function onPresetColor(color) {
+  applyThemeColor(color);
 }
 function applyHexInput(e) {
   const raw = (e.target?.value || "").trim();
   const norm = raw.startsWith("#") ? raw : "#" + raw;
   // Invalid hex → revert the field to the current color
-  if (!theme.setPrimary(norm)) e.target.value = theme.primary;
+  if (!applyThemeColor(norm)) e.target.value = theme.primary;
 }
 function resetTheme() {
   theme.reset();
+  if (auth.restaurant) {
+    auth.restaurant.themeColor = theme.primary;
+    auth.saveToStorage();
+  }
+  clearTimeout(themeSaveTimer.value);
+  saveThemeToServer(theme.primary);
+}
+// The owner sees the color that their customers see (the restaurant's saved color)
+function syncRestaurantTheme() {
+  const c = auth.restaurant?.themeColor;
+  if (c) theme.setPrimary(c, { persist: false });
+}
+
+// ─── SIDEBAR POSITION (owner-selectable layout) ─────────────
+const sidebarSaveTimer = ref(null);
+const sidebarPosition = computed(() => auth.restaurant?.sidebarPosition || "left");
+function applySidebarPosition(pos) {
+  if (!["left", "right", "top", "bottom"].includes(pos)) return;
+  if (auth.restaurant) {
+    auth.restaurant.sidebarPosition = pos;
+    auth.saveToStorage();
+  }
+  clearTimeout(sidebarSaveTimer.value);
+  sidebarSaveTimer.value = setTimeout(() => saveSidebarToServer(pos), 400);
+}
+async function saveSidebarToServer(pos) {
+  try {
+    await axios.patch(`${API_BASE}/api/auth/sidebar`, {
+      sidebarPosition: pos,
+      restaurant_id: auth.restaurantId,
+    });
+  } catch (err) {
+    console.error("Failed to save sidebar position:", err);
+  }
 }
 function onLogoChange(e) {
   const file = e.target.files[0];
@@ -1726,6 +1838,7 @@ async function load() {
 async function onSwitchRestaurant(value) {
   const id = Number(value);
   auth.setCurrentRestaurant(id);
+  syncRestaurantTheme();
   curCat.value = "";
   searchQ.value = "";
   await initForRestaurant();
@@ -1975,6 +2088,7 @@ function disconnectOrderStream() {
 onMounted(async () => {
   // Refresh restaurants list (in case a new one was added elsewhere)
   await auth.fetchMe();
+  syncRestaurantTheme();
   await foods.fetchMenus();
   refreshCurrentMenuSelection();
   await loadCategories();
@@ -1983,10 +2097,26 @@ onMounted(async () => {
   fetchStats();
   window.addEventListener("keydown", handleEscKey);
   connectOrderStream();
+
+  // When the viewport crosses back above the mobile breakpoint, close the
+  // drawer so the layout doesn't carry a stuck "open" state into desktop.
+  const mq = window.matchMedia("(min-width: 901px)");
+  const onDesktopBreakpoint = (e) => {
+    if (e.matches) showMobile.value = false;
+  };
+  if (mq.addEventListener) mq.addEventListener("change", onDesktopBreakpoint);
+  else mq.addListener(onDesktopBreakpoint);
+  desktopBreakpointQuery = { mq, onDesktopBreakpoint };
 });
 onUnmounted(() => {
   window.removeEventListener("keydown", handleEscKey);
   disconnectOrderStream();
+  if (desktopBreakpointQuery) {
+    const { mq, onDesktopBreakpoint } = desktopBreakpointQuery;
+    if (mq.removeEventListener) mq.removeEventListener("change", onDesktopBreakpoint);
+    else mq.removeListener(onDesktopBreakpoint);
+    desktopBreakpointQuery = null;
+  }
 });
 </script>
 
@@ -2034,6 +2164,147 @@ onUnmounted(() => {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* ─── SIDEBAR POSITIONS (owner-selectable) — DESKTOP ONLY ───
+   On mobile (≤900px) the layout always falls back to the left
+   slide-in drawer, so these rules only apply on wider screens.
+   NOTE: sticky can't travel inside a grid row that is exactly
+   the bar's own height, so top/bottom bars use position:fixed
+   (pinned to the viewport) + compensating padding on .main. */
+@media (min-width: 901px) {
+  .root {
+    min-height: 100vh;
+  }
+
+  /* ── LEFT (default) ── */
+  .root.layout-left {
+    grid-template-columns: var(--sidebar) 1fr;
+  }
+
+  /* ── RIGHT ── */
+  .root.layout-right {
+    grid-template-columns: 1fr var(--sidebar);
+  }
+  .root.layout-right .side {
+    order: 2;
+    min-width: 0;
+    border-right: none;
+    border-left: 1px solid var(--border);
+  }
+
+  /* ── shared horizontal-bar sizing (top & bottom) ── */
+  .root.layout-top,
+  .root.layout-bottom {
+    --hbar-h: 56px;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
+
+  /* ── TOP ── */
+  .root.layout-top .side {
+    order: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: auto;
+    flex-direction: row;
+    align-items: center;
+    height: var(--hbar-h);
+    min-width: 0;
+    z-index: 150;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+  .root.layout-top .main {
+    padding-top: calc(var(--hbar-h) + 18px);
+  }
+
+  /* ── BOTTOM ── */
+  .root.layout-bottom .side {
+    order: 2;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    top: auto;
+    flex-direction: row;
+    align-items: center;
+    height: var(--hbar-h);
+    min-width: 0;
+    z-index: 150;
+    border-right: none;
+    border-top: 1px solid var(--border);
+  }
+  .root.layout-bottom .main {
+    padding-bottom: calc(var(--hbar-h) + 24px);
+  }
+
+  /* ── shared horizontal-bar cells (top & bottom) ── */
+  .root.layout-top .side-top,
+  .root.layout-bottom .side-top {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    height: 100%;
+    padding: 0 12px;
+    border-bottom: none;
+    border-right: 1px solid var(--border);
+    flex: 0 0 auto;
+    min-width: 0;
+  }
+  .root.layout-top .side-rest,
+  .root.layout-bottom .side-rest {
+    margin-top: 0;
+    min-width: 150px;
+  }
+  .root.layout-top .side-add-rest,
+  .root.layout-bottom .side-add-rest {
+    width: auto;
+    margin-top: 0;
+    min-height: 30px;
+    padding: 4px 12px;
+    white-space: nowrap;
+  }
+  .root.layout-top .side-nav,
+  .root.layout-bottom .side-nav {
+    flex-direction: row;
+    align-items: center;
+    gap: 4px;
+    height: 100%;
+    padding: 0 10px;
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+  }
+  .root.layout-top .side-nav .nav-i,
+  .root.layout-bottom .side-nav .nav-i {
+    min-height: 32px;
+    padding: 6px 12px;
+    white-space: nowrap;
+  }
+  .root.layout-top .side-foot,
+  .root.layout-bottom .side-foot {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+    height: 100%;
+    border-top: none;
+    border-left: 1px solid var(--border);
+    padding: 0 10px;
+    flex: 0 0 auto;
+  }
+  .root.layout-top .side-foot .lang,
+  .root.layout-top .side-foot .logout,
+  .root.layout-bottom .side-foot .lang,
+  .root.layout-bottom .side-foot .logout {
+    min-height: 32px;
+    padding: 5px 10px;
+  }
+}
+
 /* ─── SIDEBAR ─── */
 .side {
   background: var(--surface);
@@ -2077,7 +2348,7 @@ onUnmounted(() => {
   white-space: nowrap;
 }
 .rest-switch:focus {
-  border-color: var(--primary);
+  border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
 /* ── Restaurant-switcher options (the dropdown list) ──────────
@@ -2097,11 +2368,11 @@ onUnmounted(() => {
 .rest-switch option:active,
 .rest-switch option:focus {
   background-color: var(--surface-green);
-  color: var(--primary);
+  color: var(--primary-strong, var(--primary));
 }
 .rest-switch option:checked {
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
-  color: #fff;
+  color: var(--on-primary, #fff);
   font-weight: 600;
 }
 .rest-switch option:disabled,
@@ -2114,10 +2385,10 @@ onUnmounted(() => {
   margin-top: 10px;
   min-height: 34px;
   padding: 7px 10px;
-  border: 1px dashed var(--primary);
+  border: 1px dashed var(--primary-strong, var(--primary));
   border-radius: 8px;
   background: transparent;
-  color: var(--primary);
+  color: var(--primary-strong, var(--primary));
   font-family: inherit;
   font-size: 12px;
   font-weight: 700;
@@ -2169,7 +2440,7 @@ onUnmounted(() => {
 }
 .side-role {
   font-size: 10.5px;
-  color: var(--primary);
+  color: var(--primary-strong, var(--primary));
   font-weight: 600;
 }
 .side-nav {
@@ -2204,20 +2475,20 @@ onUnmounted(() => {
 }
 .nav-i.active {
   background: var(--surface-green);
-  color: var(--primary);
+  color: var(--primary-strong, var(--primary));
   font-weight: 600;
-  box-shadow: inset 3px 0 0 var(--primary);
+  box-shadow: inset 3px 0 0 var(--primary-strong, var(--primary));
 }
 .nav-i svg {
   flex-shrink: 0;
 }
 .nav-i.active svg {
-  color: var(--primary);
+  color: var(--primary-strong, var(--primary));
 }
 .nav-badge {
   margin-left: auto;
   background: var(--primary);
-  color: white;
+  color: var(--on-primary, #fff);
   font-size: 10px;
   font-weight: 700;
   padding: 1px 8px;
@@ -2264,7 +2535,7 @@ onUnmounted(() => {
   border: 1px solid var(--border-green);
 }
 .lang:hover {
-  border-color: var(--primary);
+  border-color: var(--primary-strong, var(--primary));
   background: var(--tint-hover, #dcfce7);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(15, 118, 110, 0.1);
@@ -2287,13 +2558,17 @@ onUnmounted(() => {
 }
 .scrim {
   display: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
 /* ─── MAIN ─── */
 .main {
   padding: 28px 32px 60px;
-  max-width: 1320px;
+  /* max-width: 1320px; */
   width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
 }
 
 /* Header */
@@ -2323,7 +2598,7 @@ onUnmounted(() => {
 }
 .hdr-title::before {
   content: "✦ ";
-  color: var(--primary);
+  color: var(--primary-strong, var(--primary));
 }
 .hdr-sub {
   font-size: 12px;
@@ -2387,15 +2662,15 @@ onUnmounted(() => {
   border: 1px solid var(--border);
 }
 .ac-ghost:hover {
-  border-color: var(--primary);
+  border-color: var(--primary-strong, var(--primary));
   background: var(--surface-green);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px var(--primary-glow);
 }
 .ac-primary {
   background: var(--primary);
-  color: white;
-  border: 1px solid var(--primary);
+  color: var(--on-primary, #fff);
+  border: 1px solid var(--primary-strong, var(--primary));
 }
 .ac-primary:hover {
   background: var(--primary-dark);
@@ -2506,7 +2781,7 @@ onUnmounted(() => {
 }
 .mi-teal {
   background: var(--tint-hover, #ccfbf1);
-  color: var(--primary);
+  color: var(--primary-strong, var(--primary));
 }
 .mi-green {
   background: var(--tint-hover, #dcfce7);
@@ -2557,7 +2832,7 @@ onUnmounted(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--primary);
+  color: var(--primary-strong, var(--primary));
   flex-shrink: 0;
   padding-right: 10px;
   border-right: 1px solid var(--border);
@@ -2590,8 +2865,8 @@ onUnmounted(() => {
   padding: 5px 14px;
   border-radius: 999px;
   background: var(--primary);
-  border: 1px solid var(--primary);
-  color: #fff;
+  border: 1px solid var(--primary-strong, var(--primary));
+  color: var(--on-primary, #fff);
   font-size: 12px;
   font-weight: 600;
   min-height: 28px;
@@ -2611,20 +2886,20 @@ onUnmounted(() => {
   transition: all 0.2s ease;
 }
 .menutab:hover {
-  border-color: var(--primary);
+  border-color: var(--primary-strong, var(--primary));
   transform: translateY(-1px);
   box-shadow: 0 2px 8px var(--primary-glow);
 }
 .menutab.active {
   background: var(--primary);
-  border-color: var(--primary);
-  color: #fff;
+  border-color: var(--primary-strong, var(--primary));
+  color: var(--on-primary, #fff);
   box-shadow: 0 4px 12px var(--primary-glow-strong);
 }
 .menutab-add {
   background: transparent;
-  border: 1px dashed var(--primary);
-  color: var(--primary);
+  border: 1px dashed var(--primary-strong, var(--primary));
+  color: var(--primary-strong, var(--primary));
 }
 .menutab-add:hover {
   background: var(--surface-green);
@@ -2681,14 +2956,14 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 .chip:hover {
-  border-color: var(--primary);
+  border-color: var(--primary-strong, var(--primary));
   color: var(--text);
   transform: translateY(-1px);
 }
 .chip.active {
   background: var(--primary);
-  color: white;
-  border-color: var(--primary);
+  color: var(--on-primary, #fff);
+  border-color: var(--primary-strong, var(--primary));
 }
 
 .srch {
@@ -2711,7 +2986,7 @@ onUnmounted(() => {
   min-height: 32px;
 }
 .srch input:focus {
-  border-color: var(--primary);
+  border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
 .srch-i {
@@ -2769,7 +3044,7 @@ onUnmounted(() => {
   transition: all 0.2s ease;
 }
 .cat-c:hover {
-  border-color: var(--primary);
+  border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 2px 12px var(--primary-glow);
   transform: translateY(-2px);
 }
@@ -2799,9 +3074,9 @@ onUnmounted(() => {
   flex-shrink: 0;
 }
 .ic:hover {
-  border-color: var(--primary);
+  border-color: var(--primary-strong, var(--primary));
   background: var(--surface-green);
-  color: var(--primary);
+  color: var(--primary-strong, var(--primary));
 }
 .ic-sm {
   width: 26px;
@@ -2830,7 +3105,7 @@ onUnmounted(() => {
   transition: all 0.25s ease;
 }
 .order-c:hover {
-  border-color: var(--primary);
+  border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 4px 16px var(--primary-glow);
   transform: translateY(-2px);
 }
@@ -3030,7 +3305,7 @@ onUnmounted(() => {
   width: 24px;
   height: 24px;
   border: 2.5px solid var(--border);
-  border-top-color: var(--primary);
+  border-top-color: var(--primary-strong, var(--primary));
   border-radius: 50%;
   animation: spin 0.6s linear infinite;
   display: inline-block;
@@ -3093,7 +3368,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--primary);
+  color: var(--primary-strong, var(--primary));
 }
 .sheet-b {
   padding: 18px;
@@ -3168,7 +3443,7 @@ onUnmounted(() => {
 }
 .btn-primary {
   background: var(--primary);
-  color: white;
+  color: var(--on-primary, #fff);
 }
 .btn-primary:hover {
   background: var(--primary-dark);
@@ -3212,7 +3487,7 @@ onUnmounted(() => {
   min-height: 36px;
 }
 .fld-i:focus {
-  border-color: var(--primary);
+  border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
 .fld-i.err {
@@ -3262,7 +3537,7 @@ onUnmounted(() => {
   min-height: 36px;
 }
 .qr-inp:focus {
-  border-color: var(--primary);
+  border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
 .qr-p {
@@ -3330,6 +3605,45 @@ onUnmounted(() => {
   gap: 8px;
   flex-wrap: wrap;
 }
+.layout-options {
+  display: flex;
+  gap: 8px;
+}
+.layout-opt {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 9px 4px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  transition: all 0.15s ease;
+}
+.layout-opt:hover {
+  border-color: var(--primary-strong, var(--primary));
+  color: var(--primary-strong, var(--primary));
+  transform: translateY(-1px);
+}
+.layout-opt.active {
+  border-color: var(--primary-strong, var(--primary));
+  background: var(--surface-green);
+  color: var(--primary-strong, var(--primary));
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+.layout-opt svg {
+  flex-shrink: 0;
+}
+.layout-opt span {
+  white-space: nowrap;
+}
 .swatch {
   width: 30px;
   height: 30px;
@@ -3342,6 +3656,7 @@ onUnmounted(() => {
   padding: 0;
   transition: all 0.15s ease;
   flex-shrink: 0;
+  color: #fff;
 }
 .swatch:hover {
   transform: scale(1.12);
@@ -3350,6 +3665,7 @@ onUnmounted(() => {
 .swatch.active {
   border-color: var(--ink);
   box-shadow: 0 0 0 3px var(--primary-glow-strong);
+  color: var(--on-primary, #fff);
 }
 .swatch-custom {
   position: relative;
@@ -3412,7 +3728,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
   background: var(--surface-green);
-  border: 2px dashed var(--primary);
+  border: 2px dashed var(--primary-strong, var(--primary));
   border-radius: 8px;
   padding: 6px 12px;
   cursor: pointer;
@@ -3432,7 +3748,7 @@ onUnmounted(() => {
 }
 .tg-guide {
   font-size: 11px;
-  color: var(--primary);
+  color: var(--primary-strong, var(--primary));
 }
 .tg-guide summary {
   cursor: pointer;
@@ -3465,7 +3781,7 @@ onUnmounted(() => {
   height: 18px;
   border-radius: 50%;
   background: var(--primary);
-  color: white;
+  color: var(--on-primary, #fff);
   font-size: 8px;
   font-weight: 700;
   display: flex;
@@ -3477,7 +3793,7 @@ onUnmounted(() => {
   background: var(--surface-green);
   padding: 1px 4px;
   border-radius: 4px;
-  color: var(--primary);
+  color: var(--primary-strong, var(--primary));
 }
 .tg-linked {
   display: flex;
@@ -3575,7 +3891,7 @@ onUnmounted(() => {
     flex-shrink: 0;
   }
   .mob-btn:hover {
-    border-color: var(--primary);
+    border-color: var(--primary-strong, var(--primary));
   }
   .mob-info {
     display: flex;
@@ -3635,6 +3951,7 @@ onUnmounted(() => {
   }
   .nav-open .scrim {
     display: block;
+    opacity: 1;
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.3);

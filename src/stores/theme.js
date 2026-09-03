@@ -4,7 +4,14 @@
 // as CSS variables on <html>, persisted per account in localStorage.
 import { defineStore } from "pinia";
 import { ref } from "vue";
-import { mix, hexToRgba, normalizeHex, isValidHex } from "@/utils/color.mjs";
+import {
+  mix,
+  hexToRgba,
+  normalizeHex,
+  isValidHex,
+  onColor,
+  strongColor,
+} from "@/utils/color.mjs";
 
 // 6 ready-made colors (first one = original brand default)
 export const THEME_PRESETS = [
@@ -33,11 +40,16 @@ function userStorageKey() {
 function applyToDocument(hex) {
   if (typeof document === "undefined") return;
   const s = document.documentElement.style;
+  const strong = strongColor(hex);
   s.setProperty("--primary", hex);
   s.setProperty("--primary-dark", mix(hex, "#000000", 0.18));
   s.setProperty("--primary-light", mix(hex, "#ffffff", 0.28));
-  s.setProperty("--primary-glow", hexToRgba(hex, 0.15));
-  s.setProperty("--primary-glow-strong", hexToRgba(hex, 0.25));
+  // Glows derive from the "strong" variant so they stay visible on light themes
+  s.setProperty("--primary-glow", hexToRgba(strong, 0.15));
+  s.setProperty("--primary-glow-strong", hexToRgba(strong, 0.25));
+  // Foreground + accent variants tuned for white/light primaries
+  s.setProperty("--on-primary", onColor(hex));
+  s.setProperty("--primary-strong", strong);
   // Headings & tinted surfaces follow the theme so the whole UI recolors
   s.setProperty("--ink", mix(hex, "#03150d", 0.74));
   s.setProperty("--ink-light", mix(hex, "#000000", 0.35));
@@ -65,18 +77,24 @@ export const useThemeStore = defineStore("theme", () => {
     return true;
   }
 
-  // Restore the saved color for the logged-in account (call on app start)
+  // Restore the saved color for the logged-in account.
+  // Called at app start and whenever the logged-in user changes, so one
+  // user's color never leaks into another account on the same browser.
   function load() {
     try {
       const saved = localStorage.getItem(userStorageKey());
-      if (saved) setPrimary(saved, { persist: false });
+      // No saved color → fall back to the brand default (never inherit the
+      // previous account's color from memory)
+      setPrimary(saved || DEFAULT_COLOR, { persist: false });
     } catch {
       /* ignore */
     }
   }
 
-  function reset() {
-    setPrimary(DEFAULT_COLOR);
+  // Back to the original brand color. persist=false is used on logout so
+  // we reset the in-memory UI WITHOUT overwriting the user's stored choice.
+  function reset({ persist = true } = {}) {
+    setPrimary(DEFAULT_COLOR, { persist });
   }
 
   return { primary, presets: THEME_PRESETS, setPrimary, load, reset };

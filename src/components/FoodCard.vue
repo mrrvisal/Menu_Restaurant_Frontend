@@ -132,7 +132,7 @@ function getCategoryEmoji(category) {
 .status-toggle-btn:hover { filter: brightness(.9); }
 
 .add-cart-btn {
-  background: var(--green-mid); color: white; border: none;
+  background: var(--green-mid); color: var(--on-primary, #fff); border: none;
   border-radius: 20px; padding: 5px 11px; font-size: 11px;
   font-weight: 600; cursor: pointer; transition: all .15s;
   white-space: nowrap; flex-shrink: 0;
