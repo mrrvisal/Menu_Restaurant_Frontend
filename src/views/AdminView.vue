@@ -202,6 +202,26 @@
           </button>
           <button
             class="ac ac-ghost ac-icon-only"
+            @click="openDevices"
+            :title="i18n.t.devices"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path
+                d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
+              />
+              <polyline points="9 12 11 14 15 10" />
+            </svg>
+            <span class="hdr-hide">{{ i18n.t.devices }}</span>
+          </button>
+          <button
+            class="ac ac-ghost ac-icon-only"
             @click="openTelegramSettings()"
             :title="i18n.t.telegram"
           >
@@ -949,6 +969,20 @@
                 </svg>
                 {{ qrError }}
               </div>
+              <div v-if="qrInfo" class="msg msg-i">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                  <polyline points="22 4 12 14.01 9 11.01" />
+                </svg>
+                {{ qrInfo }}
+              </div>
               <div v-if="qrCodeDataUrl" class="qr-p">
                 <img :src="qrCodeDataUrl" :alt="'QR ' + qrTableNumber" /><span
                   class="qr-l"
@@ -957,6 +991,207 @@
                   {{ i18n.t.download_qr || "Download" }}
                 </button>
               </div>
+
+              <!-- ─── SAVED QR CODES (already "made done") ─── -->
+              <div class="qr-saved">
+                <div class="qr-saved-h">
+                  <span>{{ i18n.t.saved_qr_list || "Saved QR codes" }}</span>
+                  <span
+                    v-if="!qrListLoading && savedQrs.length"
+                    class="qr-saved-count"
+                    >{{ savedQrs.length }}</span
+                  >
+                </div>
+                <div class="srch qr-srch">
+                  <svg
+                    class="srch-i"
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <circle cx="11" cy="11" r="8" />
+                    <path d="m21 21-4.3-4.3" />
+                  </svg>
+                  <input
+                    v-model="qrSearch"
+                    :placeholder="
+                      i18n.t.search_table || 'Search table number...'
+                    "
+                  />
+                  <button
+                    v-if="qrSearch"
+                    class="srch-x"
+                    aria-label="Clear table search"
+                    @click="qrSearch = ''"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                    >
+                      <line x1="18" y1="6" x2="6" y2="18" />
+                      <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                  </button>
+                </div>
+                <div v-if="qrListLoading" class="qr-saved-loading">
+                  <div class="spinner"></div>
+                </div>
+                <div v-else-if="qrListError" class="msg msg-e">
+                  {{ qrListError }}
+                </div>
+                <div
+                  v-else-if="!filteredSavedQrs.length"
+                  class="qr-saved-empty"
+                >
+                  {{
+                    qrSearch
+                      ? i18n.t.no_search_result || "No results"
+                      : i18n.t.no_saved_qr || "No saved QR codes yet"
+                  }}
+                </div>
+                <div v-else class="qr-saved-grid">
+                  <div
+                    v-for="qr in filteredSavedQrs"
+                    :key="qr.id"
+                    class="qr-item"
+                    :class="{ active: selectedSavedNo === qr.table_no }"
+                  >
+                    <div class="qr-item-thumb" @click="previewSavedQr(qr)">
+                      <img
+                        v-if="qr._dataUrl"
+                        :src="qr._dataUrl"
+                        :alt="'QR ' + qr.table_no"
+                      />
+                      <svg
+                        v-else
+                        width="26"
+                        height="26"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                      >
+                        <rect x="3" y="3" width="7" height="7" />
+                        <rect x="14" y="3" width="7" height="7" />
+                        <rect x="3" y="14" width="7" height="7" />
+                        <rect x="14" y="14" width="7" height="7" />
+                      </svg>
+                    </div>
+                    <span class="qr-item-no"
+                      >{{ i18n.t.table }} {{ qr.table_no }}</span
+                    >
+                    <span class="qr-item-date">{{
+                      formatQrDate(qr.created_at)
+                    }}</span>
+                    <div class="qr-item-acts">
+                      <button
+                        class="ic ic-sm"
+                        :title="i18n.t.preview || 'Preview'"
+                        :aria-label="'Preview QR ' + qr.table_no"
+                        @click="previewSavedQr(qr)"
+                      >
+                        <svg
+                          width="13"
+                          height="13"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                        >
+                          <path
+                            d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"
+                          />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      </button>
+                      <button
+                        class="ic ic-sm"
+                        :title="i18n.t.download_qr || 'Download'"
+                        :aria-label="'Download QR ' + qr.table_no"
+                        @click="downloadSavedQr(qr)"
+                      >
+                        <svg
+                          width="13"
+                          height="13"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                        >
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                          <polyline points="7 10 12 15 17 10" />
+                          <line x1="12" y1="15" x2="12" y2="3" />
+                        </svg>
+                      </button>
+                      <button
+                        class="ic ic-sm ic-red"
+                        :title="i18n.t.delete || 'Delete'"
+                        :aria-label="'Delete QR ' + qr.table_no"
+                        @click="confirmDelQr(qr)"
+                      >
+                        <svg
+                          width="13"
+                          height="13"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          stroke-width="1.5"
+                        >
+                          <polyline points="3 6 5 6 21 6" />
+                          <path
+                            d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                          />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition></Teleport
+    >
+
+    <!-- Delete QR -->
+    <Teleport to="body"
+      ><Transition name="fade">
+        <div v-if="deletingQr" class="overlay" @click.self="deletingQr = null">
+          <div class="dlg">
+            <div class="dlg-i">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <polyline points="3 6 5 6 21 6" />
+                <path
+                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
+                />
+              </svg>
+            </div>
+            <div class="dlg-t">
+              {{ i18n.t.delete_qr_title || "លុប QR នេះ?" }}
+            </div>
+            <div class="dlg-d">
+              {{ i18n.t.table }} {{ deletingQr.table_no }}
+            </div>
+            <div class="dlg-acts">
+              <button class="btn btn-g" @click="deletingQr = null">
+                {{ i18n.t.cancel }}</button
+              ><button class="btn btn-r" @click="doDeleteQr">
+                {{ i18n.t.delete }}
+              </button>
             </div>
           </div>
         </div>
@@ -1088,6 +1323,445 @@
                 </button>
               </div>
               <div v-else class="tg-warn"><AppIcon name="alert-circle" :size="14" /> {{ i18n.t.not_connected_yet }}</div>
+            </div>
+          </div>
+        </div>
+      </Transition></Teleport
+    >
+
+    <!-- Devices (access log) -->
+    <Teleport to="body"
+      ><Transition name="fade">
+        <div
+          v-if="showDevices"
+          class="overlay"
+          @click.self="showDevices = false"
+        >
+          <div class="sheet">
+            <div class="sheet-h">
+              <span
+                ><svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                  <line x1="8" y1="21" x2="16" y2="21" />
+                  <line x1="12" y1="17" x2="12" y2="21" />
+                </svg>
+                {{ i18n.t.device_list || "Devices with access" }}</span
+              ><button
+                class="ic"
+                aria-label="Close"
+                @click="showDevices = false"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div class="sheet-b">
+              <div v-if="devicesMsg" class="msg msg-s">
+                {{ devicesMsg }}
+              </div>
+              <div v-if="devicesError" class="msg msg-e">
+                {{ devicesError }}
+              </div>
+              <div class="dev-top">
+                <span class="dev-count"
+                  >{{ activeDevicesCount }}
+                  {{ i18n.t.devices || "Devices" }}</span
+                >
+                <button
+                  class="btn btn-g btn-sm"
+                  :disabled="devicesLoading || activeDevicesCount <= 1"
+                  @click="revokeAllOthers"
+                >
+                  {{ i18n.t.sign_out_others || "Sign out other devices" }}
+                </button>
+              </div>
+              <div v-if="devicesLoading" class="qr-saved-loading">
+                <div class="spinner"></div>
+              </div>
+              <div v-else-if="!devicesList.length" class="qr-saved-empty">
+                {{
+                  i18n.t.device_none ||
+                  "No devices have accessed this account yet"
+                }}
+              </div>
+              <div v-else class="dev-list">
+                <div
+                  v-for="device in devicesList"
+                  :key="device.id"
+                  class="dev-c"
+                  :class="{
+                    current: device.isCurrent && !device.revoked,
+                    revoked: device.revoked,
+                  }"
+                >
+                  <div class="dev-icon">
+                    <!-- smartphone for mobile, monitor for desktop/tablet -->
+                    <svg
+                      v-if="device.deviceType === 'mobile'"
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <rect x="7" y="2" width="10" height="20" rx="2" ry="2" />
+                      <line x1="11" y1="18" x2="13" y2="18" />
+                    </svg>
+                    <svg
+                      v-else
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                      <line x1="8" y1="21" x2="16" y2="21" />
+                      <line x1="12" y1="17" x2="12" y2="21" />
+                    </svg>
+                  </div>
+                  <div class="dev-b">
+                    <div class="dev-name">
+                      <span class="dev-n">{{
+                        device.deviceName || i18n.t.device_unknown
+                      }}</span>
+                      <span
+                        v-if="device.isCurrent && !device.revoked"
+                        class="dev-badge dev-badge-cur"
+                        >{{ i18n.t.current_device }}</span
+                      >
+                      <span
+                        v-else-if="device.revoked"
+                        class="dev-badge dev-badge-rev"
+                        >{{ i18n.t.device_revoked_badge }}</span
+                      >
+                    </div>
+                    <div class="dev-meta">
+                      <span class="dev-kv">
+                        <strong
+                          >{{ device.browser
+                          }}{{
+                            device.browserVersion
+                              ? " " + device.browserVersion.split(".")[0]
+                              : ""
+                          }}</strong
+                        >
+                        · {{ device.os
+                        }}{{ device.osVersion ? " " + device.osVersion : "" }}
+                        <template v-if="device.screen"
+                          >· {{ device.screen }}</template
+                        >
+                      </span>
+                      <span class="dev-kv">
+                        {{ i18n.t.device_ip }}:
+                        <strong>{{
+                          device.ipAddress || i18n.t.device_unknown
+                        }}</strong>
+                        <template
+                          v-if="device.city || device.region || device.country"
+                        >
+                          · {{ i18n.t.device_location }}:
+                          <strong
+                            >{{
+                              [device.city, device.region, device.country]
+                                .filter(Boolean)
+                                .join(", ")
+                            }}</strong
+                          >
+                        </template>
+                        <template v-if="device.isp">· {{ device.isp }}</template>
+                      </span>
+                      <span class="dev-kv">
+                        {{ i18n.t.device_first_seen }}:
+                        <strong>{{
+                          device.firstSeenAt
+                            ? formatDate(device.firstSeenAt)
+                            : i18n.t.device_unknown
+                        }}</strong>
+                        · {{ i18n.t.device_last_login }}:
+                        <strong>{{
+                          device.lastLoginAt
+                            ? formatDate(device.lastLoginAt)
+                            : i18n.t.device_unknown
+                        }}</strong>
+                      </span>
+                      <span class="dev-kv">
+                        {{ i18n.t.device_last_active }}:
+                        <strong>{{
+                          device.lastActiveAt
+                            ? formatDate(device.lastActiveAt)
+                            : i18n.t.device_unknown
+                        }}</strong>
+                        · {{ i18n.t.device_logins }}:
+                        <strong>{{ device.loginCount || 1 }}</strong>
+                      </span>
+                      <span v-if="device.revoked" class="dev-kv dev-kv-rev">
+                        {{ i18n.t.device_revoked_note }}:
+                        {{ formatDate(device.revokedAt) }}
+                      </span>
+                      <span
+                        v-if="device.isProxy || device.isHosting"
+                        class="dev-flags"
+                      >
+                        <span v-if="device.isProxy" class="dev-flag">
+                          ⚠ {{ i18n.t.device_vpn_flag || "VPN / Proxy" }}</span
+                        >
+                        <span v-if="device.isHosting" class="dev-flag">
+                          ⚠
+                          {{
+                            i18n.t.device_hosting_flag || "Server / Hosting IP"
+                          }}</span
+                        >
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      class="dev-details-btn"
+                      :aria-expanded="expandedDeviceId === device.id"
+                      @click="toggleDeviceDetails(device.id)"
+                    >
+                      {{
+                        expandedDeviceId === device.id
+                          ? i18n.t.device_hide_details || "Hide details"
+                          : i18n.t.device_more_details || "More details"
+                      }}
+                      <svg
+                        width="11"
+                        height="11"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        :class="{ flip: expandedDeviceId === device.id }"
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+                    <div
+                      v-if="expandedDeviceId === device.id"
+                      class="dev-details"
+                    >
+                      <span v-if="device.platform" class="dev-kv">
+                        {{ i18n.t.device_platform }}:
+                        <strong>{{ device.platform }}</strong>
+                      </span>
+                      <span v-if="device.hardware" class="dev-kv">
+                        {{ i18n.t.device_hardware }}:
+                        <strong>{{ device.hardware }}</strong>
+                      </span>
+                      <span
+                        v-if="device.timezone || device.language"
+                        class="dev-kv"
+                      >
+                        <template v-if="device.timezone"
+                          >{{ i18n.t.device_timezone }}:
+                          <strong>{{ device.timezone }}</strong></template
+                        >
+                        <template v-if="device.timezone && device.language">
+                          · </template
+                        ><template v-if="device.language"
+                          >{{ i18n.t.device_language }}:
+                          <strong>{{ device.language }}</strong></template
+                        >
+                      </span>
+                      <span
+                        v-if="device.latitude != null && device.longitude"
+                        class="dev-kv"
+                      >
+                        {{ i18n.t.device_coords }}:
+                        <strong
+                          >{{ Number(device.latitude).toFixed(4) }},
+                          {{ Number(device.longitude).toFixed(4) }}</strong
+                        >
+                      </span>
+                      <span v-if="device.asn || device.org" class="dev-kv">
+                        <template v-if="device.asn"
+                          >{{ i18n.t.device_asn }}:
+                          <strong>{{ device.asn }}</strong></template
+                        >
+                        <template v-if="device.asn && device.org"> · </template
+                        ><template v-if="device.org"
+                          ><strong>{{ device.org }}</strong></template
+                        >
+                      </span>
+                      <span class="dev-kv dev-kv-ua">
+                        {{ i18n.t.device_user_agent }}:
+                        <strong>{{ device.userAgent || i18n.t.device_unknown }}</strong>
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    v-if="!device.revoked"
+                    class="ic ic-sm ic-red"
+                    :title="i18n.t.sign_out_device || 'Sign out device'"
+                    :aria-label="
+                      (i18n.t.sign_out_device || 'Sign out device') +
+                      ' — ' +
+                      (device.deviceName || device.id)
+                    "
+                    :disabled="revokingDeviceId === device.id"
+                    @click="confirmRevokeDevice(device)"
+                  >
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                      <line x1="12" y1="2" x2="12" y2="12" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+
+              <!-- ─── LOGIN HISTORY (audit trail) ─── -->
+              <div class="dev-hist">
+                <div class="dev-hist-h">
+                  <span>{{ i18n.t.login_history || "Login history" }}</span>
+                  <button
+                    class="ic ic-sm"
+                    :title="i18n.t.refresh || 'Refresh'"
+                    :aria-label="i18n.t.refresh || 'Refresh'"
+                    @click="fetchLoginHistory"
+                  >
+                    <svg
+                      width="13"
+                      height="13"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <polyline points="23 4 23 10 17 10" />
+                      <path
+                        d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"
+                      />
+                    </svg>
+                  </button>
+                </div>
+                <div v-if="historyLoading" class="qr-saved-loading">
+                  <div class="spinner"></div>
+                </div>
+                <div v-else-if="historyError" class="msg msg-e">
+                  {{ historyError }}
+                </div>
+                <div v-else-if="!loginHistory.length" class="qr-saved-empty">
+                  {{ i18n.t.history_empty || "No login events recorded yet" }}
+                </div>
+                <div v-else class="dev-hist-list">
+                  <div
+                    v-for="h in loginHistory"
+                    :key="h.id"
+                    class="dev-hist-i"
+                  >
+                    <span
+                      class="dev-hist-dot"
+                      :class="'m-' + (h.method || 'email')"
+                    ></span>
+                    <div class="dev-hist-b">
+                      <span class="dev-hist-l1">
+                        <strong>{{
+                          h.deviceName || i18n.t.device_unknown
+                        }}</strong>
+                        · {{ deviceMethodLabel(h.method) }}
+                      </span>
+                      <span class="dev-hist-l2">
+                        {{ i18n.t.device_ip }}:
+                        <strong>{{
+                          h.ipAddress || i18n.t.device_unknown
+                        }}</strong>
+                        <template v-if="h.city || h.country">
+                          ·
+                          {{
+                            [h.city, h.region, h.country]
+                              .filter(Boolean)
+                              .join(", ")
+                          }}
+                        </template>
+                      </span>
+                      <span class="dev-hist-l3"
+                        >{{ h.browser || "" }}{{ h.os ? " · " + h.os : "" }} ·
+                        {{ formatDate(h.at) }}</span
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Transition></Teleport
+    >
+
+    <!-- Sign out device (confirm) -->
+    <Teleport to="body"
+      ><Transition name="fade">
+        <div
+          v-if="deletingDevice"
+          class="overlay"
+          @click.self="deletingDevice = null"
+        >
+          <div class="dlg">
+            <div class="dlg-i dlg-i-r">
+              <svg
+                width="28"
+                height="28"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
+                <line x1="12" y1="2" x2="12" y2="12" />
+              </svg>
+            </div>
+            <div class="dlg-t">
+              {{ i18n.t.revoke_device_title || "Sign out this device?" }}
+            </div>
+            <div class="dlg-d">
+              {{
+                deletingDevice.deviceName ||
+                deletingDevice.ipAddress ||
+                deletingDevice.id
+              }}
+              <template v-if="deletingDevice.isCurrent">
+                <br />{{
+                  i18n.t.revoke_device_current_note ||
+                  "You will be signed out on this device."
+                }}
+              </template>
+            </div>
+            <div class="dlg-acts">
+              <button class="btn btn-g" @click="deletingDevice = null">
+                {{ i18n.t.cancel }}</button
+              ><button
+                class="btn btn-r"
+                :disabled="revokingDeviceId"
+                @click="doRevokeDevice"
+              >
+                {{ revokingDeviceId ? i18n.t.loading : i18n.t.logout }}
+              </button>
             </div>
           </div>
         </div>
@@ -1457,10 +2131,133 @@ const qrTableNumber = ref("");
 const qrCodeDataUrl = ref("");
 const qrLoading = ref(false);
 const qrError = ref("");
-const qrDownloadUrl = computed(() => {
-  // Use the existing QR code data URL for download to avoid generating duplicates
-  return qrCodeDataUrl.value || "#";
+const qrInfo = ref("");
+// ─── SAVED TABLE QRs ("made done") ─────────────────────────
+// Every generated table QR is stored server-side (qr_codes table). A table
+// number already in this list can NOT be generated again — the stored QR is
+// reused, and the owner can search / preview / download it below.
+const savedQrs = ref([]);
+const qrSearch = ref("");
+const qrListLoading = ref(false);
+const qrListError = ref("");
+const selectedSavedNo = ref(null);
+const deletingQr = ref(null);
+const filteredSavedQrs = computed(() => {
+  const q = qrSearch.value.trim();
+  if (!q) return savedQrs.value;
+  return savedQrs.value.filter((qr) => String(qr.table_no).includes(q));
 });
+
+// ─── DEVICE SESSIONS (access log for the account) ──────────
+// Every device that logs in is recorded server-side (device_sessions
+// table): device id/name/type, browser, OS, screen, timezone, language,
+// IP + best-effort city/country, first seen, last login, last active.
+// The owner can review ALL of them here and sign out any device (or all
+// others at once) — the auth middleware then rejects that device's token.
+const showDevices = ref(false);
+const devicesList = ref([]);
+const devicesLoading = ref(false);
+const devicesError = ref("");
+const devicesMsg = ref("");
+const deletingDevice = ref(null);
+const revokingDeviceId = ref(null);
+const expandedDeviceId = ref(null);
+const loginHistory = ref([]);
+const historyLoading = ref(false);
+const historyError = ref("");
+const activeDevicesCount = computed(
+  () => devicesList.value.filter((d) => !d.revoked).length
+);
+function openDevices() {
+  devicesError.value = "";
+  devicesMsg.value = "";
+  showDevices.value = true;
+  fetchDevices();
+  fetchLoginHistory();
+}
+async function fetchDevices() {
+  devicesLoading.value = true;
+  devicesError.value = "";
+  try {
+    const res = await axios.get(`${API_BASE}/api/auth/devices`);
+    devicesList.value = res.data || [];
+  } catch (err) {
+    devicesError.value =
+      err.response?.data?.error || "មិនអាចផ្ទុកបញ្ជីឧបករណ៍បានទេ";
+  } finally {
+    devicesLoading.value = false;
+  }
+}
+function confirmRevokeDevice(device) {
+  deletingDevice.value = device;
+}
+async function doRevokeDevice() {
+  const device = deletingDevice.value;
+  if (!device || revokingDeviceId.value) return;
+  revokingDeviceId.value = device.id;
+  try {
+    await axios.delete(`${API_BASE}/api/auth/devices/${device.id}`);
+    deletingDevice.value = null;
+    if (device.isCurrent) {
+      // Revoking THIS device → sign out immediately
+      auth.logout();
+      window.location.href = "/login";
+      return;
+    }
+    devicesMsg.value =
+      i18n.t.device_signed_out_ok || "ឧបករណ៍ត្រូវបានចេញរួចរាល់!";
+    setTimeout(() => {
+      devicesMsg.value = "";
+    }, 2500);
+    await fetchDevices();
+    await fetchLoginHistory();
+  } catch (err) {
+    devicesError.value =
+      err.response?.data?.error || "មិនអាចចេញឧបករណ៍នេះបានទេ";
+  } finally {
+    revokingDeviceId.value = null;
+  }
+}
+async function revokeAllOthers() {
+  devicesError.value = "";
+  try {
+    const res = await axios.delete(`${API_BASE}/api/auth/devices`);
+    devicesMsg.value =
+      (i18n.t.sign_out_others_ok || "ឧបករណ៍ផ្សេងទាំងអស់ត្រូវបានចេញរួចរាល់!") +
+      (res.data?.count ? ` (${res.data.count})` : "");
+    setTimeout(() => {
+      devicesMsg.value = "";
+    }, 2500);
+    await fetchDevices();
+    await fetchLoginHistory();
+  } catch (err) {
+    devicesError.value =
+      err.response?.data?.error || "មិនអាចចេញឧបករណ៍ផ្សេងបានទេ";
+  }
+}
+async function fetchLoginHistory() {
+  historyLoading.value = true;
+  historyError.value = "";
+  try {
+    const res = await axios.get(`${API_BASE}/api/auth/devices/history`);
+    loginHistory.value = res.data || [];
+  } catch (err) {
+    historyError.value =
+      err.response?.data?.error || "មិនអាចផ្ទុកប្រវត្តិការចូលបានទេ";
+  } finally {
+    historyLoading.value = false;
+  }
+}
+function toggleDeviceDetails(id) {
+  expandedDeviceId.value = expandedDeviceId.value === id ? null : id;
+}
+function deviceMethodLabel(method) {
+  const labels = {
+    password: i18n.t.method_password || "Password",
+    google: "Google",
+  };
+  return labels[method] || method || i18n.t.device_unknown;
+}
 
 function openProfile() {
   profileName.value = auth.restaurant?.name || "";
@@ -1753,9 +2550,14 @@ async function doDeleteCat() {
 
 function openQR() {
   qrError.value = "";
+  qrInfo.value = "";
   qrCodeDataUrl.value = "";
   qrTableNumber.value = "";
+  qrSearch.value = "";
+  selectedSavedNo.value = null;
+  savedQrs.value = [];
   showQR.value = true;
+  fetchSavedQrs();
 }
 async function generateQR() {
   const num = parseInt(qrTableNumber.value);
@@ -1765,25 +2567,121 @@ async function generateQR() {
   }
   qrLoading.value = true;
   qrError.value = "";
+  qrInfo.value = "";
   try {
     let url = `${API_BASE}/api/qr/table/${num}`;
     if (auth.restaurantId) url += `?restaurant_id=${auth.restaurantId}`;
-    // force=1 regenerates the QR with the restaurant's current logo
-    // so the embedded logo is always up to date.
-    url += `&force=1`;
+    // NOTE: deliberately NO force=1 — a table number whose QR was already
+    // "made done" can not be made again. The server returns the stored QR
+    // and this UI simply shows it (also searchable in the saved list below).
     const res = await axios.get(url);
     qrCodeDataUrl.value = res.data.qrCode;
-    qrDownloadUrl.value = res.data.qrCode;
-    // Only warn about "already exists" when it was a plain cached hit
-    // (no regeneration). When updated=true the logo was refreshed instead.
-    if (res.data.alreadyExists && !res.data.updated) {
-      qrError.value = `QR សម្រាប់តុលេខ ${num} មានរួចហើយ។ កំណត់តុលេខថ្មីដើម្បីបង្កើត QR ថ្មី។`;
-    }
+    selectedSavedNo.value = res.data.tableNumber;
+    upsertSavedQr({
+      id: `table-${res.data.tableNumber}`,
+      table_no: res.data.tableNumber,
+      created_at: res.data.createdAt || new Date().toISOString(),
+      _dataUrl: res.data.qrCode,
+    });
+    qrInfo.value = res.data.alreadyExists
+      ? (
+          i18n.t.qr_already_saved ||
+          "តុលេខ {n} ត្រូវបានធ្វើរួចហើយ — បង្ហាញ QR ដែលបានរក្សាទុក"
+        ).replace("{n}", res.data.tableNumber)
+      : i18n.t.qr_created_success || "បង្កើត QR បានជោគជ័យ!";
   } catch (e) {
     qrError.value =
       "បង្កើត QR បរាជ័យ: " + (e.response?.data?.error || e.message);
   } finally {
     qrLoading.value = false;
+  }
+}
+async function fetchSavedQrs() {
+  qrListLoading.value = true;
+  qrListError.value = "";
+  try {
+    let url = `${API_BASE}/api/qr/codes`;
+    if (auth.restaurantId) url += `?restaurant_id=${auth.restaurantId}`;
+    const res = await axios.get(url);
+    savedQrs.value = (res.data || []).map((r) => ({ ...r, _dataUrl: "" }));
+  } catch (err) {
+    qrListError.value =
+      err.response?.data?.error || "មិនអាចផ្ទុក QR ដែលបានធ្វើរួចបានទេ";
+  } finally {
+    qrListLoading.value = false;
+  }
+}
+function upsertSavedQr(item) {
+  const rest = savedQrs.value.filter((q) => q.table_no !== item.table_no);
+  const idx = rest.findIndex((q) => q.table_no > item.table_no);
+  if (idx === -1) rest.push(item);
+  else rest.splice(idx, 0, item);
+  savedQrs.value = rest;
+}
+async function loadSavedQrImage(qr) {
+  if (qr._dataUrl) return qr._dataUrl;
+  let url = `${API_BASE}/api/qr/codes/${qr.table_no}`;
+  if (auth.restaurantId) url += `?restaurant_id=${auth.restaurantId}`;
+  const res = await axios.get(url);
+  qr._dataUrl = res.data.qr_data_url;
+  return qr._dataUrl;
+}
+async function previewSavedQr(qr) {
+  qrError.value = "";
+  qrInfo.value = "";
+  qrTableNumber.value = String(qr.table_no);
+  selectedSavedNo.value = qr.table_no;
+  try {
+    qrCodeDataUrl.value = await loadSavedQrImage(qr);
+  } catch (err) {
+    qrError.value = err.response?.data?.error || "មិនអាចផ្ទុក QR បានទេ";
+  }
+}
+async function downloadSavedQr(qr) {
+  try {
+    const dataUrl = await loadSavedQrImage(qr);
+    const link = document.createElement("a");
+    link.href = dataUrl;
+    link.download = `table-${qr.table_no}-qr.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  } catch (err) {
+    qrError.value = err.response?.data?.error || "មិនអាចទាញយក QR បានទេ";
+  }
+}
+function formatQrDate(d) {
+  if (!d) return "";
+  return new Date(d).toLocaleDateString("km-KH", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+function confirmDelQr(qr) {
+  deletingQr.value = qr;
+}
+async function doDeleteQr() {
+  const qr = deletingQr.value;
+  if (!qr) return;
+  try {
+    let url = `${API_BASE}/api/qr/codes/${qr.table_no}`;
+    if (auth.restaurantId) url += `?restaurant_id=${auth.restaurantId}`;
+    await axios.delete(url);
+    // Remove from the saved list; that table number can be generated again
+    savedQrs.value = savedQrs.value.filter((q) => q.table_no !== qr.table_no);
+    // If the deleted QR was shown in the preview area, clear it
+    if (selectedSavedNo.value === qr.table_no) {
+      selectedSavedNo.value = null;
+      qrCodeDataUrl.value = "";
+      qrTableNumber.value = "";
+    }
+    qrError.value = "";
+    qrInfo.value = i18n.t.qr_deleted || "លុប QR រួចរាល់!";
+  } catch (err) {
+    qrError.value = err.response?.data?.error || "លុប QR មិនបានជោគជ័យ";
+  } finally {
+    deletingQr.value = null;
   }
 }
 function downloadQR() {
@@ -1960,7 +2858,10 @@ function handleEscKey(e) {
     editingFood.value = null;
   } else if (deletingFood.value) deletingFood.value = null;
   else if (deletingCat.value) deletingCat.value = null;
+  else if (deletingQr.value) deletingQr.value = null;
   else if (showQR.value) showQR.value = false;
+  else if (deletingDevice.value) deletingDevice.value = null;
+  else if (showDevices.value) showDevices.value = false;
   else if (showTelegramSettings.value) showTelegramSettings.value = false;
   else if (loggingOut.value) loggingOut.value = false;
   else if (showCatForm.value) showCatForm.value = false;
@@ -3558,6 +4459,117 @@ onUnmounted(() => {
   font-weight: 700;
   color: var(--ink);
 }
+.msg-i {
+  background: #eff6ff;
+  color: var(--blue);
+  border: 1px solid #bfdbfe;
+}
+
+/* Saved QR list (already "made done" table QRs) */
+.qr-saved {
+  border-top: 1px dashed var(--border);
+  padding-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.qr-saved-h {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+}
+.qr-saved-count {
+  background: var(--surface-green);
+  border: 1px solid var(--border-green);
+  color: var(--primary-strong, var(--primary));
+  border-radius: 999px;
+  padding: 0 8px;
+  font-size: 10px;
+  line-height: 18px;
+}
+.qr-srch {
+  max-width: none;
+}
+.qr-saved-loading {
+  display: flex;
+  justify-content: center;
+  padding: 14px 0;
+}
+.qr-saved-empty {
+  font-size: 11px;
+  color: var(--muted);
+  text-align: center;
+  padding: 12px 0;
+  background: var(--surface);
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+}
+.qr-saved-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: 8px;
+  max-height: 264px;
+  overflow-y: auto;
+}
+.qr-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+.qr-item:hover {
+  border-color: var(--primary-strong, var(--primary));
+  box-shadow: 0 2px 8px var(--primary-glow);
+  transform: scale(0.95);
+}
+.qr-item.active {
+  border-color: var(--primary-strong, var(--primary));
+  background: var(--surface-green);
+}
+.qr-item-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  min-height: 72px;
+  border-radius: 8px;
+  border: 1px solid var(--border-green);
+  background: var(--surface-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  color: var(--primary-strong, var(--primary));
+}
+.qr-item-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+.qr-item-no {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.qr-item-date {
+  font-size: 9px;
+  color: var(--muted-light);
+  white-space: nowrap;
+}
+.qr-item-acts {
+  display: flex;
+  gap: 4px;
+}
 
 /* Profile */
 .prof-l {
@@ -3821,6 +4833,231 @@ onUnmounted(() => {
   font-size: 11px;
   color: #92400e;
   text-align: center;
+}
+
+/* Devices (access log) */
+.dev-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.dev-count {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.dev-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dev-c {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  transition: all 0.2s ease;
+}
+.dev-c:hover {
+  border-color: var(--primary-strong, var(--primary));
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+.dev-c.current {
+  border-color: var(--border-green);
+  background: var(--surface-green);
+}
+.dev-c.revoked {
+  opacity: 0.6;
+}
+.dev-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--tint-hover, #ccfbf1);
+  color: var(--primary-strong, var(--primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.dev-b {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.dev-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dev-n {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.dev-badge {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.dev-badge-cur {
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+}
+.dev-badge-rev {
+  background: #fef2f2;
+  color: var(--red);
+  border: 1px solid #fecaca;
+}
+.dev-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dev-kv {
+  font-size: 10.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  word-break: break-word;
+}
+.dev-kv strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.dev-kv-rev {
+  color: var(--red);
+}
+.dev-c .ic {
+  flex-shrink: 0;
+}
+/* Security flags (VPN / hosting IP) */
+.dev-flags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.dev-flag {
+  font-size: 9px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+  flex-shrink: 0;
+}
+/* Details toggle + expanded forensic details */
+.dev-details-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  padding: 3px 8px;
+  border: 1px solid var(--border-green);
+  border-radius: 6px;
+  background: var(--surface-green);
+  color: var(--primary-strong, var(--primary));
+  font-family: inherit;
+  font-size: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.dev-details-btn:hover {
+  background: var(--tint-hover, #dcfce7);
+}
+.dev-details-btn svg {
+  transition: transform 0.2s ease;
+}
+.dev-details-btn svg.flip {
+  transform: rotate(180deg);
+}
+.dev-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  background: var(--surface-green);
+  border: 1px dashed var(--border-green);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.dev-kv-ua strong {
+  font-family: "SFMono-Regular", Consolas, monospace;
+  font-weight: 500;
+  font-size: 9px;
+}
+/* Login history (audit trail) */
+.dev-hist {
+  border-top: 1px dashed var(--border);
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dev-hist-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--muted);
+}
+.dev-hist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+.dev-hist-i {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 7px 9px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.dev-hist-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-top: 4px;
+  flex-shrink: 0;
+  background: var(--primary);
+}
+.dev-hist-dot.m-google {
+  background: #db4437;
+}
+.dev-hist-b {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.dev-hist-l1 {
+  font-size: 11px;
+  color: var(--text);
+}
+.dev-hist-l2,
+.dev-hist-l3 {
+  font-size: 10px;
+  color: var(--muted);
+}
+.dev-hist-l3 {
+  color: var(--muted-light);
 }
 
 /* Transitions */

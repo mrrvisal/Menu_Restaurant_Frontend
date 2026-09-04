@@ -3,6 +3,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import axios from "axios";
 import { useThemeStore } from "@/stores/theme";
+import { getDeviceInfo, attachDeviceHeader } from "@/utils/device";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -11,6 +12,28 @@ export const useAuthStore = defineStore("auth", () => {
   if (token.value) {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
   }
+  // Identify THIS device on every request so the backend can track
+  // where/when the account is accessed (device sessions feature).
+  attachDeviceHeader(axios);
+
+  // Set when the backend answers 401 device_revoked (the owner removed
+  // this device from the account) — forces a clean local logout.
+  const sessionRevoked = ref(false);
+  axios.interceptors.response.use(
+    (res) => res,
+    (err) => {
+      if (
+        err?.response?.status === 401 &&
+        err?.response?.data?.code === "device_revoked" &&
+        token.value
+      ) {
+        sessionRevoked.value = true;
+        logout();
+        window.location.href = "/login";
+      }
+      return Promise.reject(err);
+    },
+  );
 
   let savedUser = null;
   let savedRestaurants = null;
@@ -70,7 +93,11 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function login(email, password) {
-    const res = await axios.post(`${API_BASE_URL}/api/auth/login`, { email, password });
+    const res = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+      email,
+      password,
+      deviceInfo: getDeviceInfo(),
+    });
     token.value = res.data.token;
     user.value = res.data.user;
     // Backend now returns `restaurants` array; keep old `restaurant` fallback
@@ -108,7 +135,10 @@ export const useAuthStore = defineStore("auth", () => {
 
   // Sign in with Google (credential = Google ID token from Google Identity Services)
   async function loginWithGoogle(credential) {
-    const res = await axios.post(`${API_BASE_URL}/api/auth/google`, { credential });
+    const res = await axios.post(`${API_BASE_URL}/api/auth/google`, {
+      credential,
+      deviceInfo: getDeviceInfo(),
+    });
     token.value = res.data.token;
     user.value = res.data.user;
     restaurants.value = Array.isArray(res.data.restaurants)
@@ -174,7 +204,7 @@ export const useAuthStore = defineStore("auth", () => {
 
   return {
     token, user, restaurant, restaurants, currentRestaurantId,
-    isLoggedIn, isEmailVerified, isOwner, isSuperAdmin,
+    isLoggedIn, isEmailVerified, isOwner, isSuperAdmin, sessionRevoked,
     restaurantId, restaurantSlug,
     linkCode, telegramChatId, isTelegramLinked, defaultLanguage,
     login, register, loginWithGoogle, fetchMe, logout, restoreToken, saveToStorage,

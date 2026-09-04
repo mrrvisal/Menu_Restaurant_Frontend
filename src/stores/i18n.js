@@ -1,6 +1,6 @@
 // frontend/src/stores/i18n.js
 import { defineStore } from "pinia";
-import { ref, reactive, watch } from "vue";
+import { ref, computed } from "vue";
 
 const translations = {
   km: {
@@ -228,7 +228,52 @@ const translations = {
     not_connected_yet: "មិនទាន់ភ្ជាប់",
     default_menu: "មីនុយរបស់អ្នក",
     generating: "កំពុងបង្កើត QR...",
+    refresh: "ផ្ទុកឡើងវិញ",
     generate: "បង្កើត",
+    saved_qr_list: "QR ដែលបានធ្វើរួច",
+    search_table: "ស្វែងរកលេខតុ...",
+    no_saved_qr: "មិនមាន QR ដែលបានធ្វើរួចទេ",
+    qr_already_saved: "តុលេខ {n} ត្រូវបានធ្វើរួចហើយ — បង្ហាញ QR ដែលបានរក្សាទុក",
+    qr_created_success: "បង្កើត QR បានជោគជ័យ!",
+    delete_qr_title: "លុប QR នេះ?",
+    qr_deleted: "លុប QR រួចរាល់!",
+    preview: "មើលជាមុន",
+    no_search_result: "រកមិនឃើញ",
+    devices: "ឧបករណ៍",
+    device_list: "ឧបករណ៍ដែលចូលប្រើគណនី",
+    current_device: "ឧបករណ៍នេះ",
+    revoked_badge: "បានចេញ",
+    sign_out_others: "ចេញគ្រប់ឧបករណ៍ផ្សេង",
+    revoke_device_title: "ចេញឧបករណ៍នេះ?",
+    revoke_device_current_note:
+      "បើចេញឧបករណ៍នេះ អ្នកនឹងត្រូវចូលគណនីម្ដងទៀត",
+    device_none: "មិនមានឧបករណ៍ណាមួយចូលប្រើគណនីនេះទេ",
+    device_ip: "IP",
+    device_location: "ទីតាំង",
+    device_first_seen: "ឃើញលើកដំបូង",
+    device_last_login: "ចូលចុងក្រោយ",
+    device_last_active: "សកម្មចុងក្រោយ",
+    device_logins: "ចំនួនចូល",
+    device_signed_out_ok: "ឧបករណ៍ត្រូវបានចេញរួចរាល់!",
+    sign_out_others_ok: "ឧបករណ៍ផ្សេងទាំងអស់ត្រូវបានចេញរួចរាល់!",
+    device_unknown: "មិនស្គាល់",
+    device_revoked_badge: "បានចេញ",
+    device_revoked_note: "បានចេញនៅ",
+    sign_out_device: "ចេញឧបករណ៍នេះ",
+    device_more_details: "ព័ត៌មានលម្អិតបន្ថែម",
+    device_hide_details: "លាក់ព័ត៌មានលម្អិត",
+    device_vpn_flag: "VPN / Proxy",
+    device_hosting_flag: "IP ម៉ាស៊ីនមេ / Hosting",
+    device_platform: "ព្លាត폼",
+    device_hardware: "ហាតវែរ",
+    device_timezone: "តំបន់ម៉ោង",
+    device_language: "ភាសា",
+    device_coords: "ពិគ្រោ (Lat, Lng)",
+    device_asn: "ASN / ស្ថាប័ន",
+    device_user_agent: "User Agent",
+    login_history: "ប្រវត្តិការចូល",
+    history_empty: "មិនមានព្រឹត្តិការណ៍ចូលនៅឡើយទេ",
+    method_password: "ពាក្យសម្ងាត់",
     general_foods: "ម្ហូបទូទៅ",
     drinks: "ភេសជ្ជៈ",
     dessert: "បង្អែម",
@@ -462,7 +507,52 @@ const translations = {
     not_connected_yet: "Not connected yet",
     default_menu: "Your Menu",
     generating: "Generating QR...",
+    refresh: "Refresh",
     generate: "Generate",
+    saved_qr_list: "Saved QR codes",
+    search_table: "Search table number...",
+    no_saved_qr: "No saved QR codes yet",
+    qr_already_saved: "Table {n} is already done — showing the saved QR",
+    qr_created_success: "QR created successfully!",
+    delete_qr_title: "Delete this QR?",
+    qr_deleted: "QR deleted!",
+    preview: "Preview",
+    no_search_result: "No results",
+    devices: "Devices",
+    device_list: "Devices with access",
+    current_device: "This device",
+    revoked_badge: "Signed out",
+    sign_out_others: "Sign out other devices",
+    revoke_device_title: "Sign out this device?",
+    revoke_device_current_note:
+      "Revoking this device will sign you out of it.",
+    device_none: "No devices have accessed this account yet",
+    device_ip: "IP",
+    device_location: "Location",
+    device_first_seen: "First seen",
+    device_last_login: "Last login",
+    device_last_active: "Last active",
+    device_logins: "Logins",
+    device_signed_out_ok: "Device signed out!",
+    sign_out_others_ok: "All other devices signed out!",
+    device_unknown: "Unknown",
+    device_revoked_badge: "Signed out",
+    device_revoked_note: "Signed out at",
+    sign_out_device: "Sign out device",
+    device_more_details: "More details",
+    device_hide_details: "Hide details",
+    device_vpn_flag: "VPN / Proxy",
+    device_hosting_flag: "Server / Hosting IP",
+    device_platform: "Platform",
+    device_hardware: "Hardware",
+    device_timezone: "Timezone",
+    device_language: "Language",
+    device_coords: "Coordinates",
+    device_asn: "ASN / Organization",
+    device_user_agent: "User agent",
+    login_history: "Login history",
+    history_empty: "No login events recorded yet",
+    method_password: "Password",
     general_foods: "General foods",
     drinks: "Drinks",
     dessert: "Dessert",
@@ -484,19 +574,16 @@ const translations = {
 export const useI18nStore = defineStore("i18n", () => {
   const locale = ref(localStorage.getItem("locale") || "km");
 
-  // Create a single reactive object that holds the current translations
-  // Using Object.assign to update it in-place preserves reactivity
-  const t = reactive({ ...translations[locale.value] });
-
-  function updateTranslations() {
-    Object.assign(t, translations[locale.value]);
-  }
+  // `t` is a computed over the current locale's translations. Unlike a
+  // reactive snapshot + Object.assign merge, this ALWAYS reflects the
+  // translations defined in this module (new keys appear immediately,
+  // nothing stale lingers after switching locales).
+  const t = computed(() => translations[locale.value]);
 
   function setLocale(lang) {
     if (translations[lang]) {
       locale.value = lang;
       localStorage.setItem("locale", lang);
-      updateTranslations();
     }
   }
 
