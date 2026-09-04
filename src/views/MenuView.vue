@@ -244,6 +244,7 @@ import {
   lighten,
   darken,
   hexToRgba,
+  strongColor,
 } from "@/utils/color.mjs";
 import { THEME_VARS, buildThemePalette } from "@/utils/themePalette.mjs";
 import axios from "axios";
@@ -265,6 +266,28 @@ const restaurantInfo = ref(null);
 // The owner's chosen theme color (restaurant.theme_color) drives the whole
 // customer preview palette. When the restaurant has none saved, the original
 // green design is used untouched.
+// --primary* aliases keep components built on the admin naming (CartModal)
+// on the same restaurant color; the glow/shadow tints make shadows follow
+// the theme color instead of staying hardcoded green.
+const PRIMARY_ROOT_VARS = [
+  "--primary",
+  "--primary-dark",
+  "--primary-light",
+  "--primary-strong",
+  "--primary-glow",
+  "--primary-glow-strong",
+];
+let rootPrimarySnapshot = null;
+function primaryVars(hex, strong) {
+  return {
+    "--primary": hex,
+    "--primary-dark": darken(hex, 0.18),
+    "--primary-light": lighten(hex, 0.28),
+    "--primary-strong": strong,
+    "--primary-glow": hexToRgba(strong, 0.15),
+    "--primary-glow-strong": hexToRgba(strong, 0.25),
+  };
+}
 const menuThemeStyle = computed(() => {
   const input =
     restaurantInfo.value?.themeColor || restaurantInfo.value?.theme_color;
@@ -273,6 +296,7 @@ const menuThemeStyle = computed(() => {
   const hex = normalizeHex(input);
   return {
     ...vars,
+    ...primaryVars(hex, vars["--green-strong"]),
     "--header-grad": `linear-gradient(145deg, ${darken(hex, 0.12)} 0%, ${lighten(hex, 0.12)} 55%, ${hex} 100%)`,
   };
 });
@@ -286,16 +310,42 @@ watch(
   (val) => {
     const vars = buildThemePalette(val);
     const root = document.documentElement.style;
+    // Snapshot any --primary* values already set inline on <html> (e.g. by
+    // the owner-dashboard theme store) so they can be restored on leave.
+    if (!rootPrimarySnapshot) {
+      rootPrimarySnapshot = {};
+      PRIMARY_ROOT_VARS.forEach((name) => {
+        rootPrimarySnapshot[name] = root.getPropertyValue(name);
+      });
+    }
     THEME_VARS.forEach((name) => {
       if (vars && vars[name]) root.setProperty(name, vars[name]);
       else root.removeProperty(name);
     });
+    if (vars) {
+      const strong = vars["--green-strong"];
+      const primary = primaryVars(normalizeHex(val), strong);
+      Object.entries(primary).forEach(([name, value]) =>
+        root.setProperty(name, value)
+      );
+    } else {
+      PRIMARY_ROOT_VARS.forEach((name) => root.removeProperty(name));
+    }
   },
   { immediate: true }
 );
 onUnmounted(() => {
   const root = document.documentElement.style;
   THEME_VARS.forEach((name) => root.removeProperty(name));
+  // Restore the --primary* values that were set before this page took over
+  if (rootPrimarySnapshot) {
+    PRIMARY_ROOT_VARS.forEach((name) => {
+      const prev = rootPrimarySnapshot[name];
+      if (prev) root.setProperty(name, prev);
+      else root.removeProperty(name);
+    });
+    rootPrimarySnapshot = null;
+  }
 });
 
 const restaurantSlug = computed(() => route.query.slug || null);
@@ -444,11 +494,11 @@ function goAdmin() {
   --text-light: #6b7280;
   --radius: 20px;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 6px 20px rgba(16, 24, 20, 0.08);
-  --shadow-lg: 0 20px 50px rgba(16, 24, 20, 0.16);
+  --shadow-md: 0 6px 20px var(--shadow-tint-soft, rgba(16, 24, 20, 0.08));
+  --shadow-lg: 0 20px 50px var(--shadow-tint, rgba(16, 24, 20, 0.16));
 
   min-height: 100vh;
-  background: #f4faf6;
+  background: var(--green-pale, #f4faf6);
   font-family: "Hanuman", "Noto Sans Khmer", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
@@ -465,7 +515,12 @@ function goAdmin() {
   }
 }
 .sk {
-  background: linear-gradient(90deg, #e6f4ea 25%, #d3ecdc 50%, #e6f4ea 75%);
+  background: linear-gradient(
+    90deg,
+    var(--green-pale, #e6f4ea) 25%,
+    var(--green-soft, #d3ecdc) 50%,
+    var(--green-pale, #e6f4ea) 75%
+  );
   background-size: 700px 100%;
   animation: shimmer 1.5s infinite linear;
   border-radius: 10px;
@@ -482,7 +537,7 @@ function goAdmin() {
   border-radius: var(--radius);
   overflow: hidden;
   box-shadow: var(--shadow-sm);
-  border: 1px solid #eaf5ed;
+  border: 1px solid var(--green-soft, #eaf5ed);
 }
 .card-img-sk {
   width: 100%;
@@ -731,8 +786,8 @@ function goAdmin() {
   margin: -28px 12px 0;
   background: var(--white);
   border-radius: 22px;
-  box-shadow: var(--shadow-lg);
-  border: 1px solid #eaf5ed;
+  box-shadow: 0 20px 50px var(--shadow-tint, rgba(16, 24, 20, 0.16));
+  border: 1px solid var(--green-soft, #eaf5ed);
   overflow: hidden;
 }
 @media (max-width: 480px) {
@@ -748,7 +803,7 @@ function goAdmin() {
 .tabs-wrap {
   overflow-x: auto;
   scrollbar-width: none;
-  border-bottom: 1px solid #eef7f0;
+  border-bottom: 1px solid var(--green-pale, #eef7f0);
 }
 .tabs-wrap::-webkit-scrollbar {
   display: none;
@@ -788,7 +843,7 @@ function goAdmin() {
   color: var(--on-primary, #fff);
   font-weight: 700;
   background: linear-gradient(135deg, var(--green-mid), var(--green-light));
-  box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+  box-shadow: 0 4px 12px var(--glow-strong, rgba(22, 163, 74, 0.3));
 }
 .tab:hover:not(.active) {
   color: var(--green-dark);
@@ -819,11 +874,11 @@ function goAdmin() {
 .search-bar input {
   width: 100%;
   padding: 12px 40px 12px 42px;
-  border: 1.5px solid #e3f5e8;
+  border: 1.5px solid var(--green-soft, #e3f5e8);
   border-radius: 16px;
   font-size: 14px;
   font-family: inherit;
-  background: #f6fdf8;
+  background: var(--green-pale, #f6fdf8);
   color: var(--text-dark);
   outline: none;
   transition: all 0.2s;
@@ -832,7 +887,7 @@ function goAdmin() {
 .search-bar input:focus {
   border-color: var(--green-strong, var(--green-light));
   background: #fff;
-  box-shadow: 0 0 0 4px rgba(74, 222, 128, 0.14);
+  box-shadow: 0 0 0 4px var(--glow-soft, rgba(74, 222, 128, 0.14));
 }
 .search-bar input::placeholder {
   color: #9ca3af;
@@ -937,8 +992,8 @@ function goAdmin() {
   position: fixed;
   bottom: 26px;
   left: 16px;
-  background: linear-gradient(135deg, var(--orange), #f97316);
-  color: #fff;
+  background: linear-gradient(135deg, var(--green-mid), var(--green-light));
+  color: var(--on-primary, #fff);
   border: none;
   border-radius: 50px;
   padding: 7px 20px 7px 7px;
@@ -946,7 +1001,7 @@ function goAdmin() {
   font-family: inherit;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 10px 28px rgba(234, 88, 12, 0.38);
+  box-shadow: 0 10px 28px var(--glow-strong, rgba(234, 88, 12, 0.38));
   display: flex;
   align-items: center;
   gap: 10px;
@@ -976,7 +1031,7 @@ function goAdmin() {
 }
 .cart-fab:hover {
   transform: translateY(-4px) scale(1.02);
-  box-shadow: 0 14px 34px rgba(234, 88, 12, 0.46);
+  box-shadow: 0 14px 34px var(--glow-strong, rgba(234, 88, 12, 0.46));
 }
 .cart-fab:active {
   transform: scale(0.97);
@@ -1006,7 +1061,7 @@ function goAdmin() {
 }
 .cart-fab-badge {
   background: #fff;
-  color: var(--orange);
+  color: var(--green-strong, var(--green-mid));
   border-radius: 50%;
   width: 22px;
   height: 22px;
@@ -1252,12 +1307,12 @@ function goAdmin() {
   font-weight: 700;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.32);
+  box-shadow: 0 8px 20px var(--glow-strong, rgba(22, 163, 74, 0.32));
 }
 .add-cart-big:hover {
   background: linear-gradient(135deg, var(--green-dark), var(--green-mid));
   transform: translateY(-2px);
-  box-shadow: 0 10px 26px rgba(22, 163, 74, 0.38);
+  box-shadow: 0 10px 26px var(--glow-strong, rgba(22, 163, 74, 0.38));
 }
 .add-cart-big:active {
   transform: scale(0.98);

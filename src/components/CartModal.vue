@@ -580,12 +580,12 @@ async function submitOrder() {
   justify-content: center;
   gap: 8px;
   transition: all 0.2s;
-  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.35);
+  box-shadow: 0 4px 14px var(--glow-strong, rgba(15, 118, 110, 0.35));
 }
 .order-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--primary-dark, #0d6761) 0%, var(--primary, #16a34a) 100%);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(15, 118, 110, 0.4);
+  box-shadow: 0 6px 18px var(--glow-strong, rgba(15, 118, 110, 0.4));
 }
 .order-btn:disabled {
   opacity: 0.7;

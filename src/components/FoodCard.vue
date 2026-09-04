@@ -61,23 +61,23 @@ function getCategoryEmoji(category) {
 
 <style scoped>
 .food-card {
-  background: var(--white);
-  border-radius: var(--radius-card);
+  background: var(--white, #fff);
+  border-radius: var(--radius-card, var(--radius, 16px));
   overflow: hidden;
-  box-shadow: 0 2px 10px var(--shadow);
-  border: 1px solid var(--green-soft);
+  box-shadow: 0 2px 10px var(--shadow, rgba(0, 0, 0, 0.08));
+  border: 1px solid var(--green-soft, var(--border-green, #eaf5ed));
   cursor: pointer;
   transition: transform .15s, box-shadow .15s;
   display: flex;
   flex-direction: column;
   position: relative;
 }
-.food-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px var(--shadow); }
+.food-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px var(--shadow, rgba(0, 0, 0, 0.08)); }
 
 .food-card-img {
   width: 100%;
   aspect-ratio: 1/1;
-  background: var(--green-pale);
+  background: var(--green-pale, var(--surface-green, #f0fdf4));
   display: flex;
   align-items: center;
   justify-content: center;
@@ -106,7 +106,7 @@ function getCategoryEmoji(category) {
 @media (max-width: 480px) {
   .food-card-name { font-size: 12px; }
 }
-.food-card-price { font-size: 14px; font-weight: 700; color: var(--green-dark); }
+.food-card-price { font-size: 14px; font-weight: 700; color: var(--green-dark, #14532d); }
 @media (max-width: 480px) {
   .food-card-price { font-size: 12px; }
   .add-cart-btn { padding: 4px 8px; font-size: 10px; }
@@ -132,12 +132,12 @@ function getCategoryEmoji(category) {
 .status-toggle-btn:hover { filter: brightness(.9); }
 
 .add-cart-btn {
-  background: var(--green-mid); color: var(--on-primary, #fff); border: none;
+  background: var(--green-mid, var(--primary, #16a34a)); color: var(--on-primary, #fff); border: none;
   border-radius: 20px; padding: 5px 11px; font-size: 11px;
   font-weight: 600; cursor: pointer; transition: all .15s;
   white-space: nowrap; flex-shrink: 0;
 }
-.add-cart-btn:hover { background: var(--green-dark); }
+.add-cart-btn:hover { background: var(--green-dark, var(--primary-dark, #14532d)); }
 .add-cart-btn.unavail { background: #9e9e9e; cursor: not-allowed; }
 
 .card-delete-btn {
