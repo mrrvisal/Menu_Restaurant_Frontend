@@ -238,7 +238,10 @@ async function submit() {
 
 <style scoped>
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,.55);
+  /* Teleported to <body> — colors come from the theme store's <html> vars
+     (stores/theme.js) so the form follows the owner's chosen color, with
+     original-green fallbacks everywhere. */
+  position: fixed; inset: 0; background: var(--modal-overlay, rgba(0,0,0,.55));
   z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px;
 }
 .modal-card {
@@ -247,21 +250,21 @@ async function submit() {
   box-shadow: 0 20px 60px rgba(0,0,0,.25);
 }
 .modal-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 18px 0; }
-.modal-header-title { font-family: 'Hanuman', serif; font-size: 17px; font-weight: 700; color: var(--green-dark); }
+.modal-header-title { font-family: 'Hanuman', serif; font-size: 17px; font-weight: 700; color: var(--ink, var(--green-dark, #1a4a1a)); }
 .close-btn {
   width: 34px; height: 34px; border-radius: 50%;
-  background: var(--green-pale); border: none; cursor: pointer;
-  font-size: 17px; font-weight: 700; color: var(--green-dark);
+  background: var(--surface-green, var(--green-pale, #e8f5e9)); border: none; cursor: pointer;
+  font-size: 17px; font-weight: 700; color: var(--primary-strong, var(--green-dark, #1a4a1a));
 }
 .modal-form { padding: 14px 18px 22px; }
 .form-group { margin-bottom: 14px; }
-.form-label { font-size: 12px; font-weight: 600; color: var(--text-mid); margin-bottom: 5px; display: block; }
+.form-label { font-size: 12px; font-weight: 600; color: var(--ink-light, var(--text-mid, #3a5a3a)); margin-bottom: 5px; display: block; }
 .form-input {
-  width: 100%; padding: 10px 12px; border: 1.5px solid var(--green-soft);
+  width: 100%; padding: 10px 12px; border: 1.5px solid var(--border-green, var(--green-soft, #c8e6c9));
   border-radius: 10px; font-size: 13px; font-family: inherit;
-  outline: none; color: var(--text-dark); transition: border .2s; background-color: white;
+  outline: none; color: var(--text-dark, #1b2e1b); transition: border .2s, box-shadow .2s; background-color: white;
 }
-.form-input:focus { border-color: var(--green-light); }
+.form-input:focus { border-color: var(--primary, var(--green-light, #4caf50)); box-shadow: 0 0 0 3px var(--primary-glow, transparent); }
 .form-input.error { border-color: #e53935; background: #fff8f8; }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .field-err { font-size: 11px; color: #e53935; margin-top: 4px; }
@@ -271,16 +274,16 @@ async function submit() {
   font-size: 13px; color: #2d7a2d; font-weight: 600;
 }
 .img-upload-area {
-  border: 2px dashed var(--green-soft); border-radius: 12px;
+  border: 2px dashed var(--border-green, var(--green-soft, #c8e6c9)); border-radius: 12px;
   padding: 20px; text-align: center; cursor: pointer;
-  transition: all .2s; background: var(--green-pale);
+  transition: all .2s; background: var(--surface-green, var(--green-pale, #e8f5e9));
 }
-.img-upload-area:hover { border-color: var(--green-mid); background: #d4edda; }
-.img-upload-icon { margin-bottom: 6px; color: var(--green-mid); line-height: 1; display: flex; justify-content: center; }
-.img-upload-text { font-size: 12px; color: var(--text-mid); font-weight: 600; }
-.img-upload-sub  { font-size: 11px; color: var(--text-light); margin-top: 2px; }
+.img-upload-area:hover { border-color: var(--primary, var(--green-mid, #2d7a2d)); background: var(--tint-hover, #d4edda); }
+.img-upload-icon { margin-bottom: 6px; color: var(--primary, var(--green-mid, #2d7a2d)); line-height: 1; display: flex; justify-content: center; }
+.img-upload-text { font-size: 12px; color: var(--ink-light, var(--text-mid, #3a5a3a)); font-weight: 600; }
+.img-upload-sub  { font-size: 11px; color: var(--text-light, #6a8f6a); margin-top: 2px; }
 .img-preview-wrap { margin-top: 10px; position: relative; }
-.img-preview { width: 100%; height: 140px; border-radius: 10px; object-fit: cover; border: 2px solid var(--green-soft); display: block; }
+.img-preview { width: 100%; height: 140px; border-radius: 10px; object-fit: cover; border: 2px solid var(--border-green, var(--green-soft, #c8e6c9)); display: block; }
 .img-remove-btn {
   position: absolute; top: 6px; right: 6px;
   width: 26px; height: 26px; border-radius: 50%;
@@ -288,11 +291,12 @@ async function submit() {
   cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center;
 }
 .submit-btn {
-  width: 100%; padding: 13px; background: var(--green-mid); color: white;
+  width: 100%; padding: 13px; background: var(--primary, var(--green-mid, #2d7a2d)); color: var(--on-primary, #fff);
   border: none; border-radius: 12px; font-size: 14px; font-weight: 600;
-  cursor: pointer; transition: background .2s;
+  cursor: pointer; transition: background .2s, box-shadow .2s;
+  box-shadow: 0 4px 14px var(--primary-glow, transparent);
 }
-.submit-btn:hover    { background: var(--green-dark); }
+.submit-btn:hover    { background: var(--primary-dark, var(--green-dark, #1a4a1a)); }
 .submit-btn:disabled { background: #9e9e9e; cursor: not-allowed; }
 
 /* TRANSITIONS */

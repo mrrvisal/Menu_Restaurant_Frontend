@@ -293,13 +293,17 @@ onBeforeUnmount(() => {
    variant/tone classes for that reason).                        */
 .as-root,
 .as-menu {
-  /* Tokens (fallbacks align with the app brand palette) */
-  --as-accent: var(--green, #16a34a);
-  --as-grad-a: #166534;
-  --as-grad-b: #22c55e;
-  --as-ring: rgba(22, 101, 52, 0.16);
-  --as-hover-bg: #f0fdf4;
-  --as-hover-ink: #166534;
+  /* Tokens — everything follows the dynamic theme: stores/theme.js pushes
+     the primary, surface-green and primary-glow variable families to <html>
+     (admin side) and MenuView pushes the restaurant palette (public menu
+     side). Fallbacks keep the original brand-green look when a token is
+     absent. */
+  --as-accent: var(--primary-strong, var(--green-mid, #16a34a));
+  --as-grad-a: var(--primary, #166534);
+  --as-grad-b: var(--primary-light, #22c55e);
+  --as-ring: var(--primary-glow, rgba(22, 101, 52, 0.16));
+  --as-hover-bg: var(--surface-green, var(--green-pale, #f0fdf4));
+  --as-hover-ink: var(--primary-strong, #166534);
   --as-border: var(--border, #e2e8f0);
   --as-ink: var(--text, #0f172a);
 
@@ -307,14 +311,14 @@ onBeforeUnmount(() => {
   color: var(--as-ink);
 }
 
-/* Variant: teal (Admin / SuperAdmin brand) */
+/* Variant: teal (Admin / SuperAdmin brand) — same dynamic tokens, kept as an
+   alias so existing usages are unaffected. */
 .as-root.as-var-teal,
 .as-menu.as-var-teal {
-  --as-accent: var(--primary, #0f766e);
+  --as-accent: var(--primary-strong, #0f766e);
   --as-grad-a: var(--primary, #0f766e);
   --as-grad-b: var(--primary-light, #14b8a6);
-  --as-ring: rgba(15, 118, 110, 0.18);
-  --as-hover-ink: var(--primary, #0f766e);
+  --as-hover-ink: var(--primary-strong, #0f766e);
 }
 
 /* Tone: soft (mint border, matches form inputs / sidebar pill) */

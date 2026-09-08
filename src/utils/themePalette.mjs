@@ -24,6 +24,7 @@ export const THEME_VARS = [
   "--glow-strong",
   "--shadow-tint",
   "--shadow-tint-soft",
+  "--modal-overlay",
 ];
 
 // Returns a map of CSS custom-property → color, or null when the input is invalid
@@ -50,5 +51,8 @@ export function buildThemePalette(input) {
     "--glow-strong": hexToRgba(strong, 0.3),
     "--shadow-tint": hexToRgba(darken(hex, 0.3), 0.16),
     "--shadow-tint-soft": hexToRgba(darken(hex, 0.3), 0.08),
+    // Scrim for teleported modals (food detail + cart). Dark and tinted with
+    // the theme color; pushed to <html> so every modal picks it up.
+    "--modal-overlay": hexToRgba(darken(hex, 0.55), 0.55),
   };
 }

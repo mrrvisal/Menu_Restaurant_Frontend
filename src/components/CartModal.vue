@@ -213,7 +213,9 @@ async function submitOrder() {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.55);
+  /* --modal-overlay is pushed to <html> by MenuView's theme watch when the
+     restaurant has a theme color; otherwise the original black scrim shows. */
+  background: var(--modal-overlay, rgba(0, 0, 0, 0.55));
   z-index: 300;
   display: flex;
   align-items: flex-end;
@@ -234,7 +236,7 @@ async function submitOrder() {
   max-height: 92vh;
   display: flex;
   flex-direction: column;
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 -8px 40px var(--shadow-tint, rgba(0, 0, 0, 0.18));
   overflow: hidden;
 }
 @media (max-width: 480px) {
@@ -253,7 +255,7 @@ async function submitOrder() {
   justify-content: space-between;
   align-items: center;
   padding: 18px 18px 14px;
-  border-bottom: 1.5px solid #e8f5e9;
+  border-bottom: 1.5px solid var(--green-soft, #e8f5e9);
   flex-shrink: 0;
 }
 @media (max-width: 480px) {
@@ -268,25 +270,25 @@ async function submitOrder() {
   font-family: "Hanuman", serif;
   font-size: 17px;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--primary-strong, #0f766e);
 }
 .close-btn {
   width: 34px;
   height: 34px;
   border-radius: 50%;
-  background: #f1f8f4;
+  background: var(--green-pale, #f1f8f4);
   border: none;
   cursor: pointer;
   font-size: 16px;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--primary-strong, #0f766e);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background 0.2s;
 }
 .close-btn:hover {
-  background: #dcfce7;
+  background: var(--green-soft, #dcfce7);
 }
 
 .cart-empty {
@@ -312,7 +314,7 @@ async function submitOrder() {
   overflow-y: auto;
   padding: 6px 0;
   scrollbar-width: thin;
-  scrollbar-color: #a7f3d0 transparent;
+  scrollbar-color: var(--green-soft, #a7f3d0) transparent;
 }
 
 .cart-item {
@@ -320,7 +322,7 @@ async function submitOrder() {
   align-items: center;
   gap: 10px;
   padding: 10px 16px;
-  border-bottom: 1px solid #f1f8f4;
+  border-bottom: 1px solid var(--green-pale, #f1f8f4);
   transition: background 0.15s;
 }
 @media (max-width: 480px) {
@@ -333,7 +335,7 @@ async function submitOrder() {
   border-bottom: none;
 }
 .cart-item:hover {
-  background: #f9fffe;
+  background: var(--green-pale, #f9fffe);
 }
 
 .item-img {
@@ -342,7 +344,7 @@ async function submitOrder() {
   border-radius: 10px;
   overflow: hidden;
   flex-shrink: 0;
-  background: #f1f8f4;
+  background: var(--green-pale, #f1f8f4);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -372,7 +374,7 @@ async function submitOrder() {
 }
 .item-price {
   font-size: 12px;
-  color: #16a34a;
+  color: var(--green-strong, #16a34a);
   font-weight: 600;
   margin-top: 2px;
 }
@@ -387,12 +389,12 @@ async function submitOrder() {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: #dcfce7;
+  background: var(--green-pale, #dcfce7);
   border: none;
   cursor: pointer;
   font-size: 17px;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--primary-strong, #0f766e);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -400,7 +402,7 @@ async function submitOrder() {
   line-height: 1;
 }
 .qty-btn:hover {
-  background: #bbf7d0;
+  background: var(--green-soft, #bbf7d0);
 }
 .qty-btn:active {
   transform: scale(0.88);
@@ -416,7 +418,7 @@ async function submitOrder() {
 .item-subtotal {
   font-size: 13px;
   font-weight: 700;
-  color: #0f766e;
+  color: var(--primary-strong, #0f766e);
   min-width: 50px;
   text-align: right;
   flex-shrink: 0;
@@ -429,7 +431,7 @@ async function submitOrder() {
 }
 
 .cart-footer {
-  border-top: 2px solid #e8f5e9;
+  border-top: 2px solid var(--green-soft, #e8f5e9);
   padding: 14px 16px 18px;
   flex-shrink: 0;
   display: flex;
@@ -483,7 +485,7 @@ async function submitOrder() {
 .cart-total-amt {
   font-size: 22px;
   font-weight: 800;
-  color: #0f766e;
+  color: var(--primary-strong, #0f766e);
 }
 
 .field-wrap {
@@ -500,36 +502,38 @@ async function submitOrder() {
 .field-input {
   width: 100%;
   padding: 10px 14px;
-  border: 1.5px solid #a7f3d0;
+  border: 1.5px solid var(--green-soft, #a7f3d0);
   border-radius: 12px;
   font-size: 13.5px;
   font-family: inherit;
-  background: #f0fdf4;
+  background: var(--green-pale, #f0fdf4);
   color: #1b3a2d;
   outline: none;
-  transition: border 0.2s;
+  transition: border 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
 .field-input:focus {
-  border-color: #22c55e;
+  border-color: var(--green-strong, #22c55e);
+  box-shadow: 0 0 0 4px var(--glow-soft, transparent);
 }
 
 .field-textarea {
   width: 100%;
   padding: 9px 14px;
-  border: 1.5px solid #e8f5e9;
+  border: 1.5px solid var(--green-soft, #e8f5e9);
   border-radius: 12px;
   font-size: 13px;
   font-family: inherit;
   resize: none;
   outline: none;
   color: #1b3a2d;
-  background: #fafffe;
-  transition: border 0.2s;
+  background: var(--green-pale, #fafffe);
+  transition: border 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
 .field-textarea:focus {
-  border-color: #a7f3d0;
+  border-color: var(--green-strong, #a7f3d0);
+  box-shadow: 0 0 0 4px var(--glow-soft, transparent);
 }
 
 .cart-actions {
