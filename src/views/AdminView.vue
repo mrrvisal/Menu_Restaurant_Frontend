@@ -2125,6 +2125,9 @@ const restaurantLogo = computed(
 const orders = ref([]);
 const ordersLoading = ref(false);
 const orderStream = ref(null);
+const orderStreamError = ref("");
+let streamRetryTimer = null;
+let streamAttempts = 0;
 const lastAlertedOrderId = ref(null);
 const isSpeaking = ref(false);
 const qrTableNumber = ref("");
@@ -2905,16 +2908,76 @@ function playOrderAlert(order) {
   window.speechSynthesis.speak(utterance);
 }
 
-function connectOrderStream() {
+// Probe the stream endpoint once so the real HTTP status/error can be
+// reported — EventSource hides response codes, which made production 404s
+// (e.g. "Restaurant not found") impossible to diagnose. The SSE handler
+// sends headers immediately on both success and error, so a short probe is
+// enough; the probe connection is then aborted and EventSource takes over.
+async function probeOrderStream(url) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 10000);
+  try {
+    const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
+    if (!res.ok) {
+      let msg = `HTTP ${res.status}`;
+      try {
+        msg = (await res.json()).error || msg;
+      } catch {
+        /* non-JSON body — keep the generic message */
+      }
+      return { ok: false, status: res.status, msg };
+    }
+    return { ok: true };
+  } finally {
+    clearTimeout(timer);
+    ctrl.abort(); // close the probe connection; EventSource opens its own
+  }
+}
+
+function scheduleStreamRetry(delayMs) {
+  clearTimeout(streamRetryTimer);
+  streamRetryTimer = setTimeout(() => {
+    streamRetryTimer = null;
+    connectOrderStream();
+  }, delayMs);
+}
+
+async function connectOrderStream() {
   if (!auth.token) return;
   if (orderStream.value) return; // Already connected
+  clearTimeout(streamRetryTimer);
+  streamRetryTimer = null;
 
-  const url = `${API_BASE}/api/orders/stream?token=${encodeURIComponent(
-    auth.token
-  )}`;
+  const params = new URLSearchParams({ token: auth.token });
+  // Stream the restaurant the owner selected in the dashboard; when omitted,
+  // the server streams every restaurant the account owns.
+  if (auth.restaurant?.id) {
+    params.set("restaurant_id", String(auth.restaurant.id));
+  }
+  const url = `${API_BASE}/api/orders/stream?${params.toString()}`;
+
+  try {
+    const probe = await probeOrderStream(url);
+    if (!probe.ok) {
+      orderStreamError.value = probe.msg;
+      streamAttempts += 1;
+      // A 404 here means the account has no (matching) restaurant in the
+      // server's database — retry slowly in case one is created later.
+      console.error(
+        `Order stream unavailable (${probe.status}): ${probe.msg} — retrying in 60s`,
+      );
+      scheduleStreamRetry(60000);
+      return;
+    }
+  } catch {
+    /* probe couldn't finish (offline / server waking up) — let EventSource try */
+  }
+
   const es = new EventSource(url);
 
   es.addEventListener("connected", () => {
+    orderStreamError.value = "";
+    streamAttempts = 0;
     console.log("🔊 Real-time order stream connected");
   });
 
@@ -2964,19 +3027,22 @@ function connectOrderStream() {
   });
 
   es.onerror = () => {
-    console.warn("Order stream disconnected, retrying in 5s...");
     es.close();
     orderStream.value = null;
-    // Retry after 5 seconds
-    setTimeout(() => {
-      connectOrderStream();
-    }, 5000);
+    streamAttempts += 1;
+    // Backoff: 5s, 10s, 15s … capped at 60s. Render's free tier can sleep
+    // the service, so keep retrying — just not every 5s forever.
+    const delay = Math.min(60000, 5000 * streamAttempts);
+    console.warn(`Order stream disconnected, retrying in ${delay / 1000}s…`);
+    scheduleStreamRetry(delay);
   };
 
   orderStream.value = es;
 }
 
 function disconnectOrderStream() {
+  clearTimeout(streamRetryTimer);
+  streamRetryTimer = null;
   if (orderStream.value) {
     orderStream.value.close();
     orderStream.value = null;
