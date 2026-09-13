@@ -7,10 +7,37 @@
 // Renders the official "Sign in with Google" button (Google Identity Services)
 // and emits the returned Google ID token via @credential.
 // If VITE_GOOGLE_CLIENT_ID is not configured the button simply stays hidden.
-import { ref, onMounted } from "vue";
+//
+// ── CUSTOMISATION (all props optional — defaults keep the original look) ──
+//  type          'standard' | 'icon'                 (icon = Google logo only)
+//  theme         'outline' | 'filled_blue' | 'filled_black'
+//  size          'small' (20px) | 'medium' (32px) | 'large' (40px)
+//  text          'signin_with' | 'signup_with' | 'continue_with' | 'signin'
+//  shape         'rectangular' | 'pill' | 'circle' | 'square'
+//  logoAlignment 'left' | 'center'
+//  width         fixed px (200–400) — default: fill the container (capped 400)
+//  locale        'km' | 'en' | …  — default: follow the app language (i18n store)
+// Emits: @credential (ID token), @error, @click (official button was clicked)
+//
+// NOTE: Google draws the button inside an <iframe>, so only the options above
+// (plus CSS on the wrapper) can be customised — the button's internals cannot.
+import { ref, watch, onMounted } from "vue";
+import { useI18nStore } from "@/stores/i18n";
 
-const emit = defineEmits(["credential", "error"]);
+const props = defineProps({
+  type: { type: String, default: "standard" },
+  theme: { type: String, default: "outline" },
+  size: { type: String, default: "large" },
+  text: { type: String, default: "continue_with" },
+  shape: { type: String, default: "pill" },
+  logoAlignment: { type: String, default: "center" },
+  width: { type: Number, default: null },
+  locale: { type: String, default: null },
+});
 
+const emit = defineEmits(["credential", "error", "click"]);
+
+const i18n = useI18nStore();
 const clientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim();
 const btnWrap = ref(null);
 
@@ -35,6 +62,31 @@ function loadGsi() {
   return gsiPromise;
 }
 
+async function renderButton() {
+  await loadGsi();
+  window.google.accounts.id.initialize({
+    client_id: clientId,
+    callback: (response) => {
+      if (response && response.credential)
+        emit("credential", response.credential);
+    },
+    use_fedcm_for_prompt: true,
+  });
+  if (!btnWrap.value) return;
+  btnWrap.value.innerHTML = ""; // drop the previous iframe before re-rendering
+  window.google.accounts.id.renderButton(btnWrap.value, {
+    type: props.type,
+    theme: props.theme,
+    size: props.size,
+    text: props.text,
+    shape: props.shape,
+    logo_alignment: props.logoAlignment,
+    locale: props.locale || i18n.locale,
+    width: props.width || Math.round(Math.min(btnWrap.value.offsetWidth || 320, 400)),
+    click_listener: () => emit("click"),
+  });
+}
+
 onMounted(async () => {
   if (!clientId) {
     console.warn(
@@ -43,31 +95,21 @@ onMounted(async () => {
     return;
   }
   try {
-    await loadGsi();
-    window.google.accounts.id.initialize({
-      client_id: clientId,
-      callback: (response) => {
-        if (response && response.credential)
-          emit("credential", response.credential);
-      },
-      use_fedcm_for_prompt: true,
-    });
-    if (btnWrap.value) {
-      window.google.accounts.id.renderButton(btnWrap.value, {
-        type: "standard",
-        theme: "outline",
-        size: "large",
-        text: "continue_with",
-        shape: "pill",
-        logo_alignment: "center",
-        width: Math.round(Math.min(btnWrap.value.offsetWidth || 320, 400)),
-      });
-    }
+    await renderButton();
   } catch (err) {
     console.error("[GoogleSignIn]", err);
     emit("error", err);
   }
 });
+
+// The button text/logo is rendered by Google, so re-render when the app
+// language (or the locale prop) changes.
+watch(
+  () => props.locale || i18n.locale,
+  () => {
+    if (clientId) renderButton().catch(() => {});
+  }
+);
 </script>
 
 <style scoped>

@@ -4,6 +4,15 @@
     <!-- Admin delete button -->
     <button v-if="isAdmin" class="card-delete-btn" @click.stop="$emit('delete', food)"><AppIcon name="x" :size="14" /></button>
 
+    <!-- Status badge (top-left) — customers only; admin already has the
+         status toggle button in the footer, so hide it there -->
+    <div v-if="!isAdmin && food.status === 'available'" class="card-status">
+      <span class="detail-status" :class="food.status">
+        <AppIcon name="check-circle" :size="14" />
+        {{ food.status === "available" ? " មាន" : " អស់" }}
+      </span>
+    </div>
+
     <!-- Image -->
     <div class="food-card-img">
       <img v-if="food.img_url" :src="food.img_url" :alt="food.name" @error="imgError = true" />
@@ -96,6 +105,42 @@ function getCategoryEmoji(category) {
   background: #c62828; color: #fff;
   font-size: 10px; font-weight: 700;
   padding: 3px 10px; border-radius: 20px;
+}
+
+/* Status badge — top-left over the image (from MenuView detail modal) */
+.card-status {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 10;
+  pointer-events: none;
+}
+.detail-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  padding: 5px 13px;
+  border-radius: 20px;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+.detail-status.available {
+  /* Dynamic theme: the customer menu (MenuView) derives --green-pale/-dark/-soft
+     from the restaurant's theme_color, while admin pages use the theme store's
+     --surface-green/--primary-strong/--border-green. Chaining them makes the
+     badge follow whichever palette is active (green fallbacks last). */
+  background: var(--green-pale, var(--surface-green, #dcfce7));
+  color: var(--green-dark, var(--primary-strong, #166534));
+  border: 1px solid var(--green-soft, var(--border-green, rgba(0, 0, 0, 0.06)));
+}
+.detail-status.unavailable {
+  background: #fee2e2;
+  color: #991b1b;
+}
+@media (max-width: 480px) {
+  .card-status { top: 6px; left: 6px; }
+  .detail-status { font-size: 10px; padding: 3px 10px; gap: 3px; }
 }
 
 .food-card-body { padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 6px; }

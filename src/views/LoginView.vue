@@ -20,6 +20,29 @@
 
       <form @submit.prevent="submit">
         <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
+        <div v-if="superAdminHint" class="super-admin-hint">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            class="hint-shield"
+          >
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+            <path d="M9 12l2 2 4-4" />
+          </svg>
+          <div class="hint-text">
+            <strong>{{ i18n.t.super_admin_hint_title }}</strong>
+            <p>{{ i18n.t.super_admin_hint_desc }}</p>
+          </div>
+          <router-link to="/login/super-admin" class="hint-link">
+            {{ i18n.t.super_admin_portal }}
+          </router-link>
+        </div>
         <div v-if="verifyRequired" class="verify-banner">
           <svg
             width="16"
@@ -79,6 +102,7 @@
             type="email"
             class="input"
             placeholder="your@email.com"
+            autocomplete="username"
             required
           />
         </div>
@@ -96,6 +120,7 @@
               :type="showPassword ? 'text' : 'password'"
               class="input"
               :placeholder="i18n.t.password"
+              autocomplete="current-password"
               required
             />
             <button
@@ -181,10 +206,12 @@ const submitting = ref(false);
 const showPassword = ref(false);
 const verifyRequired = ref(false);
 const resending = ref(false);
+const superAdminHint = ref(false);
 
 async function submit() {
   errorMsg.value = "";
   verifyRequired.value = false;
+  superAdminHint.value = false;
   submitting.value = true;
   try {
     await auth.login(form.email, form.password);
@@ -193,7 +220,10 @@ async function submit() {
   } catch (err) {
     const errMsg = err.response?.data?.error || "";
     errorMsg.value = errMsg || i18n.t.error;
-    if (errMsg.toLowerCase().includes("verify")) {
+    if (err.response?.data?.code === "super_admin_use_dedicated_route") {
+      superAdminHint.value = true;
+      errorMsg.value = "";
+    } else if (errMsg.toLowerCase().includes("verify")) {
       verifyRequired.value = true;
     }
   } finally {
@@ -204,6 +234,7 @@ async function submit() {
 async function onGoogleCredential(credential) {
   errorMsg.value = "";
   verifyRequired.value = false;
+  superAdminHint.value = false;
   submitting.value = true;
   try {
     await auth.loginWithGoogle(credential);
@@ -211,6 +242,10 @@ async function onGoogleCredential(credential) {
     else router.push("/dashboard");
   } catch (err) {
     errorMsg.value = err.response?.data?.error || i18n.t.error;
+    if (err.response?.data?.code === "super_admin_use_dedicated_route") {
+      superAdminHint.value = true;
+      errorMsg.value = "";
+    }
   } finally {
     submitting.value = false;
   }
@@ -364,6 +399,55 @@ async function resendVerification() {
   color: #c62828;
   margin-bottom: 12px;
 }
+.super-admin-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fef3c7;
+  border: 1.5px solid #fcd34d;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+  text-align: left;
+}
+.super-admin-hint .hint-shield {
+  flex-shrink: 0;
+  color: #b45309;
+  margin-top: 2px;
+}
+.super-admin-hint .hint-text {
+  flex: 1;
+  min-width: 0;
+}
+.super-admin-hint .hint-text strong {
+  display: block;
+  font-size: 13px;
+  color: #92400e;
+}
+.super-admin-hint .hint-text p {
+  font-size: 12px;
+  color: #92400e;
+  margin: 4px 0 0;
+  line-height: 1.5;
+}
+.super-admin-hint .hint-link {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  padding: 7px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+  background: #b45309;
+  color: white;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.super-admin-hint .hint-link:hover {
+  background: #92400e;
+}
 .or-divider {
   display: flex;
   align-items: center;
@@ -400,6 +484,19 @@ async function resendVerification() {
 }
 .links a:hover, .links-register a:hover {
   text-decoration: underline;
+}
+.sa-entry {
+  margin-top: 6px;
+}
+.sa-entry-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #b45309 !important;
+  font-size: 12px;
+}
+.sa-entry-link svg {
+  flex-shrink: 0;
 }
 .lang-toggle {
   margin-top: 14px;

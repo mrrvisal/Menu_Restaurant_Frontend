@@ -10,7 +10,26 @@
     <!-- ─── MOBILE BAR ─── -->
     <header class="mob">
       <div class="mob-info">
-        <div class="mob-av"><img :src="restaurantLogo" alt="" /></div>
+        <div class="mob-av">
+          <img
+            v-if="restaurantLogo"
+            :src="restaurantLogo"
+            alt=""
+            @error="logoLoadError = true"
+          />
+          <svg
+            v-else
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+          >
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
         <span class="mob-label">{{
           auth.restaurant?.name || "ភោជនីយដ្ឋាន"
         }}</span>
@@ -41,7 +60,26 @@
     <aside class="side" id="admin-sidebar">
       <div class="side-top">
         <div class="side-brand">
-          <div class="side-icon"><img :src="restaurantLogo" alt="" /></div>
+          <div class="side-icon">
+            <img
+              v-if="restaurantLogo"
+              :src="restaurantLogo"
+              alt=""
+              @error="logoLoadError = true"
+            />
+            <svg
+              v-else
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+            >
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </div>
           <div class="side-meta">
             <span class="side-name">{{
               auth.restaurant?.name || "ភោជនីយដ្ឋាន"
@@ -180,95 +218,160 @@
           </h1>
         </div>
         <div class="hdr-r">
-          <button
-            class="ac ac-ghost ac-icon-only"
-            @click="openQR"
-            :title="i18n.t.generate_qr"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
+          <div class="profile-wrap" ref="profileWrap">
+            <button
+              class="ac ac-primary ac-avatar"
+              @click="toggleProfileMenu"
+              :title="i18n.t.profile || i18n.t.settings"
+              :aria-haspopup="true"
+              :aria-expanded="profileMenuOpen"
             >
-              <rect x="3" y="3" width="7" height="7" />
-              <rect x="14" y="3" width="7" height="7" />
-              <rect x="3" y="14" width="7" height="7" />
-              <rect x="14" y="14" width="7" height="7" />
-            </svg>
-            <span class="hdr-hide">{{ i18n.t.generate_qr }}</span>
-          </button>
-          <button
-            class="ac ac-ghost ac-icon-only"
-            @click="openDevices"
-            :title="i18n.t.devices"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path
-                d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"
-              />
-              <polyline points="9 12 11 14 15 10" />
-            </svg>
-            <span class="hdr-hide">{{ i18n.t.devices }}</span>
-          </button>
-          <button
-            class="ac ac-ghost ac-icon-only"
-            @click="openTelegramSettings()"
-            :title="i18n.t.telegram"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="m21 4-4.5 16-5.2-5.1L7 19l1.2-6L3 10.8 21 4Z" />
-            </svg>
-            <span v-if="!isLinked" class="hdr-dot"></span>
-            <span class="hdr-hide">{{ i18n.t.telegram }}</span>
-          </button>
-          <button class="ac ac-primary" @click="openPreview">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-            <span class="hdr-hide">{{ i18n.t.owner_preview }}</span>
-          </button>
-          <button
-            class="ac ac-primary ac-avatar"
-            @click="openProfile"
-            :title="i18n.t.profile"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-              <circle cx="12" cy="7" r="4" />
-            </svg>
-          </button>
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.5"
+              >
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                <circle cx="12" cy="7" r="4" />
+              </svg>
+            </button>
+            <span v-if="!isLinked" class="hdr-dot" :title="i18n.t.telegram"></span>
+
+            <Transition name="fade">
+              <div v-if="profileMenuOpen" class="profile-menu">
+                <div class="pm-head">
+                  <div class="pm-avatar">
+                    <svg
+                      width="18"
+                      height="18"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                  </div>
+                  <div class="pm-info">
+                    <strong>{{
+                      auth.restaurant?.name || auth.user?.email || i18n.t.profile
+                    }}</strong>
+                    <span>{{ auth.user?.email }}</span>
+                  </div>
+                </div>
+
+                <div class="pm-body">
+                  <button class="pm-item" @click="runProfileAction(openProfile)">
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" />
+                    </svg>
+                    <span>{{ i18n.t.profile || i18n.t.settings }}</span>
+                  </button>
+
+                  <button class="pm-item" @click="runProfileAction(openSettings)">
+                    <AppIcon name="settings" :size="15" />
+                    <span>{{ i18n.t.settings || "Settings" }}</span>
+                  </button>
+
+                  <button class="pm-item" @click="runProfileAction(openQR)">
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <rect x="3" y="3" width="7" height="7" />
+                      <rect x="14" y="3" width="7" height="7" />
+                      <rect x="3" y="14" width="7" height="7" />
+                      <rect x="14" y="14" width="7" height="7" />
+                    </svg>
+                    <span>{{ i18n.t.generate_qr }}</span>
+                  </button>
+                  <button class="pm-item" @click="runProfileAction(openDevices)">
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                      <polyline points="9 12 11 14 15 10" />
+                    </svg>
+                    <span>{{ i18n.t.devices }}</span>
+                  </button>
+                  <button class="pm-item" @click="runProfileAction(openTelegramSettings)">
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <path d="m21 4-4.5 16-5.2-5.1L7 19l1.2-6L3 10.8 21 4Z" />
+                    </svg>
+                    <span>{{ i18n.t.telegram }}</span>
+                    <span v-if="!isLinked" class="pm-dot"></span>
+                  </button>
+                  <button class="pm-item" @click="runProfileAction(openPreview)">
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                    <span>{{ i18n.t.owner_preview }}</span>
+                  </button>
+
+                  <div class="pm-sep"></div>
+
+                  <button
+                    class="pm-item pm-danger"
+                    @click="runProfileAction(() => { loggingOut = true; })"
+                  >
+                    <svg
+                      width="15"
+                      height="15"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    >
+                      <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                      <polyline points="16 17 21 12 16 7" />
+                      <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    <span>{{ i18n.t.logout }}</span>
+                  </button>
+                </div>
+              </div>
+            </Transition>
+          </div>
         </div>
       </div>
 
@@ -1881,7 +1984,23 @@
               </div>
               <div class="prof-l">
                 <div class="prof-p">
-                  <img :src="profileLogoPreview || restaurantLogo" alt="" />
+                  <img
+                    v-if="profileLogoPreview"
+                    :src="profileLogoPreview"
+                    alt=""
+                  />
+                  <svg
+                    v-else
+                    width="26"
+                    height="26"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.5"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
+                  </svg>
                 </div>
                 <label class="prof-up"
                   ><svg
@@ -2045,11 +2164,104 @@
         </div>
       </Transition></Teleport
     >
+
+    <!-- ═══ SETTINGS (account email / password) ═══
+         Moved out of the Profile modal — opened from the avatar
+         dropdown's "Settings" item. -->
+    <Teleport to="body"
+      ><Transition name="fade">
+        <div
+          v-if="showSettings"
+          class="overlay"
+          @click.self="showSettings = false"
+        >
+          <div class="sheet">
+            <div class="sheet-h">
+              <span
+                ><AppIcon name="settings" :size="16" />
+                {{ i18n.t.settings || "Settings" }}</span
+              ><button
+                class="ic"
+                aria-label="Close"
+                @click="showSettings = false"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div class="sheet-b">
+              <div v-if="accountSuccess" class="msg msg-s">
+                {{ accountSuccess }}
+              </div>
+              <div v-if="accountError" class="msg msg-e">
+                {{ accountError }}
+              </div>
+              <div class="fld">
+                <label class="fld-l"
+                  >{{ i18n.t.email_address || "Email address" }}</label
+                >
+                <input
+                  v-model="accountEmail"
+                  type="email"
+                  class="fld-i"
+                  autocomplete="email"
+                  :placeholder="i18n.t.email_address || 'Email address'"
+                />
+              </div>
+              <div class="fld">
+                <label class="fld-l"
+                  >{{ i18n.t.current_password || "Current password" }}</label
+                >
+                <input
+                  v-model="accountCurrentPassword"
+                  type="password"
+                  class="fld-i"
+                  autocomplete="current-password"
+                  :placeholder="i18n.t.current_password || 'Current password'"
+                />
+              </div>
+              <div class="fld">
+                <label class="fld-l"
+                  >{{ i18n.t.new_password || "New password" }}</label
+                >
+                <input
+                  v-model="accountNewPassword"
+                  type="password"
+                  class="fld-i"
+                  autocomplete="new-password"
+                  :placeholder="i18n.t.new_password || 'New password'"
+                />
+              </div>
+              <button
+                class="btn btn-primary btn-b"
+                :disabled="accountSubmitting"
+                @click="saveAccount"
+              >
+                {{
+                  accountSubmitting
+                    ? i18n.t.loading
+                    : i18n.t.update_account || "Update email / password"
+                }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition></Teleport
+    >
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useFoodsStore } from "@/stores/foods";
@@ -2087,12 +2299,25 @@ const catErrors = ref("");
 const catLabelKm = ref("");
 const deletingCat = ref(null);
 const showProfile = ref(false);
+const showSettings = ref(false);
+const profileMenuOpen = ref(false);
+const profileWrap = ref(null);
 const profileName = ref("");
 const profileLogoFile = ref(null);
 const profileLogoPreview = ref(null);
 const profileSubmitting = ref(false);
 const profileSuccess = ref("");
 const profileError = ref("");
+// ─── Account (email / password) editing ─────────
+const accountEmail = ref("");
+const accountCurrentPassword = ref("");
+const accountNewPassword = ref("");
+const accountSubmitting = ref(false);
+const accountSuccess = ref("");
+const accountError = ref("");
+// Set when the restaurant logo URL fails to load → templates fall back
+// to the default SVG icon. Reset whenever the logo URL changes.
+const logoLoadError = ref(false);
 
 const tgSubmitting = ref(false);
 const tgSuccess = ref("");
@@ -2116,10 +2341,17 @@ const previewMenuUrl = computed(() => {
     auth.restaurantId
   }`;
 });
-const restaurantLogo = computed(
-  () =>
-    auth.restaurant?.logoUrl ||
-    "https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png"
+// Restaurant logo URL — empty when unset (templates show a default
+// SVG icon) or when the current URL failed to load (logoLoadError).
+const restaurantLogo = computed(() => {
+  if (logoLoadError.value) return "";
+  return auth.restaurant?.logoUrl || "";
+});
+watch(
+  () => auth.restaurant?.logoUrl,
+  () => {
+    logoLoadError.value = false;
+  }
 );
 
 const orders = ref([]);
@@ -2272,6 +2504,43 @@ function openProfile() {
   showProfile.value = true;
 }
 
+// ─── SETTINGS (account email / password) ───────────────────
+// Opened from the avatar dropdown; moved out of the Profile modal so the
+// profile sheet stays focused on the restaurant (name / logo / theme).
+function openSettings() {
+  accountEmail.value = auth.user?.email || "";
+  accountCurrentPassword.value = "";
+  accountNewPassword.value = "";
+  accountSuccess.value = "";
+  accountError.value = "";
+  showSettings.value = true;
+}
+
+// ─── HEADER PROFILE MENU ─────────────────────────────────
+// Toggle the avatar dropdown that replaces the old one-off header
+// buttons (QR / Devices / Telegram / Preview) — every action now
+// lives behind a single "profile & settings" entry point.
+function toggleProfileMenu() {
+  profileMenuOpen.value = !profileMenuOpen.value;
+}
+function closeProfileMenu() {
+  profileMenuOpen.value = false;
+}
+function runProfileAction(fn) {
+  closeProfileMenu();
+  if (typeof fn === "function") fn();
+}
+function onProfileMenuDocClick(e) {
+  if (profileWrap.value && !profileWrap.value.contains(e.target)) {
+    closeProfileMenu();
+  }
+}
+// Auto-listen for outside clicks only while the menu is open
+watch(profileMenuOpen, (open) => {
+  if (open) document.addEventListener("click", onProfileMenuDocClick);
+  else document.removeEventListener("click", onProfileMenuDocClick);
+});
+
 // ─── THEME COLOR PICKER ─────────────────────────────────────
 // Applies the color live, keeps the per-user editor preference, updates the
 // cached restaurant AND debounce-saves to the server so the customer-facing
@@ -2388,6 +2657,45 @@ async function submitProfile() {
       err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
   } finally {
     profileSubmitting.value = false;
+  }
+}
+
+// Save the logged-in user's own email and/or password changes.
+// The backend verifies the current password (unless the account is Google-only).
+async function saveAccount() {
+  const email = accountEmail.value.trim();
+  const newPw = accountNewPassword.value;
+  const wantsEmail =
+    email && email.toLowerCase() !== (auth.user?.email || "").trim().toLowerCase();
+  const wantsPassword = !!newPw;
+  if (!wantsEmail && !wantsPassword) {
+    accountError.value = i18n.t.no_changes || "No changes requested";
+    return;
+  }
+  accountSubmitting.value = true;
+  accountSuccess.value = "";
+  accountError.value = "";
+  try {
+    const payload = {};
+    if (accountCurrentPassword.value)
+      payload.currentPassword = accountCurrentPassword.value;
+    if (wantsEmail) payload.email = email;
+    if (wantsPassword) payload.newPassword = newPw;
+    const data = await auth.updateAccount(payload);
+    accountCurrentPassword.value = "";
+    accountNewPassword.value = "";
+    // If the email changed, `auth.user.email` already refetched — reflect it
+    // in the header/dropdown immediately via the store's updated `user`.
+    accountSuccess.value =
+      data.message || i18n.t.saved_success || "Saved successfully!";
+    setTimeout(() => {
+      accountSuccess.value = "";
+    }, 3500);
+  } catch (err) {
+    accountError.value =
+      err.response?.data?.error || i18n.t.generic_error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
+  } finally {
+    accountSubmitting.value = false;
   }
 }
 
@@ -2855,7 +3163,9 @@ function confirmLogout() {
 }
 function handleEscKey(e) {
   if (e.key !== "Escape") return;
-  if (showAddRestaurant.value) showAddRestaurant.value = false;
+  if (profileMenuOpen.value) {
+    profileMenuOpen.value = false;
+  } else if (showAddRestaurant.value) showAddRestaurant.value = false;
   else if (showForm.value) {
     showForm.value = false;
     editingFood.value = null;
@@ -2869,6 +3179,7 @@ function handleEscKey(e) {
   else if (loggingOut.value) loggingOut.value = false;
   else if (showCatForm.value) showCatForm.value = false;
   else if (showProfile.value) showProfile.value = false;
+  else if (showSettings.value) showSettings.value = false;
 }
 
 // ─── REAL-TIME NEW ORDER ALERT (TTS 🔊) ───
@@ -3077,6 +3388,7 @@ onMounted(async () => {
 });
 onUnmounted(() => {
   window.removeEventListener("keydown", handleEscKey);
+  document.removeEventListener("click", onProfileMenuDocClick);
   disconnectOrderStream();
   if (desktopBreakpointQuery) {
     const { mq, onDesktopBreakpoint } = desktopBreakpointQuery;
@@ -3385,6 +3697,7 @@ onUnmounted(() => {
   justify-content: center;
   flex-shrink: 0;
   border: 2px solid var(--border-green);
+  color: var(--primary);
 }
 .side-icon img {
   width: 100%;
@@ -3580,12 +3893,12 @@ onUnmounted(() => {
 }
 .hdr-dot {
   position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 6px;
-  height: 6px;
+  top: 0px;
+  right: 0px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
-  background: var(--amber);
+  background: green;
   border: 2px solid var(--surface);
   animation: blink-dot 1.5s ease-in-out infinite;
 }
@@ -3665,6 +3978,129 @@ onUnmounted(() => {
   max-width: 120px;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+/* ── Header profile dropdown (avatar → settings menu) ─────── */
+.profile-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.profile-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  min-width: 250px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
+  z-index: 120; /* above sidebar (90-100), below modals (200+) */
+  overflow: hidden;
+  animation: pm-pop 0.16s ease;
+}
+@keyframes pm-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.pm-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 14px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-green);
+}
+.pm-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-primary, #fff);
+  font-weight: 700;
+}
+.pm-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.pm-info strong {
+  font-size: 13px;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pm-info span {
+  font-size: 11px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.pm-body {
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pm-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-size: 12.5px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--text);
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.pm-item:hover {
+  background: var(--surface-green);
+  color: var(--primary-strong, var(--primary));
+}
+.pm-item svg {
+  flex-shrink: 0;
+}
+.pm-item > span:not(.pm-dot) {
+  flex: 1;
+}
+.pm-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--amber);
+  animation: blink-dot 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+.pm-sep {
+  height: 1px;
+  background: var(--border);
+  margin: 6px 8px;
+}
+.pm-danger {
+  color: var(--red);
+}
+.pm-danger:hover {
+  background: rgba(198, 40, 40, 0.08);
+  color: var(--red-dark);
 }
 
 /* Metrics */
@@ -4650,6 +5086,11 @@ onUnmounted(() => {
   border-radius: 50%;
   overflow: hidden;
   border: 3px solid var(--border-green);
+  background: var(--surface-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--primary);
 }
 .prof-p img {
   width: 100%;
@@ -5210,6 +5651,11 @@ onUnmounted(() => {
     overflow: hidden;
     border: 1px solid var(--border-green);
     flex-shrink: 0;
+    background: var(--surface-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary);
   }
   .mob-av img {
     width: 100%;
@@ -5338,7 +5784,7 @@ onUnmounted(() => {
   .ac span {
     max-width: 80px;
   }
-  .ac-avatar {
+  .hdr-r .ac-avatar {
     width: 32px;
     height: 32px;
     min-width: 32px;
@@ -5358,7 +5804,6 @@ onUnmounted(() => {
   .hdr {
     padding-bottom: 14px;
     margin-bottom: 16px;
-    flex-direction: column;
     align-items: stretch;
     gap: 8px;
   }
@@ -5456,7 +5901,7 @@ onUnmounted(() => {
   .ac span {
     max-width: 60px;
   }
-  .ac-avatar {
+  .hdr-r .ac-avatar {
     width: 28px;
     height: 28px;
     min-width: 28px;

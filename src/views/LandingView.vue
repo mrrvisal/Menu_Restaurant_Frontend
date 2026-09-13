@@ -39,6 +39,8 @@
           <a href="#features" class="mobile-link" @click="mobileOpen = false">{{ i18n.t.features }}</a>
           <a href="#how-it-works" class="mobile-link" @click="mobileOpen = false">{{ i18n.t.how_it_works }}</a>
           <a href="#demo-menu" class="mobile-link" @click="mobileOpen = false">{{ i18n.t.menu }}</a>
+          <router-link to="/demo" class="mobile-link demo-link-hot" @click="mobileOpen = false">{{ i18n.t.demo_menu }}</router-link>
+          <router-link to="/blog" class="mobile-link" @click="mobileOpen = false">{{ i18n.t.blog }}</router-link>
           <button class="mobile-lang" @click="i18n.toggleLocale">
             {{ i18n.locale === "km" ? "English" : "ភាសាខ្មែរ" }}
           </button>
@@ -69,7 +71,10 @@
                   <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                 </svg>
               </router-link>
-              <a href="#demo-menu" class="hero-secondary">{{ i18n.t.learn_more }}</a>
+              <a href="#demo-menu" class="hero-secondary" @click.prevent="router.push('/demo')">
+                {{ i18n.t.try_demo }}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 18"/><line x1="6" y1="12" x2="18" y2="12"/></svg>
+              </a>
             </div>
             <div class="hero-stats">
               <div class="hero-stat" v-for="stat in stats" :key="stat.value">
@@ -165,6 +170,12 @@
               <span><AppIcon name="qr" :size="14" /> {{ i18n.t.live_table_qr }}</span>
               <span><AppIcon name="activity" :size="14" /> {{ i18n.t.fast_checkout }}</span>
               <span><AppIcon name="image" :size="14" /> {{ i18n.t.photo_menu }}</span>
+            </div>
+            <div class="demo-cta-row">
+              <router-link to="/demo" class="demo-cta-btn">
+                {{ i18n.t.try_demo_menu }}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+              </router-link>
             </div>
           </div>
           <div class="phone-mockup" v-tilt="{ max: 10, translate: 10 }">
@@ -263,14 +274,19 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
+import { useRouter } from "vue-router";
 import { useI18nStore } from "@/stores/i18n";
+import { demoBlogPosts } from "@/data/demo";
 import Hero3D from "@/components/Hero3D.vue";
 import AppIcon from "@/components/AppIcon.vue";
 import { vTilt } from "@/composables/useTilt3D";
 
 const i18n = useI18nStore();
+const router = useRouter();
 const mobileOpen = ref(false);
 const scrolled = ref(false);
+
+const blogPosts = demoBlogPosts;
 
 const logoInitials = "DM";
 
@@ -365,7 +381,8 @@ const FADE_SELECTOR =
   ".problem-card, .feature-card, .feature-icon, " +
   ".phone-mockup, .phone-header, .phone-restaurant, .phone-restaurant-avatar, .phone-categories, .phone-cat, " +
   ".phone-foods, .phone-food-item, .phone-food-img, .phone-food-info, " +
-  ".demo-tags span, " +
+  ".demo-tags span, .demo-cta-btn, " +
+  ".blog-preview-card, .blog-preview-img, .blog-preview-body, .blog-preview-tag, .blog-view-all-btn, " +
   ".step-card, .step-number, .step-connector, " +
   ".cta-inner, .cta-icon-wrapper, .cta-btn";
 
@@ -755,7 +772,7 @@ onUnmounted(() => {
   margin: 0;
   font-size: clamp(32px, 6.5vw, 68px);
   font-weight: 900;
-  line-height: 1.08;
+  line-height: 1.15;
   letter-spacing: -0.02em;
   color: #14532d;
 }
@@ -800,6 +817,7 @@ onUnmounted(() => {
   color: #374151;
   font-size: 14px;
   font-weight: 700;
+  gap:10px;
   text-decoration: none;
   transition: all 0.25s;
 }
@@ -1413,6 +1431,151 @@ onUnmounted(() => {
   }
 }
 
+/* Demo nav highlight */
+.nav-link-demo {
+  color: #15803d;
+  border: 1.5px solid rgba(34, 197, 94, 0.45);
+  background: rgba(34, 197, 94, 0.06);
+}
+.mobile-link.demo-link-hot {
+  color: #15803d;
+}
+
+/* Demo CTA */
+.demo-cta-row {
+  margin-top: 26px;
+}
+.demo-cta-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 26px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #166534, #22c55e);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 6px 18px rgba(22, 101, 52, 0.28);
+  transition: transform 0.22s, box-shadow 0.22s;
+}
+.demo-cta-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 26px rgba(22, 101, 52, 0.34);
+}
+
+/* ============================================================
+   BLOG PREVIEW SECTION
+   ============================================================ */
+.blog-section {
+  padding: 80px 24px;
+  background: rgba(240, 253, 244, 0.45);
+}
+.blog-preview-grid {
+  width: min(1180px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.blog-preview-card {
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+}
+.blog-preview-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px rgba(20, 83, 45, 0.1);
+  border-color: rgba(34, 197, 94, 0.2);
+}
+.blog-preview-img {
+  height: 160px;
+  background-size: cover;
+  background-position: center;
+  background-color: #f0fdf4;
+}
+.blog-preview-body {
+  padding: 18px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+}
+.blog-preview-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.blog-preview-tag {
+  font-size: 11px;
+  font-weight: 800;
+  color: #15803d;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  padding: 3px 10px;
+  border-radius: 20px;
+}
+.blog-preview-read {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  color: #8a9a8e;
+}
+.blog-preview-body h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 900;
+  color: #14532d;
+  line-height: 1.4;
+}
+.blog-preview-body p {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.65;
+  color: #5b6f60;
+  flex: 1;
+}
+.blog-preview-more {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #166534;
+  text-decoration: none;
+}
+.blog-preview-more:hover {
+  text-decoration: underline;
+}
+.blog-view-all {
+  width: min(1180px, 100%);
+  margin: 26px auto 0;
+  text-align: center;
+}
+.blog-view-all-btn {
+  display: inline-block;
+  padding: 12px 26px;
+  border-radius: 12px;
+  border: 1.5px solid #d1d5db;
+  background: #fff;
+  color: #166534;
+  font-size: 13px;
+  font-weight: 800;
+  text-decoration: none;
+  transition: all 0.22s;
+}
+.blog-view-all-btn:hover {
+  border-color: #22c55e;
+  background: #f0fdf4;
+}
+
 /* ============================================================
    STEPS / HOW IT WORKS
    ============================================================ */
@@ -1674,4 +1837,13 @@ onUnmounted(() => {
     gap: 32px;
   }
 }
-</style>
+@media (max-width: 920px) {
+  .blog-preview-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 560px) {
+  .blog-preview-grid {
+    grid-template-columns: 1fr;
+  }
+}</style>

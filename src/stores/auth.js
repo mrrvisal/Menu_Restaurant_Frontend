@@ -92,19 +92,15 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
-  async function login(email, password) {
-    const res = await axios.post(`${API_BASE_URL}/api/auth/login`, {
-      email,
-      password,
-      deviceInfo: getDeviceInfo(),
-    });
-    token.value = res.data.token;
-    user.value = res.data.user;
-    // Backend now returns `restaurants` array; keep old `restaurant` fallback
-    restaurants.value = Array.isArray(res.data.restaurants)
-      ? res.data.restaurants
-      : res.data.restaurant
-        ? [res.data.restaurant]
+  // Shared post-login state sync (token, user, restaurants, theme).
+  function applySession(data) {
+    token.value = data.token;
+    user.value = data.user;
+    // Backend returns a `restaurants` array; keep old `restaurant` fallback
+    restaurants.value = Array.isArray(data.restaurants)
+      ? data.restaurants
+      : data.restaurant
+        ? [data.restaurant]
         : [];
     if (!currentRestaurantId.value && restaurants.value.length) {
       currentRestaurantId.value = restaurants.value[0].id;
@@ -113,6 +109,26 @@ export const useAuthStore = defineStore("auth", () => {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
     // Load this account's own theme color (defaults to brand teal)
     useThemeStore().load();
+  }
+
+  async function login(email, password) {
+    const res = await axios.post(`${API_BASE_URL}/api/auth/login`, {
+      email,
+      password,
+      deviceInfo: getDeviceInfo(),
+    });
+    applySession(res.data);
+  }
+
+  // Super Admin portal login — restricted route. The backend only issues a
+  // session here when the account's role is super_admin.
+  async function superAdminLogin(email, password) {
+    const res = await axios.post(`${API_BASE_URL}/api/auth/login/super-admin`, {
+      email,
+      password,
+      deviceInfo: getDeviceInfo(),
+    });
+    applySession(res.data);
   }
 
   async function register(payload) {
@@ -133,25 +149,16 @@ export const useAuthStore = defineStore("auth", () => {
     return res.data;
   }
 
-  // Sign in with Google (credential = Google ID token from Google Identity Services)
-  async function loginWithGoogle(credential) {
+  // Sign in with Google (credential = Google ID token from Google Identity
+  // Services). Pass { superAdminOnly: true } when called from the dedicated
+  // Super Admin portal — the backend then only admits super_admin accounts.
+  async function loginWithGoogle(credential, options = {}) {
     const res = await axios.post(`${API_BASE_URL}/api/auth/google`, {
       credential,
       deviceInfo: getDeviceInfo(),
+      superAdminOnly: options.superAdminOnly === true,
     });
-    token.value = res.data.token;
-    user.value = res.data.user;
-    restaurants.value = Array.isArray(res.data.restaurants)
-      ? res.data.restaurants
-      : res.data.restaurant
-        ? [res.data.restaurant]
-        : [];
-    if (!currentRestaurantId.value && restaurants.value.length) {
-      currentRestaurantId.value = restaurants.value[0].id;
-    }
-    saveToStorage();
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
-    useThemeStore().load();
+    applySession(res.data);
   }
 
   // Fetch latest user + restaurants from the backend
@@ -163,6 +170,19 @@ export const useAuthStore = defineStore("auth", () => {
       : [];
     saveToStorage();
     useThemeStore().load();
+    return res.data;
+  }
+
+  // Update the logged-in user's OWN email and/or password.
+  // Requires `currentPassword` unless the account has no password (Google-only).
+  async function updateAccount(payload) {
+    const res = await axios.patch(`${API_BASE_URL}/api/auth/account`, payload);
+    if (res.data.token) {
+      token.value = res.data.token;
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
+    }
+    if (res.data.user) user.value = res.data.user;
+    saveToStorage();
     return res.data;
   }
 
@@ -194,6 +214,16 @@ export const useAuthStore = defineStore("auth", () => {
     localStorage.removeItem("admin_restaurants");
     localStorage.removeItem("current_restaurant_id");
     delete axios.defaults.headers.common["Authorization"];
+    // Tell Google not to silently re-pick the previous account on this site.
+    // Without this, the next "Sign in with Google" click can log the same
+    // account straight back in without showing the account chooser.
+    if (typeof window !== "undefined" && window.google?.accounts?.id) {
+      try {
+        window.google.accounts.id.disableAutoSelect();
+      } catch (e) {
+        /* GSI not initialised — nothing to clear */
+      }
+    }
   }
 
   function restoreToken() {
@@ -207,7 +237,8 @@ export const useAuthStore = defineStore("auth", () => {
     isLoggedIn, isEmailVerified, isOwner, isSuperAdmin, sessionRevoked,
     restaurantId, restaurantSlug,
     linkCode, telegramChatId, isTelegramLinked, defaultLanguage,
-    login, register, loginWithGoogle, fetchMe, logout, restoreToken, saveToStorage,
+    login, superAdminLogin, register, loginWithGoogle, fetchMe, updateAccount, logout,
+    restoreToken, saveToStorage,
     setCurrentRestaurant, updateCurrentRestaurant, setCurrentMenu, currentMenuId,
   };
 });

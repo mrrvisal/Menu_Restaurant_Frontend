@@ -93,7 +93,7 @@
               <!-- Actions -->
               <div class="cart-actions">
                 <button class="clear-btn" @click="cart.clear()">
-                  <AppIcon name="trash" :size="14" /> លុបរាល់
+                  <AppIcon name="trash" :size="14" /> សម្អាត
                 </button>
                 <button
                   class="order-btn"

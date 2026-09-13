@@ -12,6 +12,13 @@ const routes = [
     path: "/login",
     name: "Login",
     component: () => import("@/views/LoginView.vue"),
+    meta: { guestOnly: true },
+  },
+  {
+    path: "/login/super-admin",
+    name: "SuperAdminLogin",
+    component: () => import("@/views/SuperAdminLoginView.vue"),
+    meta: { guestOnly: true },
   },
   {
     path: "/register",
@@ -37,6 +44,21 @@ const routes = [
     path: "/menu",
     name: "MenuPublic",
     component: () => import("@/views/MenuView.vue"),
+  },
+  {
+    path: "/demo",
+    name: "DemoMenu",
+    component: () => import("@/views/DemoMenuView.vue"),
+  },
+  {
+    path: "/blog",
+    name: "Blog",
+    component: () => import("@/views/BlogView.vue"),
+  },
+  {
+    path: "/blog/:slug",
+    name: "BlogPost",
+    component: () => import("@/views/BlogPostView.vue"),
   },
   {
     path: "/dashboard",
@@ -66,6 +88,11 @@ router.beforeEach((to, from, next) => {
 
   if (to.meta.requiresAuth && !auth.isLoggedIn) {
     return next("/login");
+  }
+
+  // Signed-in users don't belong on the auth pages
+  if (to.meta.guestOnly && auth.isLoggedIn) {
+    return next(auth.isSuperAdmin ? "/super-admin" : "/dashboard");
   }
 
   // Block unverified users from accessing protected pages
