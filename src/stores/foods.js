@@ -60,7 +60,19 @@ export const useFoodsStore = defineStore("foods", () => {
     const res = await axios.get(`${API_BASE_URL}/api/categories`, {
       params: { restaurant_id: id, ...params },
     });
-    categories.value = res.data;
+    // Defensive dedupe: older data may contain the same category name more
+    // than once (different menus / historical bugs). Collapse to one entry
+    // per unique name so tabs/chips never render duplicates. The API returns
+    // rows ordered by id ASC, so the first (lowest-id) row wins.
+    const seen = new Set();
+    categories.value = (res.data || []).filter((cat) => {
+      const key = String(cat.label_km || cat.label || cat.name || "")
+        .trim()
+        .toLowerCase();
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   }
 
   async function fetchFoods(params = {}, restaurantId = null) {

@@ -26,12 +26,12 @@
                   class="cart-item"
                 >
                   <div class="item-img">
-                    <img :src="item.img || 'https://res.cloudinary.com/daji2ml3y/image/upload/v1783260526/error-image-icon_194117-662_kppjnq.avif'" :alt="item.name" />
+                    <img :src="item.img || 'https://res.cloudinary.com/daji2ml3y/image/upload/v1789488500/no-image_c9olpk.jpg'" :alt="item.name" />
                   </div>
                   <div class="item-info">
                     <div class="item-name">{{ item.name }}</div>
                     <div class="item-price">
-                      {{ Number(item.price).toFixed(0) }}៛
+                      {{ currencyStore.fmt(item.price) }}
                     </div>
                   </div>
                   <div class="item-controls">
@@ -44,7 +44,7 @@
                     </button>
                   </div>
                   <div class="item-subtotal">
-                    {{ (item.price * item.qty).toFixed(0) }}៛
+                    {{ currencyStore.fmt(item.price * item.qty) }}
                   </div>
                 </div>
               </TransitionGroup>
@@ -67,7 +67,7 @@
               <!-- Summary -->
               <div class="cart-summary">
                 <span class="cart-total-label">សរុប</span>
-                <span class="cart-total-amt">{{ cart.total.toFixed(0) }}៛</span>
+                <span class="cart-total-amt">{{ currencyStore.fmt(cart.total) }}</span>
               </div>
 
               <!-- Table Number -->
@@ -130,7 +130,9 @@
 
 <script setup>
 import { ref, reactive, watch } from "vue";
+import { useRouter } from "vue-router";
 import { useCartStore } from "@/stores/cart";
+import { useCurrencyStore } from "@/stores/currency";
 import AppIcon from "@/components/AppIcon.vue";
 import axios from "axios";
 
@@ -141,9 +143,11 @@ const props = defineProps({
   tableFromQr: { type: Number, default: null },
   restaurantId: { type: Number, default: null },
 });
-defineEmits(["close"]);
+const emit = defineEmits(["close"]);
 
 const cart = useCartStore();
+const router = useRouter();
+const currencyStore = useCurrencyStore();
 
 const tableNo = ref("");
 const note = ref("");
@@ -195,11 +199,22 @@ async function submitOrder() {
       payload.restaurant_id = props.restaurantId;
     }
 
-    await axios.post(`${API_BASE_URL}/api/orders`, payload);
+    const res = await axios.post(`${API_BASE_URL}/api/orders`, payload);
     cart.clear();
     tableNo.value = "";
     note.value = "";
     showFeedback("success");
+    // Jump to the live tracking page when the server returned a token
+    const { orderId, trackToken } = res.data || {};
+    if (orderId && trackToken) {
+      setTimeout(() => {
+        emit("close");
+        router.push({
+          path: "/track",
+          query: { order_id: orderId, token: trackToken },
+        });
+      }, 1400);
+    }
   } catch (err) {
     const msg = err?.response?.data?.message || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
     showFeedback("error", msg);

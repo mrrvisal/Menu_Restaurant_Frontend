@@ -71,6 +71,20 @@ const routes = [
     redirect: "/dashboard",
   },
   {
+    // Kitchen Display System — a dedicated, chrome-free board for the
+    // kitchen screen. Reuses the same SSE order stream as the dashboard.
+    path: "/kds",
+    name: "Kds",
+    component: () => import("@/views/KdsView.vue"),
+    meta: { requiresAuth: true },
+  },
+  {
+    // Guest order tracking — live status of one order (public, token link)
+    path: "/track",
+    name: "Track",
+    component: () => import("@/views/TrackView.vue"),
+  },
+  {
     path: "/super-admin",
     name: "SuperAdmin",
     component: () => import("@/views/SuperAdminView.vue"),

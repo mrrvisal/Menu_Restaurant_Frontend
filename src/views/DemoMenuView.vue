@@ -39,7 +39,8 @@
               :class="{ active: catId === c.id }"
               @click="catId = c.id"
             >
-              <span class="tab-emoji">{{ c.emoji }}</span>
+              <AppIcon v-if="c.icon" :name="c.icon" :size="14" />
+              <span v-else class="tab-emoji">{{ c.emoji }}</span>
               <span class="tab-label">{{ i18n.locale === "km" ? c.label_km : c.label_en }}</span>
             </button>
           </div>
@@ -98,7 +99,7 @@
               :style="{ zIndex: cartPreviewItems.length - index, marginLeft: index > 0 ? '-10px' : '0' }"
             >
               <img v-if="item.img" :src="item.img" :alt="item.name" />
-              <span v-else>{{ item.emoji || "🍽️" }}</span>
+              <AppIcon v-else :name="item.icon || 'plate'" :size="34" />
             </div>
           </div>
           <span class="cart-fab-label">
@@ -131,7 +132,7 @@
                     <div v-for="item in cartItems" :key="item.id" class="cart-row">
                       <div class="cart-row-img">
                         <img v-if="item.img" :src="item.img" :alt="item.name" />
-                        <span v-else>{{ item.emoji || "🍽️" }}</span>
+                        <AppIcon v-else :name="item.icon || 'plate'" :size="32" />
                       </div>
                       <div class="cart-row-info">
                         <b>{{ item.name }}</b>
@@ -178,7 +179,7 @@
               </button>
               <div class="detail-img-wrap">
                 <img v-if="selectedFood.img_url" :src="selectedFood.img_url" :alt="selectedFood.name" />
-                <span v-else class="detail-img-placeholder">{{ selectedFood.emoji || "🍽️" }}</span>
+                <span v-else class="detail-img-placeholder"><AppIcon :name="selectedFood.icon || 'plate'" :size="36" /></span>
                 <div class="detail-img-gradient"></div>
               </div>
               <div class="detail-body">
@@ -292,7 +293,7 @@ const mappedFoods = computed(() =>
     price: f.price,
     status: f.sold_out ? "unavailable" : "available",
     img_url: f.img || null,
-    emoji: f.emoji,
+    icon: f.icon,
     category: f.category,
   }))
 );
@@ -316,7 +317,7 @@ function add(food) {
       qty: 1,
       name: food.name,
       price: Number(food.price),
-      emoji: food.emoji,
+      icon: food.icon,
       img: food.img_url,
     };
   }

@@ -122,9 +122,7 @@
             v-for="(item, index) in cartPreviewItems"
             :key="item.id || index"
             :src="
-              item.img ||
-              'https://res.cloudinary.com/daji2ml3y/image/upload/v1783260526/error-image-icon_194117-662_kppjnq.avif'
-            "
+              item.img || 'https://res.cloudinary.com/daji2ml3y/image/upload/v1789488500/no-image_c9olpk.jpg'            "
             :alt="item.name"
             class="cart-fab-img"
             :style="{
@@ -135,7 +133,7 @@
         </div>
         <span class="cart-fab-label">
           <span class="cart-fab-badge">{{ cart.count }}</span>
-          <span class="cart-fab-total">{{ cart.total.toFixed(0) }}៛</span>
+          <span class="cart-fab-total">{{ currencyStore.fmt(cart.total) }}</span>
         </span>
       </button>
     </Transition>
@@ -196,7 +194,7 @@
               </div>
               <h2 class="detail-name">{{ selectedFood.name }}</h2>
               <div class="detail-price">
-                {{ Number(selectedFood.price).toFixed(0) }}៛
+                {{ currencyStore.fmt(selectedFood.price) }}
               </div>
 
               <button
@@ -235,6 +233,7 @@ import { ref, computed, onMounted, watch, onUnmounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useFoodsStore } from "@/stores/foods";
 import { useCartStore } from "@/stores/cart";
+import { useCurrencyStore } from "@/stores/currency";
 import { useAuthStore } from "@/stores/auth";
 import FoodCard from "@/components/FoodCard.vue";
 import CartModal from "@/components/CartModal.vue";
@@ -253,6 +252,7 @@ const route = useRoute();
 const router = useRouter();
 const foods = useFoodsStore();
 const cart = useCartStore();
+const currencyStore = useCurrencyStore();
 const auth = useAuthStore();
 const isLoggedIn = computed(() => auth.isLoggedIn);
 
@@ -380,6 +380,7 @@ onMounted(async () => {
     curCat.value = foods.categories[0].id;
   }
   await loadRestaurant();
+  currencyStore.setFrom(restaurantInfo.value);
   await load();
   initialized.value = true;
 });

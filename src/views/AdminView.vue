@@ -178,6 +178,11 @@
             orders.length
           }}</span>
         </button>
+        <!-- Kitchen Display System — opens on its own (wall) screen -->
+        <button class="nav-i" @click="openKds">
+          <AppIcon name="chef" :size="18" />
+          <span>{{ i18n.t.kds || "KDS" }}</span>
+        </button>
       </nav>
 
       <div class="side-foot">
@@ -218,6 +223,7 @@
           </h1>
         </div>
         <div class="hdr-r">
+          <NotificationBell @select="onNotificationSelect" />
           <div class="profile-wrap" ref="profileWrap">
             <button
               class="ac ac-primary ac-avatar"
@@ -395,7 +401,7 @@
           </div>
           <div class="metric-b">
             <span class="metric-v"
-              >{{ Number(stats.totalRevenue || 0).toLocaleString() }}៛</span
+              >{{ currencyStore.fmt(stats.totalRevenue) }}</span
             >
             <span class="metric-l">{{ i18n.t.revenue }}</span>
           </div>
@@ -762,7 +768,7 @@
                 <span>{{ item.name }}</span>
                 <span class="order-p"
                   >{{ item.qty }} ×
-                  {{ Number(item.price).toLocaleString() }}៛</span
+                  {{ currencyStore.fmt(item.price) }}</span
                 >
               </div>
             </div>
@@ -786,7 +792,7 @@
             </div>
             <div class="order-total">
               {{ i18n.t.total }}:
-              <strong>{{ Number(order.total).toLocaleString() }}៛</strong>
+              <strong>{{ currencyStore.fmt(order.total) }}</strong>
             </div>
             <div v-if="getStatusOptions(order.status).length" class="order-status-actions">
               <span class="order-status-label">{{ i18n.t.change_status || "ប្តូរស្ថានភាព" }}:</span>
@@ -2035,7 +2041,80 @@
                 />
               </div>
 
-              <!-- ─── THEME COLOR ─── -->
+              <button
+                class="btn btn-primary btn-b"
+                :disabled="profileSubmitting"
+                @click="submitProfile"
+              >
+                {{ profileSubmitting ? i18n.t.loading : i18n.t.save }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition></Teleport
+    >
+
+    <!-- ═══ SETTINGS (account email / password) ═══
+         Moved out of the Profile modal — opened from the avatar
+         dropdown's "Settings" item. -->
+    <Teleport to="body"
+      ><Transition name="fade">
+        <div
+          v-if="showSettings"
+          class="overlay"
+          @click.self="showSettings = false"
+        >
+          <div class="sheet">
+            <div class="sheet-h">
+              <span
+                ><AppIcon name="settings" :size="16" />
+                {{ i18n.t.settings || "Settings" }}</span
+              ><button
+                class="ic"
+                aria-label="Close"
+                @click="showSettings = false"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div class="sheet-b">
+              <!-- ─── SETTINGS CATEGORY TABS ─── -->
+              <div class="st-tabs">
+                <button type="button" class="st-tab"
+                  :class="{ active: settingsTab === 'appearance' }"
+                  @click="settingsTab = 'appearance'">
+                  {{ i18n.t.settings_tab_appearance || "Appearance" }}
+                </button>
+                <button type="button" class="st-tab"
+                  :class="{ active: settingsTab === 'currency' }"
+                  @click="settingsTab = 'currency'">
+                  {{ i18n.t.currency || "Currency" }}
+                </button>
+                <button type="button" class="st-tab"
+                  :class="{ active: settingsTab === 'notify' }"
+                  @click="settingsTab = 'notify'">
+                  {{ i18n.t.settings_tab_notify || "Notifications" }}
+                </button>
+                <button type="button" class="st-tab"
+                  :class="{ active: settingsTab === 'account' }"
+                  @click="settingsTab = 'account'">
+                  {{ i18n.t.settings_tab_account || "Account" }}
+                </button>
+              </div>
+
+              <!-- ─── APPEARANCE ─── -->
+              <template v-if="settingsTab === 'appearance'">
+<!-- ─── THEME COLOR ─── -->
               <div class="fld">
                 <label class="fld-l">{{ i18n.t.theme_color || "Theme color" }}</label>
                 <div class="swatches">
@@ -2108,7 +2187,7 @@
                 </div>
               </div>
 
-              <!-- ─── SIDEBAR POSITION ─── -->
+<!-- ─── SIDEBAR POSITION ─── -->
               <div class="fld">
                 <label class="fld-l">{{ i18n.t.sidebar_position || "Sidebar position" }}</label>
                 <div class="layout-options">
@@ -2151,54 +2230,83 @@
                   </button>
                 </div>
               </div>
+              </template>
 
-              <button
-                class="btn btn-primary btn-b"
-                :disabled="profileSubmitting"
-                @click="submitProfile"
-              >
-                {{ profileSubmitting ? i18n.t.loading : i18n.t.save }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </Transition></Teleport
-    >
-
-    <!-- ═══ SETTINGS (account email / password) ═══
-         Moved out of the Profile modal — opened from the avatar
-         dropdown's "Settings" item. -->
-    <Teleport to="body"
-      ><Transition name="fade">
-        <div
-          v-if="showSettings"
-          class="overlay"
-          @click.self="showSettings = false"
-        >
-          <div class="sheet">
-            <div class="sheet-h">
-              <span
-                ><AppIcon name="settings" :size="16" />
-                {{ i18n.t.settings || "Settings" }}</span
-              ><button
-                class="ic"
-                aria-label="Close"
-                @click="showSettings = false"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
+              <!-- ─── CURRENCY ─── -->
+              <template v-else-if="settingsTab === 'currency'">
+                <div v-if="settingsCurrencyMsg" class="msg msg-s">{{ settingsCurrencyMsg }}</div>
+                <div v-if="settingsCurrencyError" class="msg msg-e">{{ settingsCurrencyError }}</div>
+                <div class="fld">
+                  <label class="fld-l">{{ i18n.t.currency || "Currency" }}</label>
+                  <AppSelect
+                    block
+                    size="sm"
+                    tone="soft"
+                    variant="teal"
+                    :model-value="profileCurrency"
+                    :options="currencyOptions"
+                    option-value="value"
+                    option-label="label"
+                    @update:model-value="profileCurrency = $event"
+                  />
+                </div>
+                <div v-if="profileCurrency === 'USD'" class="fld">
+                  <label class="fld-l">{{ i18n.t.exchange_rate || "Exchange rate" }}</label>
+                  <input v-model.number="profileRate" type="number" min="1" step="50" class="fld-i" placeholder="4100" />
+                </div>
+                <button
+                  class="btn btn-primary btn-b"
+                  :disabled="currencySubmitting"
+                  @click="saveCurrency"
                 >
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-            <div class="sheet-b">
+                  {{ currencySubmitting ? i18n.t.loading : i18n.t.save }}
+                </button>
+              </template>
+
+              <!-- ─── NOTIFICATIONS ─── -->
+              <template v-else-if="settingsTab === 'notify'">
+              <!-- ─── PUSH NOTIFICATIONS (this device) ─── -->
+              <div class="fld push-fld">
+                <label class="fld-l">{{
+                  i18n.t.push_notifications || "Push notifications"
+                }}</label>
+                <p class="push-desc">
+                  {{
+                    i18n.t.push_notifications_desc ||
+                    "Get an alert on this device when a new order arrives — even when the dashboard tab is closed."
+                  }}
+                </p>
+                <div class="push-row">
+                  <span class="push-state" :class="'push-st-' + pushState"
+                    >{{ pushStateLabel }}</span
+                  >
+                  <button
+                    type="button"
+                    class="btn btn-sm"
+                    :class="pushState === 'enabled' ? 'btn-ghost' : 'btn-g'"
+                    :disabled="
+                      pushBusy ||
+                      pushState === 'unsupported' ||
+                      pushState === 'blocked'
+                    "
+                    @click="togglePush"
+                  >
+                    {{
+                      pushBusy
+                        ? i18n.t.loading
+                        : pushState === "enabled"
+                          ? i18n.t.push_disable || "Turn off"
+                          : i18n.t.push_enable || "Turn on"
+                    }}
+                  </button>
+                </div>
+                <div v-if="pushError" class="msg msg-e">{{ pushError }}</div>
+              </div>
+
+              </template>
+
+              <!-- ─── ACCOUNT ─── -->
+              <template v-else>
               <div v-if="accountSuccess" class="msg msg-s">
                 {{ accountSuccess }}
               </div>
@@ -2252,7 +2360,8 @@
                     : i18n.t.update_account || "Update email / password"
                 }}
               </button>
-            </div>
+                          </template>
+</div>
           </div>
         </div>
       </Transition></Teleport
@@ -2270,7 +2379,15 @@ import FoodCard from "@/components/FoodCard.vue";
 import FoodFormModal from "@/components/FoodFormModal.vue";
 import AppSelect from "@/components/AppSelect.vue";
 import AppIcon from "@/components/AppIcon.vue";
+import NotificationBell from "@/components/NotificationBell.vue";
 import { useThemeStore } from "@/stores/theme";
+import { useNotificationsStore } from "@/stores/notifications";
+import { useCurrencyStore } from "@/stores/currency";
+import {
+  getPushState,
+  enablePush,
+  disablePush,
+} from "@/utils/pushNotifications";
 import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -2279,6 +2396,8 @@ const auth = useAuthStore();
 const foods = useFoodsStore();
 const i18n = useI18nStore();
 const theme = useThemeStore();
+const notifications = useNotificationsStore();
+const currencyStore = useCurrencyStore();
 
 const adminTab = ref("foods");
 const curCat = ref("");
@@ -2300,9 +2419,15 @@ const catLabelKm = ref("");
 const deletingCat = ref(null);
 const showProfile = ref(false);
 const showSettings = ref(false);
+const settingsTab = ref("appearance");
+const settingsCurrencyMsg = ref("");
+const settingsCurrencyError = ref("");
+const currencySubmitting = ref(false);
 const profileMenuOpen = ref(false);
 const profileWrap = ref(null);
 const profileName = ref("");
+const profileCurrency = ref("KHR");
+const profileRate = ref(4100);
 const profileLogoFile = ref(null);
 const profileLogoPreview = ref(null);
 const profileSubmitting = ref(false);
@@ -2494,13 +2619,17 @@ function deviceMethodLabel(method) {
   return labels[method] || method || i18n.t.device_unknown;
 }
 
+const currencyOptions = computed(() => [
+  { value: "KHR", label: i18n.t.currency_khr || "៛ KHR" },
+  { value: "USD", label: i18n.t.currency_usd || "$ USD" },
+]);
+
 function openProfile() {
   profileName.value = auth.restaurant?.name || "";
   profileLogoFile.value = null;
   profileLogoPreview.value = null;
   profileSuccess.value = "";
   profileError.value = "";
-  syncRestaurantTheme();
   showProfile.value = true;
 }
 
@@ -2508,12 +2637,114 @@ function openProfile() {
 // Opened from the avatar dropdown; moved out of the Profile modal so the
 // profile sheet stays focused on the restaurant (name / logo / theme).
 function openSettings() {
+  settingsTab.value = "appearance";
   accountEmail.value = auth.user?.email || "";
   accountCurrentPassword.value = "";
   accountNewPassword.value = "";
   accountSuccess.value = "";
   accountError.value = "";
+  settingsCurrencyMsg.value = "";
+  settingsCurrencyError.value = "";
+  profileCurrency.value = auth.restaurant?.currency || "KHR";
+  profileRate.value = Number(auth.restaurant?.exchangeRate) || 4100;
+  syncRestaurantTheme();
+  refreshPushState();
   showSettings.value = true;
+}
+
+// ─── SETTINGS › CURRENCY ───────────────────────────────────
+// Saves the display-currency choice (៛ / $) + exchange rate.
+async function saveCurrency() {
+  if (currencySubmitting.value) return;
+  currencySubmitting.value = true;
+  settingsCurrencyMsg.value = "";
+  settingsCurrencyError.value = "";
+  try {
+    await axios.patch(`${API_BASE}/api/auth/currency`, {
+      currency: profileCurrency.value,
+      exchangeRate: Number(profileRate.value) || 4100,
+      restaurant_id: auth.restaurantId,
+    });
+    if (auth.restaurant) {
+      auth.restaurant.currency = profileCurrency.value;
+      auth.restaurant.exchangeRate = Number(profileRate.value) || 4100;
+      auth.saveToStorage();
+    }
+    currencyStore.setFrom(auth.restaurant);
+    settingsCurrencyMsg.value = i18n.t.saved_success || "Saved successfully!";
+    setTimeout(() => {
+      settingsCurrencyMsg.value = "";
+    }, 2500);
+  } catch (err) {
+    settingsCurrencyError.value =
+      err?.response?.data?.error || i18n.t.generic_error || "Error";
+  } finally {
+    currencySubmitting.value = false;
+  }
+}
+
+// ─── WEB PUSH (this device) ────────────────────────────────
+// Toggle lives in Settings → "Push notifications". The subscription is
+// per-browser; the backend stores it and pushes on every new order.
+const pushState = ref("unsupported");
+const pushBusy = ref(false);
+const pushError = ref("");
+
+const pushStateLabel = computed(() => {
+  const t = i18n.t;
+  switch (pushState.value) {
+    case "enabled":
+      return `🔔 ${t.push_on || "On"}`;
+    case "blocked":
+      return t.push_blocked || "Blocked by browser";
+    case "unsupported":
+      return t.push_unsupported || "Not supported on this browser";
+    case "not_configured":
+      return t.push_not_configured || "Not configured on server";
+    default:
+      return t.push_off || "Off";
+  }
+});
+
+async function refreshPushState() {
+  try {
+    pushState.value = (await getPushState(auth.token)).state;
+  } catch {
+    pushState.value = "unsupported";
+  }
+}
+
+function pushReasonText(reason) {
+  const t = i18n.t;
+  if (reason === "denied")
+    return t.push_denied || "Permission denied — allow notifications in your browser settings.";
+  if (reason === "not_configured")
+    return t.push_not_configured || "Not configured on server";
+  return t.push_enable_failed || "Could not enable push notifications";
+}
+
+async function togglePush() {
+  pushBusy.value = true;
+  pushError.value = "";
+  try {
+    if (pushState.value === "enabled") {
+      await disablePush(auth.token);
+      pushState.value = "disabled";
+    } else {
+      const res = await enablePush(auth.token);
+      if (!res.ok) {
+        pushError.value = pushReasonText(res.reason);
+        await refreshPushState();
+      } else {
+        pushState.value = "enabled";
+      }
+    }
+  } catch (err) {
+    console.error("Push toggle error:", err);
+    pushError.value = i18n.t.generic_error || "Something went wrong";
+  } finally {
+    pushBusy.value = false;
+  }
 }
 
 // ─── HEADER PROFILE MENU ─────────────────────────────────
@@ -2654,7 +2885,9 @@ async function submitProfile() {
     }, 1200);
   } catch (err) {
     profileError.value =
-      err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
+      err.response?.data?.code === "DUPLICATE_RESTAURANT"
+        ? i18n.t.dup_restaurant || "You already have a restaurant with this name"
+        : err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
   } finally {
     profileSubmitting.value = false;
   }
@@ -2756,7 +2989,12 @@ async function unlinkTelegram() {
 async function fetchOrders() {
   ordersLoading.value = true;
   try {
-    const res = await axios.get(`${API_BASE}/api/orders`);
+    // Scope the list to the restaurant selected in the dashboard. Without
+    // restaurant_id the backend falls back to the account's FIRST restaurant,
+    // so switching restaurants kept showing the other one's orders.
+    const res = await axios.get(`${API_BASE}/api/orders`, {
+      params: auth.restaurantId ? { restaurant_id: auth.restaurantId } : {},
+    });
     orders.value = res.data;
   } catch (err) {
     console.error(err);
@@ -2841,7 +3079,10 @@ async function submitCategory() {
       }, 1500);
     }
   } catch (err) {
-    catErrors.value = err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
+    catErrors.value =
+      err.response?.data?.code === "DUPLICATE_CATEGORY"
+        ? i18n.t.dup_category || "You already have a category with this name"
+        : err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
   } finally {
     catSubmitting.value = false;
   }
@@ -3012,6 +3253,9 @@ async function fetchStats() {
   try {
     const res = await axios.get(`${API_BASE}/api/orders/stats`, {
       params: {
+        // Revenue / order metrics must belong to the SELECTED restaurant —
+        // without restaurant_id the backend reports the account's first one.
+        restaurant_id: auth.restaurantId,
         start_date: statsStartDate.value,
         end_date: statsEndDate.value,
       },
@@ -3035,6 +3279,11 @@ function openPreview() {
   if (previewMenuUrl.value === "#") return;
   window.open(previewMenuUrl.value, "_blank");
 }
+
+// KDS runs on its own screen/tab — never inside the dashboard SPA
+function openKds() {
+  window.open("/kds", "_blank", "noopener");
+}
 async function load() {
   const params = {};
   if (auth.currentMenuId) params.menu_id = auth.currentMenuId;
@@ -3048,6 +3297,7 @@ async function onSwitchRestaurant(value) {
   const id = Number(value);
   auth.setCurrentRestaurant(id);
   syncRestaurantTheme();
+  currencyStore.setFrom(auth.restaurant);
   curCat.value = "";
   searchQ.value = "";
   await initForRestaurant();
@@ -3089,7 +3339,9 @@ async function submitAddRestaurant() {
     }, 1100);
   } catch (err) {
     addRestaurantError.value =
-      err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
+      err.response?.data?.code === "DUPLICATE_RESTAURANT"
+        ? i18n.t.dup_restaurant || "You already have a restaurant with this name"
+        : err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
   } finally {
     addRestaurantSubmitting.value = false;
   }
@@ -3140,6 +3392,9 @@ async function initForRestaurant() {
   searchQ.value = "";
   await loadCategories();
   await load();
+  // Refresh orders for the selected restaurant — also re-seeds the
+  // notification bell via the watch(orders) → seedNotificationsFromOrders.
+  await fetchOrders();
   fetchStats();
   // Reconnect the order stream to the selected restaurant
   disconnectOrderStream();
@@ -3183,28 +3438,152 @@ function handleEscKey(e) {
 }
 
 // ─── REAL-TIME NEW ORDER ALERT (TTS 🔊) ───
+// Clicking a notification jumps straight to the Orders tab.
+// A notification belongs to a specific restaurant (multi-restaurant owners),
+// so when it is NOT the restaurant currently selected we switch to it first —
+// otherwise the Orders tab would show another restaurant's orders and the
+// alert would look like it had no data.
+async function onNotificationSelect(notification) {
+  adminTab.value = "orders";
+  showMobile.value = false;
+
+  const targetId = Number(notification?.restaurantId ?? 0);
+  const owned =
+    targetId > 0 &&
+    auth.restaurants.some((r) => Number(r.id) === targetId);
+
+  if (owned && targetId !== Number(auth.restaurantId)) {
+    // Switch restaurant, then reload menus/categories/foods/orders and
+    // reconnect the SSE stream for it (initForRestaurant does all of that).
+    auth.setCurrentRestaurant(targetId);
+    syncRestaurantTheme();
+    curCat.value = "";
+    searchQ.value = "";
+    await initForRestaurant();
+  } else {
+    // Same restaurant (or unknown) → just make sure the list is fresh.
+    await fetchOrders();
+  }
+}
+
+// Shared message builder for order notifications. The SSE payload uses
+// camelCase (tableNo); DB rows fetched from /api/orders use snake_case
+// (table_no) — accept both.
+function buildOrderNotifMessage(order) {
+  const tableNo = order.tableNo ?? order.table_no ?? "-";
+  let msg = (i18n.t.new_order_notif || "New order from table {table}").replace(
+    "{table}",
+    tableNo,
+  );
+  if (order.total != null && order.total !== "") {
+    msg += ` · ${currencyStore.fmt(order.total)}`;
+  }
+  return msg;
+}
+
+// Resolve a restaurant id → display name from the account's restaurant list
+// (SSE events carry restaurantName since backend v15; seeds / older events
+// fall back to this mapping).
+function restaurantNameFor(restaurantId) {
+  if (restaurantId == null) return "";
+  const r = auth.restaurants.find((x) => Number(x.id) === Number(restaurantId));
+  return r?.name || "";
+}
+
+// Backfill: the bell only receives LIVE events while the dashboard is open,
+// so after a reload it would show an empty list even though orders exist.
+// Seed the most recent orders as notifications (dedupe by id keeps this
+// idempotent). Only pending orders count as unread → the badge reflects the
+// pending orders; handled ones are marked read.
+const MAX_SEEDED_ORDERS = 15;
+function seedNotificationsFromOrders() {
+  const recent = orders.value.slice(0, MAX_SEEDED_ORDERS);
+  for (const o of recent) {
+    if (!o || !o.id) continue;
+    const id = `new-order-${o.id}`;
+    notifications.push({
+      id,
+      type: "new-order",
+      title: i18n.t.new_order || "New order",
+      message: buildOrderNotifMessage(o),
+      orderId: o.id,
+      restaurantId: o.restaurant_id ?? o.restaurantId ?? null,
+      restaurantName:
+        o.restaurant_name || restaurantNameFor(o.restaurant_id ?? o.restaurantId),
+      tableNo: o.table_no ?? o.tableNo,
+      createdAt: o.created_at || undefined,
+      read: o.status !== "pending",
+    });
+    // An order that was pending (unread) and has since been handled
+    // should not keep the badge lit after the list refreshes.
+    if (o.status !== "pending") notifications.markRead(id);
+  }
+}
+watch(orders, () => seedNotificationsFromOrders());
+
+// Chrome loads speech voices asynchronously — cache the list and refresh it
+// when ready so playOrderAlert() always has the full voice list to pick from.
+const ttsVoices = ref(
+  "speechSynthesis" in window ? window.speechSynthesis.getVoices() : [],
+);
+if ("speechSynthesis" in window) {
+  window.speechSynthesis.onvoiceschanged = () => {
+    ttsVoices.value = window.speechSynthesis.getVoices();
+  };
+}
+
+// Chrome blocks speechSynthesis until the page has had some user interaction
+// (autoplay policy). Unlock it silently on the first click / keypress so the
+// SSE-triggered announcement is allowed later.
+let ttsUnlocked = false;
+function unlockTTS() {
+  if (ttsUnlocked) return;
+  ttsUnlocked = true;
+  try {
+    const u = new SpeechSynthesisUtterance(" ");
+    u.volume = 0;
+    window.speechSynthesis.speak(u);
+  } catch {
+    /* unlock attempt only — never break the dashboard */
+  }
+}
+if ("speechSynthesis" in window) {
+  window.addEventListener("pointerdown", unlockTTS, { once: true });
+  window.addEventListener("keydown", unlockTTS, { once: true });
+}
+
 function playOrderAlert(order) {
   if (!("speechSynthesis" in window)) {
     console.warn("Speech synthesis not supported in this browser");
     return;
   }
-  // Cancel any previous speech
-  window.speechSynthesis.cancel();
 
   const tableNo = order.tableNo || "1";
-  const text = `ទទួលបានការកម្មង់ពីតុលេខ ${tableNo}`;
+  const voices = ttsVoices.value;
+  const kmVoice = voices.find(
+    (v) => v.lang && v.lang.toLowerCase().startsWith("km"),
+  );
+
+  // Announcement = table number only (no dishes, no money).
+  // If the device has no Khmer voice, the engine silently skips the Khmer
+  // script and reads just the digits — so fall back to an English sentence
+  // to make sure the full announcement is actually heard.
+  const text = kmVoice
+    ? `ទទួលបានការកម្មង់ពីតុលេខ ${tableNo}`
+    : `Received order from table number ${tableNo}`;
+
   const utterance = new SpeechSynthesisUtterance(text);
-  utterance.lang = "km-KH";
+  if (kmVoice) {
+    utterance.lang = "km-KH";
+    utterance.voice = kmVoice;
+  } else {
+    // Fallback: set only the language, let the engine choose its own
+    // default voice — assigning a picked voice can silently fail in Chrome.
+    utterance.lang = "en-US";
+  }
   utterance.rate = 1;
   utterance.pitch = 1;
   utterance.volume = 1;
-
-  // Try to pick a Khmer voice if available, otherwise use default
-  const voices = window.speechSynthesis.getVoices();
-  const kmVoice = voices.find(
-    (v) => v.lang && v.lang.toLowerCase().startsWith("km")
-  );
-  if (kmVoice) utterance.voice = kmVoice;
 
   utterance.onstart = () => {
     isSpeaking.value = true;
@@ -3212,11 +3591,22 @@ function playOrderAlert(order) {
   utterance.onend = () => {
     isSpeaking.value = false;
   };
-  utterance.onerror = () => {
+  utterance.onerror = (e) => {
     isSpeaking.value = false;
+    console.warn("Order alert speech error:", e?.error || e);
   };
 
-  window.speechSynthesis.speak(utterance);
+  // Chrome bug: speak() right after cancel() gets silently dropped.
+  // Delay the speak slightly and make sure the engine isn't paused.
+  window.speechSynthesis.cancel();
+  setTimeout(() => {
+    try {
+      window.speechSynthesis.resume();
+      window.speechSynthesis.speak(utterance);
+    } catch (err) {
+      console.warn("Speech speak failed:", err);
+    }
+  }, 150);
 }
 
 // Probe the stream endpoint once so the real HTTP status/error can be
@@ -3298,6 +3688,21 @@ async function connectOrderStream() {
       if (!data.orderId || data.orderId === lastAlertedOrderId.value) return;
       lastAlertedOrderId.value = data.orderId;
 
+      // 🔔 Push to the notification bell (near the profile avatar)
+      notifications.push({
+        id: `new-order-${data.orderId}`,
+        type: "new-order",
+        title: i18n.t.new_order || "New order",
+        message: buildOrderNotifMessage(data),
+        orderId: data.orderId,
+        restaurantId: data.restaurantId ?? auth.restaurantId ?? null,
+        restaurantName:
+          data.restaurantName ||
+          restaurantNameFor(data.restaurantId ?? auth.restaurantId),
+        tableNo: data.tableNo,
+        createdAt: data.createdAt || new Date().toISOString(),
+      });
+
       console.log("🛎️ New order received:", data);
 
       // 🔊 Play Khmer voice alert: "ទទួលបានការកម្មង់ពីតុលេខ X"
@@ -3323,6 +3728,24 @@ async function connectOrderStream() {
     try {
       const data = JSON.parse(event.data);
       console.log("🔄 Order status changed:", data);
+
+      // 🔔 Push to the notification bell (near the profile avatar)
+      notifications.push({
+        id: `order-status-${data.orderId}-${data.status}`,
+        type: "order-status",
+        status: data.status,
+        title: i18n.t.status_updated || "Status updated",
+        message: (i18n.t.order_status_notif || "Order #{id} (table {table}) → {status}")
+          .replace("{id}", data.orderId)
+          .replace("{table}", data.tableNo ?? "-")
+          .replace("{status}", i18n.t[data.status] || data.status),
+        orderId: data.orderId,
+        restaurantId: data.restaurantId ?? auth.restaurantId ?? null,
+        restaurantName:
+          data.restaurantName ||
+          restaurantNameFor(data.restaurantId ?? auth.restaurantId),
+        tableNo: data.tableNo,
+      });
 
       // Update order status in the local list in real-time
       const idx = orders.value.findIndex((o) => o.id === data.orderId);
@@ -3366,12 +3789,19 @@ function disconnectOrderStream() {
 onMounted(async () => {
   // Refresh restaurants list (in case a new one was added elsewhere)
   await auth.fetchMe();
+  // Load the persisted notification history for this user (bell dropdown)
+  notifications.load(auth.user?.id ?? null);
   syncRestaurantTheme();
+  currencyStore.setFrom(auth.restaurant);
   await foods.fetchMenus();
   refreshCurrentMenuSelection();
   await loadCategories();
   if (foods.categories.length) curCat.value = foods.categories[0].id;
   await load();
+  // Fetch orders on mount: powers the Orders tab AND backfills the
+  // notification bell with the most recent orders
+  // (see seedNotificationsFromOrders).
+  await fetchOrders();
   fetchStats();
   window.addEventListener("keydown", handleEscKey);
   connectOrderStream();
@@ -4101,6 +4531,39 @@ onUnmounted(() => {
 .pm-danger:hover {
   background: rgba(198, 40, 40, 0.08);
   color: var(--red-dark);
+}
+
+/* ── Settings category tabs (Appearance/Currency/Notify/Account) ── */
+.st-tabs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  padding-bottom: 2px;
+}
+.st-tab {
+  padding: 7px 13px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s ease;
+}
+.st-tab:hover {
+  border-color: var(--primary-strong, var(--primary));
+  color: var(--primary-strong, var(--primary));
+  background: var(--surface-green);
+}
+.st-tab.active {
+  background: var(--primary);
+  border-color: var(--primary-strong, var(--primary));
+  color: var(--on-primary, #fff);
+  box-shadow: 0 2px 8px var(--primary-glow);
 }
 
 /* Metrics */
@@ -5983,5 +6446,39 @@ onUnmounted(() => {
   .metric-v {
     font-size: 16px;
   }
+}
+
+/* --- Settings > Push notifications (this device) --- */
+.push-fld {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border, #e2e8e2);
+  margin-bottom: 14px;
+}
+.push-desc {
+  font-size: 11.5px;
+  color: var(--text-light, #6a8f6a);
+  line-height: 1.5;
+  margin: 4px 0 10px;
+}
+.push-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.push-state {
+  font-size: 12px;
+  font-weight: 700;
+}
+.push-st-enabled {
+  color: var(--green-mid, #2d7a2d);
+}
+.push-st-disabled,
+.push-st-unsupported,
+.push-st-not_configured {
+  color: var(--text-light, #6a8f6a);
+}
+.push-st-blocked {
+  color: var(--red, #ef4444);
 }
 </style>

@@ -26,7 +26,7 @@
     <div class="food-card-body">
       <div class="food-card-name">{{ food.name }}</div>
       <div class="food-card-footer">
-        <span class="food-card-price">{{ Number(food.price).toFixed(0) }}៛</span>
+        <span class="food-card-price">{{ currencyStore.fmt(food.price) }}</span>
 
         <!-- Admin: status toggle -->
         <button v-if="isAdmin"
@@ -52,6 +52,7 @@
 <script setup>
 import { ref } from 'vue';
 import AppIcon from "@/components/AppIcon.vue";
+import { useCurrencyStore } from "@/stores/currency";
 
 const props = defineProps({
   food:     { type: Object,  required: true },
@@ -60,6 +61,8 @@ const props = defineProps({
 });
 
 defineEmits(['detail', 'delete', 'toggle-status', 'add-cart']);
+
+const currencyStore = useCurrencyStore();
 
 const imgError = ref(false);
 

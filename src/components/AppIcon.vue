@@ -2,6 +2,86 @@
   <svg v-if="name === 'food'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
     <path d="M3 11h18M3 11v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8M3 11V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4"/>
   </svg>
+  <svg v-else-if="name === 'plate'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M3 14h18v2a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-2Z"/>
+    <path d="M3 18h18"/>
+    <path d="M8 18v-4"/>
+    <path d="M16 18v-4"/>
+  </svg>
+  <svg v-else-if="name === 'cup'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M7 5h10v2a3 3 0 0 1-3 3H9a3 3 0 0 1-3-3V5Z"/>
+    <path d="M5 9h14"/>
+    <path d="M6 9V5"/>
+    <path d="M18 9V5"/>
+    <path d="M12 21v-4"/>
+    <path d="M9 17h6"/>
+    <path d="M10 21h4"/>
+    <path d="M12 13a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>
+  </svg>
+  <svg v-else-if="name === 'soup'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M4 14c0 4 2 6 6 6s6-2 6-6"/>
+    <path d="M4 14h16v4a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-4Z"/>
+    <path d="M4 18h16"/>
+    <path d="M8 18v-3"/>
+    <path d="M12 18v-4"/>
+    <path d="M16 18v-2"/>
+    <path d="M11 11a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>
+  </svg>
+  <svg v-else-if="name === 'fish'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M3 12c3-3 9-3 15-3s6 3 9 3"/>
+    <path d="M3 12c0 4 4 5 9 5s9-1 9-5"/>
+    <path d="M21 12l3 3-6 0 3-3"/>
+    <path d="M9 11a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>
+    <path d="M15 11a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"/>
+  </svg>
+  <svg v-else-if="name === 'salad'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M6 18c0-4 2-7 6-7s4 3 6 7"/>
+    <path d="M6 18c0-3 1.5-5 4-5s4 2 4 5"/>
+    <path d="M14 18c0-2 1-4 3-4s3 2 3 4"/>
+    <path d="M8 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"/>
+    <path d="M12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"/>
+    <path d="M16 13a1 1 0 1 0 0 2 1 1 0 0 0 0-2Z"/>
+  </svg>
+  <svg v-else-if="name === 'burger'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M5 4h14v2a3 3 0 0 1-3 3H8a3 3 0 0 1-3-3V4Z"/>
+    <path d="M3 10h18"/>
+    <path d="M4 14h16"/>
+    <circle cx="6" cy="7" r="1" fill="currentColor"/>
+    <circle cx="10" cy="7" r="1" fill="currentColor"/>
+    <circle cx="14" cy="7" r="1" fill="currentColor"/>
+    <circle cx="18" cy="7" r="1" fill="currentColor"/>
+    <path d="M9 10h6"/>
+  </svg>
+  <svg v-else-if="name === 'pizza'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M3 13h18v4a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3v-4Z"/>
+    <path d="M12 13V5"/>
+    <path d="M9 9l3 2 3-2"/>
+    <circle cx="10" cy="15" r="1" fill="currentColor"/>
+    <circle cx="14" cy="15" r="1" fill="currentColor"/>
+  </svg>
+  <svg v-else-if="name === 'beer'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M9 4h2v12a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V4Z"/>
+    <path d="M13 8h2v8a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2v-1a1 1 0 0 0-1 1v1"/>
+    <path d="M9 16h6"/>
+    <path d="M10 18h4"/>
+    <path d="M12 2v2"/>
+  </svg>
+  <svg v-else-if="name === 'banana'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M7 22c0-6 2-10 5-10s3 4 3 10c0 2-1 3-2 3"/>
+    <path d="M12 22c0-5 1.5-9 4.5-9s3 4 3 9"/>
+    <path d="M17 20c0-4 1-7 3-7"/>
+  </svg>
+  <svg v-else-if="name === 'rice-ball'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M12 3L4 8v8a4 4 0 0 0 3 3.83V17a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3v-2.17A4 4 0 0 0 20 16V8l-8-5Z"/>
+    <path d="M8 13h8"/>
+    <path d="M12 9v8"/>
+  </svg>
+  <svg v-else-if="name === 'candy'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M12 21c-4.97 0-9-2.69-9-6 0-2.21 1.79-4 4-4s4 1.79 4 4c0 1.66-1 2-2 2s-1.51-.34-1.51-1c0-1.66 1-2 1-2s.51-.34.51-1c0-1.1.9-2 1-2s1 .9 1 2"/>
+    <path d="M12 2v5"/>
+    <path d="M12 17a4 4 0 0 0 4-4"/>
+    <path d="M12 17a4 4 0 0 1-4-4"/>
+  </svg>
   <svg v-else-if="name === 'category'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
     <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z"/>
   </svg>
@@ -220,6 +300,32 @@
   <svg v-else-if="name === 'refresh'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
     <polyline points="23 4 23 10 17 10"/>
     <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/>
+  </svg>
+  <svg v-else-if="name === 'sun'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <circle cx="12" cy="12" r="4"/>
+    <path d="M12 2v2"/>
+    <path d="M12 20v2"/>
+    <path d="m4.93 4.93 1.41 1.41"/>
+    <path d="m17.66 17.66 1.41 1.41"/>
+    <path d="M2 12h2"/>
+    <path d="M20 12h2"/>
+    <path d="m6.34 17.66-1.41 1.41"/>
+    <path d="m19.07 4.93-1.41 1.41"/>
+  </svg>
+  <svg v-else-if="name === 'moon'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/>
+  </svg>
+  <svg v-else-if="name === 'expand'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <polyline points="15 3 21 3 21 9"/>
+    <polyline points="9 21 3 21 3 15"/>
+    <line x1="21" y1="3" x2="14" y2="10"/>
+    <line x1="3" y1="21" x2="10" y2="14"/>
+  </svg>
+  <svg v-else-if="name === 'minimize'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <polyline points="4 14 10 14 10 20"/>
+    <polyline points="20 10 14 10 14 4"/>
+    <line x1="14" y1="10" x2="21" y2="3"/>
+    <line x1="3" y1="21" x2="10" y2="14"/>
   </svg>
 </template>
 

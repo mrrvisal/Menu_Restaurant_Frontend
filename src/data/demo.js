@@ -8,9 +8,9 @@ export const DEMO_LOGO_URL =
   "https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png";
 
 export const demoCategories = [
-  { id: 1, label_km: "ម្ហូបចម្បង", label_en: "Main Dishes", emoji: "🍽️" },
-  { id: 2, label_km: "ភេសជ្ជៈ", label_en: "Drinks", emoji: "🥤" },
-  { id: 3, label_km: "បង្អែម", label_en: "Desserts", emoji: "🍮" },
+  { id: 1, label_km: "ម្ហូបចម្បង", label_en: "Main Dishes", icon: "plate" },
+  { id: 2, label_km: "ភេសជ្ជៈ", label_en: "Drinks", icon: "cup" },
+  { id: 3, label_km: "បង្អែម", label_en: "Desserts", icon: "candy" },
 ];
 
 // `img` can be null — the UI falls back to `emoji` so a demo item never
@@ -24,7 +24,7 @@ export const demoFoods = [
     name_en: "Chicken Sour Soup",
     price: 30000,
     img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249185/560052334_1491890335269845_8989493767183977872_n_v6osxh.jpg",
-    emoji: "🍲",
+    icon: "soup",
   },
   {
     id: 102,
@@ -33,7 +33,7 @@ export const demoFoods = [
     name_en: "Deep Fried Fish",
     price: 20000,
     img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249185/560100192_1294493769028479_7023791370470250097_n_q8rlo8.jpg",
-    emoji: "🐟",
+    icon: "fish",
   },
   {
     id: 103,
@@ -61,15 +61,6 @@ export const demoFoods = [
     price: 4000,
     img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249572/79600669_1434979050004558_994592641955921920_n_nbkm2a.jpg",
     emoji: "🐠",
-  },
-  {
-    id: 106,
-    category: 1,
-    name: "បុកអំបិល",
-    name_en: "Salted Fish Salad",
-    price: 3000,
-    img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249571/images_1_khv5yn.jpg",
-    emoji: "🥗",
   },
   // ── Drinks ──────────────────────────────────────────────────
   {
