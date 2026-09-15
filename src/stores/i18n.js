@@ -481,7 +481,7 @@ const translations = {
     kds_note: "ចំណាំ",
     kds_total: "សរុប",
     kds_no_restaurant: "សូមបង្កើតភោជនីយដ្ឋានជាមុន",
-    kds_no_restaurant: "សូមបង្កើតភោជនីយដ្ឋានជាមុន",
+    kds_not_ready: "កំពុងផ្ទុកទិន្នន័យ...",
     // ─── Guest order tracking ───
     track_title: "តាមដានការកម្មង់",
     track_received: "ទទួលបាន",
@@ -983,7 +983,7 @@ const translations = {
     kds_note: "Note",
     kds_total: "Total",
     kds_no_restaurant: "Create a restaurant first",
-    kds_no_restaurant: "Create a restaurant first",
+    kds_not_ready: "Loading data...",
     // ─── Guest order tracking ───
     track_title: "Track your order",
     track_received: "Received",

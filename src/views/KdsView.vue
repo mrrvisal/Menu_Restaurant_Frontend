@@ -10,8 +10,23 @@
    ═══════════════════════════════════════════════════════════ -->
 <template>
   <div class="kds" :class="{ light: lightMode }">
+    <!-- ─── LOADING STATE ─── -->
+    <div v-if="loading" class="kds-loading">
+      <div class="spinner"></div>
+      <p>{{ i18n.t.loading }}</p>
+    </div>
+
+    <!-- ─── NO RESTAURANT / NOT READY ─── -->
+    <div v-else-if="!ready" class="kds-blank">
+      <AppIcon name="chef" :size="42" />
+      <p>{{ i18n.t.kds_not_ready }}</p>
+      <RouterLink class="kds-btn kds-back" to="/dashboard">
+        {{ i18n.t.kds_back }}
+      </RouterLink>
+    </div>
+
     <!-- ─── TOP BAR ─── -->
-    <header class="kds-top">
+    <header v-else class="kds-top">
       <div class="kds-brand">
         <AppIcon name="chef" :size="22" />
         <strong class="kds-name">{{
@@ -158,6 +173,7 @@ const loading = ref(true);
 const connected = ref(false);
 const showDone = ref(true);
 const busyId = ref(null);
+const ready = ref(false);
 
 let es = null;
 let retryTimer = null;
@@ -233,7 +249,6 @@ function actionsFor(o) {
 // ─── DATA ──────────────────────────────────────────────────
 async function fetchOrders() {
   if (!auth.restaurantId) {
-    loading.value = false;
     return;
   }
   try {
@@ -243,8 +258,6 @@ async function fetchOrders() {
     orders.value = res.data || [];
   } catch (err) {
     console.error("KDS fetchOrders failed:", err);
-  } finally {
-    loading.value = false;
   }
 }
 
@@ -256,6 +269,19 @@ async function setStatus(order, status) {
     // Optimistic update; the SSE order-status event confirms it too
     const idx = orders.value.findIndex((o) => o.id === order.id);
     if (idx !== -1) orders.value[idx].status = status;
+    
+    // Refresh the order from server to get latest data (total, etc.)
+    // This ensures currency formatting is correct after status change
+    try {
+      const res = await axios.get(`${API_BASE}/api/orders/${order.id}`, {
+        params: { restaurant_id: auth.restaurantId },
+      });
+      if (res.data && idx !== -1) {
+        orders.value[idx] = { ...orders.value[idx], ...res.data };
+      }
+    } catch (refreshErr) {
+      console.error("KDS: Failed to refresh order after status update:", refreshErr);
+    }
   } catch (err) {
     console.error("KDS setStatus failed:", err);
     alert(err.response?.data?.error || i18n.t.error || "Error");
@@ -268,8 +294,14 @@ function onSwitchRestaurant(value) {
   auth.setCurrentRestaurant(Number(value));
   currencyStore.setFrom(auth.restaurant);
   loading.value = true;
+  ready.value = false;
   orders.value = [];
   reconnect();
+  // Re-initialize after reconnection
+  fetchOrders().then(() => {
+    ready.value = true;
+    loading.value = false;
+  });
 }
 
 // ─── LIVE STREAM (same SSE endpoint as the dashboard) ──────
@@ -294,11 +326,25 @@ function connect() {
     fetchOrders();
   });
 
-  es.addEventListener("order-status", (event) => {
+  es.addEventListener("order-status", async (event) => {
     try {
       const data = JSON.parse(event.data);
       const idx = orders.value.findIndex((o) => o.id === data.orderId);
-      if (idx !== -1 && data.status) orders.value[idx].status = data.status;
+      if (idx !== -1 && data.status) {
+        orders.value[idx].status = data.status;
+        
+        // Refresh full order data from server to ensure money/total is correct
+        try {
+          const res = await axios.get(`${API_BASE}/api/orders/${data.orderId}`, {
+            params: { restaurant_id: auth.restaurantId },
+          });
+          if (res.data) {
+            orders.value[idx] = { ...orders.value[idx], ...res.data };
+          }
+        } catch (refreshErr) {
+          console.error("KDS: Failed to refresh order from SSE event:", refreshErr);
+        }
+      }
     } catch {
       /* ignore malformed frames */
     }
@@ -440,12 +486,27 @@ watch(
   },
 );
 
-onMounted(() => {
+onMounted(async () => {
   loadMode();
+  // Fetch fresh auth data FIRST to ensure restaurant info is current
+  try {
+    await auth.fetchMe();
+  } catch (err) {
+    console.error("KDS: Failed to fetch auth data:", err);
+  }
+  
+  // Initialize currency and theme from restaurant data (now available)
   currencyStore.setFrom(auth.restaurant);
   syncTheme();
-  fetchOrders();
+  
+  // Show orders and connect to live stream
+  await fetchOrders();
   connect();
+  
+  // Mark as ready once all initialization is complete
+  ready.value = true;
+  loading.value = false;
+
   document.addEventListener("fullscreenchange", onFullscreenChange);
   window.addEventListener("pointerdown", unlockAudio, { once: true });
   window.addEventListener("keydown", unlockAudio, { once: true });
@@ -728,6 +789,29 @@ onUnmounted(() => {
   font-size: 12px;
   border: 1px dashed var(--border-line);
   border-radius: 10px;
+}
+
+/* ─── Loading state ─── */
+.kds-loading {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  color: var(--text-dim);
+  font-size: 14px;
+}
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 /* ─── Cards ─── */

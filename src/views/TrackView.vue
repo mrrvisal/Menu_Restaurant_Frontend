@@ -209,14 +209,40 @@ function streamUrl() {
   return `${API_BASE}/api/orders/track?order_id=${orderId.value}&token=${encodeURIComponent(token.value)}`;
 }
 
-function onStatus(event) {
+async function onStatus(event) {
   try {
-    order.value = JSON.parse(event.data);
+    const update = JSON.parse(event.data);
+    // SSE may send only status changes — ensure full order data is loaded
+    if (orderId.value && token.value) {
+      const full = await fetchFullOrder();
+      if (full) {
+        order.value = full;
+      } else {
+        // fallback: merge whatever SSE sent
+        order.value = { ...order.value, ...update };
+      }
+    } else {
+      order.value = update;
+    }
     currencyStore.setFrom(order.value);
     state.value = "live";
     attempts = 0;
   } catch {
     /* ignore malformed frames */
+  }
+}
+
+async function fetchFullOrder() {
+  if (!orderId.value || !token.value) return null;
+  try {
+    const res = await fetch(
+      `${API_BASE}/api/orders/${orderId.value}?token=${encodeURIComponent(token.value)}`,
+      { cache: "no-store" }
+    );
+    if (!res.ok) return null;
+    return res.json();
+  } catch {
+    return null;
   }
 }
 
@@ -232,6 +258,14 @@ async function connect() {
     return;
   }
   if (es) return;
+
+  // Fetch full order first so items/theme/total render immediately
+  // (SSE only streams status changes, not the complete payload)
+  const full = await fetchFullOrder();
+  if (full) {
+    order.value = full;
+    currencyStore.setFrom(order.value);
+  }
 
   try {
     const ctrl = new AbortController();
@@ -258,6 +292,9 @@ async function connect() {
     if (state.value === "live") state.value = "loading";
     scheduleRetry();
   };
+
+  // Mark live if we already have order data
+  if (order.value) state.value = "live";
 }
 
 onMounted(connect);
