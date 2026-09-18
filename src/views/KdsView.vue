@@ -53,16 +53,19 @@
         >
           {{ i18n.locale === "km" ? "EN" : "ខ្មែរ" }}
         </button>
-        <select
+        <AppSelect
           v-if="auth.restaurants.length > 1"
           class="kds-rest"
-          :value="auth.restaurantId"
-          @change="onSwitchRestaurant($event.target.value)"
-        >
-          <option v-for="r in auth.restaurants" :key="r.id" :value="r.id">
-            {{ r.name }}
-          </option>
-        </select>
+          size="md"
+          tone="plain"
+          variant="teal"
+          radius="10px"
+          :model-value="auth.restaurantId"
+          :options="auth.restaurants"
+          option-value="id"
+          option-label="name"
+          @update:model-value="onSwitchRestaurant"
+        />
         <button class="kds-btn" @click="showDone = !showDone">
           {{ showDone ? i18n.t.kds_hide_done : i18n.t.kds_show_done }}
         </button>
@@ -162,6 +165,7 @@ import { useI18nStore } from "@/stores/i18n";
 import { useThemeStore } from "@/stores/theme";
 import { useCurrencyStore } from "@/stores/currency";
 import AppIcon from "@/components/AppIcon.vue";
+import AppSelect from "@/components/AppSelect.vue";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 const auth = useAuthStore();
@@ -624,16 +628,16 @@ onUnmounted(() => {
   gap: 8px;
   flex-wrap: wrap;
 }
+/* Restaurant switcher (AppSelect) — dark-board tokens.
+   The closed control reads --surface/--border/--text from here; the
+   teleported option menu keeps AppSelect's white popup (readable on
+   the dark board) with the teal brand accents. */
 .kds-rest {
+  --as-border: var(--border-line);
+  --as-ink: var(--text);
+  --surface: var(--bg-card);
   max-width: 200px;
-  padding: 8px 10px;
-  border-radius: 8px;
-  border: 1px solid var(--border-line);
-  background: var(--bg-card);
-  color: var(--text);
-  font-family: inherit;
-  font-size: 12px;
-  font-weight: 600;
+  max-width: 60vw;
 }
 .kds-btn {
   display: inline-flex;
@@ -671,8 +675,7 @@ onUnmounted(() => {
    KH/EN, restaurant select, Hide done, Fullscreen, Back) is
    exactly the same height and radius — Khmer text has a taller
    line box and bare icons are shorter, which made them uneven. */
-.kds-acts .kds-btn,
-.kds-acts .kds-rest {
+.kds-acts .kds-btn {
   height: 38px;
   min-height: 38px;
   box-sizing: border-box;
@@ -690,9 +693,10 @@ onUnmounted(() => {
   font-weight: 800;
   letter-spacing: 0.3px;
 }
-/* Restaurant select — same height, slightly tighter padding */
-.kds-acts .kds-rest {
-  padding: 0 12px;
+/* Restaurant select — same 38px height as the other top-bar controls */
+.kds-acts .kds-rest :deep(.as-control) {
+  height: 38px;
+  font-weight: 600;
 }
 
 /* ─── Blank (no restaurant) ─── */

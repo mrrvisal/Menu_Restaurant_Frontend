@@ -13,8 +13,8 @@ export const demoCategories = [
   { id: 3, label_km: "បង្អែម", label_en: "Desserts", icon: "candy" },
 ];
 
-// `img` can be null — the UI falls back to `emoji` so a demo item never
-// shows a broken image.
+// `img` can be null — the UI then falls back to `icon`, an AppIcon name
+// (SVG) rendered by <AppIcon>, so a demo item never shows a broken image.
 export const demoFoods = [
   // ── Main dishes ─────────────────────────────────────────────
   {
@@ -42,7 +42,7 @@ export const demoFoods = [
     name_en: "Stir-Fried Frog",
     price: 10000,
     img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249185/maxresdefault_7_dn2dax.jpg",
-    emoji: "🍳",
+    icon: "plate",
   },
   {
     id: 104,
@@ -51,7 +51,7 @@ export const demoFoods = [
     name_en: "Fried Chicken Leg",
     price: 5000,
     img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249572/DSC_0039_pnh4pf.jpg",
-    emoji: "🍗",
+    icon: "burger",
   },
   {
     id: 105,
@@ -60,7 +60,7 @@ export const demoFoods = [
     name_en: "Fried Dried Fish",
     price: 4000,
     img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249572/79600669_1434979050004558_994592641955921920_n_nbkm2a.jpg",
-    emoji: "🐠",
+    icon: "fish",
   },
   // ── Drinks ──────────────────────────────────────────────────
   {
@@ -70,7 +70,7 @@ export const demoFoods = [
     name_en: "Iced Orange Juice",
     price: 8000,
     img: null,
-    emoji: "🥤",
+    icon: "cup",
   },
   {
     id: 202,
@@ -79,7 +79,7 @@ export const demoFoods = [
     name_en: "Iced Milk Coffee",
     price: 10000,
     img: null,
-    emoji: "☕",
+    icon: "cup",
   },
   {
     id: 203,
@@ -88,7 +88,7 @@ export const demoFoods = [
     name_en: "Sugarcane Juice",
     price: 6000,
     img: null,
-    emoji: "🧋",
+    icon: "cup",
   },
   {
     id: 204,
@@ -97,7 +97,7 @@ export const demoFoods = [
     name_en: "Cold Beer",
     price: 12000,
     img: null,
-    emoji: "🍺",
+    icon: "beer",
   },
   // ── Desserts ────────────────────────────────────────────────
   {
@@ -107,7 +107,7 @@ export const demoFoods = [
     name_en: "Grilled Banana",
     price: 4000,
     img: null,
-    emoji: "🍌",
+    icon: "banana",
   },
   {
     id: 302,
@@ -116,7 +116,7 @@ export const demoFoods = [
     name_en: "Sticky Rice Cake",
     price: 6000,
     img: null,
-    emoji: "🍙",
+    icon: "rice-ball",
   },
   {
     id: 303,
@@ -125,7 +125,7 @@ export const demoFoods = [
     name_en: "Palm Sugar Candy",
     price: 3000,
     img: null,
-    emoji: "🍬",
+    icon: "candy",
   },
 ];
 

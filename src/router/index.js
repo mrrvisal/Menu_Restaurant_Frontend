@@ -51,16 +51,6 @@ const routes = [
     component: () => import("@/views/DemoMenuView.vue"),
   },
   {
-    path: "/blog",
-    name: "Blog",
-    component: () => import("@/views/BlogView.vue"),
-  },
-  {
-    path: "/blog/:slug",
-    name: "BlogPost",
-    component: () => import("@/views/BlogPostView.vue"),
-  },
-  {
     path: "/dashboard",
     name: "Dashboard",
     component: () => import("@/views/AdminView.vue"),

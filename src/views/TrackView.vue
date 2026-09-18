@@ -2,7 +2,7 @@
    TrackView — Guest order tracking (/track)
    After placing an order from the QR menu the guest is redirected
    here with a one-time token. The page streams live status over
-   SSE:  ✅ Received → 👨‍🍳 Preparing → 🍽️ Ready → ✔️ Served
+   SSE: Received -> Preparing -> Ready -> Served (SVG step icons).
    Public route — protected by the per-order track token.
    ═══════════════════════════════════════════════════════════ -->
 <template>

@@ -134,7 +134,7 @@
             <p class="section-text">{{ i18n.t.owner_problem_desc }}</p>
           </div>
           <div class="problems-grid">
-            <article v-for="benefit in ownerBenefits" :key="benefit.title" class="problem-card" v-tilt="{ max: 9 }">
+            <article v-for="benefit in ownerBenefits" :key="benefit.title" class="problem-card">
               <div class="problem-card-num">{{ benefit.value }}</div>
               <h3>{{ i18n.t[benefit.title] }}</h3>
               <p>{{ i18n.t[benefit.desc] }}</p>
@@ -151,7 +151,7 @@
           <p class="section-text centered">{{ i18n.t.why_choose_us_desc }}</p>
         </div>
         <div class="features-grid">
-          <article v-for="feature in features" :key="feature.key" class="feature-card" v-tilt="{ max: 9 }" :style="{ '--delay': `${features.indexOf(feature) * 0.06}s` }">
+          <article v-for="feature in features" :key="feature.key" class="feature-card">
             <div class="feature-icon" v-html="feature.icon"></div>
             <h3>{{ i18n.t[feature.key + "_title"] }}</h3>
             <p>{{ i18n.t[feature.key + "_desc"] }}</p>
@@ -167,9 +167,9 @@
             <h2 class="section-title">{{ i18n.t.sample_menu_title }}</h2>
             <p class="section-text">{{ i18n.t.sample_menu_desc }}</p>
             <div class="demo-tags">
-              <span><AppIcon name="qr" :size="14" /> {{ i18n.t.live_table_qr }}</span>
-              <span><AppIcon name="activity" :size="14" /> {{ i18n.t.fast_checkout }}</span>
-              <span><AppIcon name="image" :size="14" /> {{ i18n.t.photo_menu }}</span>
+              <span>{{ i18n.t.live_table_qr }}</span>
+              <span>{{ i18n.t.fast_checkout }}</span>
+              <span>{{ i18n.t.photo_menu }}</span>
             </div>
             <div class="demo-cta-row">
               <router-link to="/demo" class="demo-cta-btn">
@@ -216,7 +216,7 @@
           <p class="section-text centered">{{ i18n.t.how_it_works_desc }}</p>
         </div>
         <div class="steps-timeline">
-          <div v-for="(step, index) in steps" :key="step.title" class="step-card sel-light" v-tilt="{ max: 10 }" :style="{ '--i': index }">
+          <div v-for="(step, index) in steps" :key="step.title" class="step-card sel-light" :style="{ '--i': index }">
             <div class="step-number">{{ String(index + 1).padStart(2, "0") }}</div>
             <div class="step-connector" v-if="index < steps.length - 1"></div>
             <h3>{{ i18n.t[step.title] }}</h3>
@@ -227,16 +227,10 @@
 
       <!-- CTA -->
       <section class="cta-section">
-        <div class="cta-bg-shapes">
-          <div class="cta-shape cta-shape-1"></div>
-          <div class="cta-shape cta-shape-2"></div>
-        </div>
         <div class="cta-inner">
-          <div class="cta-icon-wrapper">
-            <svg viewBox="0 0 32 32" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M16 4C9 4 5 9 5 14c0 6 5 8 11 12 6-4 11-6 11-12 0-5-4-10-11-10Z"/>
-              <circle cx="16" cy="13" r="3"/>
-            </svg>
+          <div class="cta-bg-shapes">
+            <div class="cta-shape cta-shape-1"></div>
+            <div class="cta-shape cta-shape-2"></div>
           </div>
           <h2>{{ i18n.t.cta_title }}</h2>
           <p>{{ i18n.t.cta_subtitle }}</p>
@@ -252,19 +246,6 @@
 
     <!-- FOOTER -->
     <footer class="footer sel-light">
-      <div class="footer-bg-overlay"></div>
-      <div class="footer-inner">
-        <div class="footer-brand">
-          <div class="footer-logo-wrapper">
-            <img src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png" width="32" height="32" alt="" style="border-radius: 8px; object-fit: cover;" />
-          </div>
-          <div class="footer-brand-text">
-            <strong>{{ i18n.t.app_name }}</strong>
-            <p>{{ i18n.t.footer_desc }}</p>
-          </div>
-        </div>
-      </div>
-      <div class="footer-divider"></div>
       <div class="footer-bottom">
         <p>&copy; {{ new Date().getFullYear() }} {{ i18n.t.app_name }}. {{ i18n.t.all_rights_reserved }}</p>
       </div>
@@ -758,16 +739,30 @@ onUnmounted(() => {
 }
 
 .hero-badge {
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 20px;
-  background: rgba(34,197,94,0.1);
-  color: #15803d;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  margin-bottom: 20px;
+  display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #166534;
+      background: transparent;
+      padding: 0.4rem 0.95rem;
+      border-radius: 100px;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
 }
+.hero-badge::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e, 0 0 20px #22c55e;
+      animation: pulse 1.5s infinite;
+    }
 .hero-title {
   margin: 0;
   font-size: clamp(32px, 6.5vw, 68px);
@@ -1091,6 +1086,35 @@ onUnmounted(() => {
   text-transform: uppercase;
   margin-bottom: 14px;
 }
+.section-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: #15803d;
+      background: transparent;
+      padding: 0.4rem 0.95rem;
+      border-radius: 100px;
+      margin-bottom: 1.5rem;
+      border: 1px solid rgba(34, 197, 94, 0.35);
+      box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
+    }
+.section-tag::before {
+      content: '';
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 10px #22c55e, 0 0 20px #22c55e;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+@keyframes pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.3); opacity: 0.5; }
+    }
 .section-title {
   margin: 0 0 14px;
   font-size: clamp(22px, 3vw, 34px);
@@ -1114,47 +1138,72 @@ onUnmounted(() => {
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
 }
+
+/* ── problem card: green accent bar (short) + green outline on hover ── */
 .problem-card {
-  padding: 24px;
-  border-radius: 16px;
-  background: #fff;
-  border: 1px solid rgba(0, 0, 0, 0.04);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0);
-  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.25s ease, border-color 0.25s ease;
-  will-change: transform;
-}
-.problem-card:hover {
-  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0) translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-  border-color: rgba(34, 197, 94, 0.2);
-}
-.problem-card.is-tilt {
-  transition: transform 80ms linear, box-shadow 0.25s ease, border-color 0.25s ease;
-}
-.problem-card-num {
-  width: 36px; height: 36px;
+  position: relative;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-  background: #f0fdf4;
-  color: #166534;
-  font-size: 12px;
-  font-weight: 900;
-  margin-bottom: 16px;
+  flex-direction: column;
+  padding: 28px 28px 28px 44px;
+  border-radius: 20px;
+  background: #fff;
+  border: 1.5px solid transparent; /* keeps size stable when the outline appears */
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+  /* No transform and no hover-lift: every card keeps the exact same size and
+     position, so the row never looks uneven. Grid stretch equalises heights. */
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+/* left accent bar — short strip next to the number by default */
+.problem-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 24px;
+  width: 4px;
+  height: 52px;
+  background: linear-gradient(180deg, #22c55e, #16a34a);
+  border-radius: 0 3px 3px 0;
+  transition:
+    top 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+    height 0.45s cubic-bezier(0.2, 0.7, 0.2, 1),
+    border-radius 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* hover: green outline around the card + bar stretches to full height */
+.problem-card:hover {
+  border-color: #22c55e;
+  box-shadow: 0 10px 24px rgba(34, 197, 94, 0.13);
+}
+.problem-card:hover::before {
+  top: 0;
+  height: 100%;
+  border-radius: 20px 0 0 20px; /* follows the card's rounded corners */
+}
+
+/* mono green number */
+.problem-card-num {
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  color: #22c55e;
+  margin-bottom: 12px; /* number → title */
 }
 .problem-card h3 {
-  margin: 0 0 8px;
-  font-size: 16px;
+  margin: 0 0 8px; /* title → description */
+  font-size: 19px;
   font-weight: 800;
+  line-height: 1.25;
   color: #14532d;
 }
 .problem-card p {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.6;
-  color: #6b7280;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #4a6650;
 }
 @media (max-width: 820px) {
   .problems-inner {
@@ -1185,48 +1234,76 @@ onUnmounted(() => {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 16px;
 }
+
+/* ── feature card: ICON CIRCLE OVERLAP design ── */
 .feature-card {
-  padding: 28px;
-  border-radius: 16px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin-top: 38px; /* head-room so the badge can overlap above the card */
+  padding: 58px 26px 28px;
+  border-radius: 24px;
   background: #fff;
   border: 1px solid rgba(0, 0, 0, 0.04);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
-  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0);
-  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease, border-color 0.3s ease;
-  will-change: transform;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  /* No transform and no hover-lift: all cards in the row stay identical. */
+  transition: box-shadow 0.3s ease, border-color 0.3s ease;
 }
 .feature-card:hover {
-  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0) translateY(-4px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.06);
-  border-color: rgba(34, 197, 94, 0.15);
+  box-shadow: 0 14px 32px rgba(34, 197, 94, 0.13);
+  border-color: rgba(34, 197, 94, 0.25);
 }
-.feature-card.is-tilt {
-  transition: transform 80ms linear, box-shadow 0.3s ease, border-color 0.3s ease;
-}
+
+/* the overlapping badge — sticks out of the card's top-left corner */
 .feature-icon {
-  width: 48px;
-  height: 48px;
+  position: absolute;
+  top: -34px;
+  left: 26px;
+  width: 68px;
+  height: 68px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
-  background: #f0fdf4;
-  color: #22c55e;
-  margin-bottom: 18px;
+  border-radius: 22px; /* squircle, like the mock */
+  background: linear-gradient(135deg, #34d399 0%, #16a34a 100%);
+  color: #fff;
+  border: 4px solid #fff; /* white ring that separates it from the card */
+  box-shadow:
+    0 5px 14px rgba(34, 197, 94, 0.35),
+    0 2px 6px rgba(0, 0, 0, 0.06);
+  z-index: 2;
+  transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+.feature-card:hover .feature-icon {
+  transform: translateY(-4px) scale(1.06);
 }
 .feature-icon :deep(svg) {
-  width: 24px;
-  height: 24px;
+  width: 30px;
+  height: 30px;
+}
+@media (max-width: 480px) {
+  .feature-card {
+    margin-top: 34px;
+    padding: 54px 22px 26px;
+  }
+  .feature-icon {
+    top: -30px;
+    left: 22px;
+    width: 60px;
+    height: 60px;
+    border-radius: 19px;
+  }
 }
 .feature-card h3 {
   margin: 0 0 8px;
-  font-size: 17px;
+  font-size: 19px;
   font-weight: 800;
+  line-height: 1.25;
   color: #14532d;
 }
 .feature-card p {
   margin: 0;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.65;
   color: #6b7280;
 }
@@ -1256,10 +1333,10 @@ onUnmounted(() => {
   margin-top: 24px;
 }
 .demo-tags span {
-  padding: 8px 14px;
+  padding: 10px 16px;
   border-radius: 20px;
   background: #fff;
-  border: 1px solid rgba(0,0,0,0.04);
+  border: 1px solid rgba(26, 193, 0, 0.4);
   font-size: 12px;
   font-weight: 700;
   color: #374151;
@@ -1586,76 +1663,216 @@ onUnmounted(() => {
   width: min(1180px, 100%);
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 28px;
+  perspective: 1200px; /* depth for the cards' translateZ children */
 }
+
+/* tokens — light theme to match the rest of the landing page */
 .step-card {
+  --card: #ffffff;
+  --card-2: #f0fdf4;
+  --line: rgba(0, 0, 0, 0.05);
+  --accent: #22c55e;
+  --accent-2: #86efac;
+  --muted: #6b7280;
+
   position: relative;
-  padding: 28px;
-  border-radius: 16px;
-  background: linear-gradient(135deg, #166534, #22c55e);
-  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0);
-  transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1), box-shadow 0.3s ease;
-  will-change: transform;
+  padding: 30px 26px 28px;
+  border-radius: 18px;
+  background: linear-gradient(160deg, var(--card) 0%, var(--card-2) 100%);
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  transform: perspective(900px); /* depth for the translateZ children only */
+  transform-style: preserve-3d; /* required for the translateZ children */
+  isolation: isolate;
+  transition: border-color 0.35s ease, box-shadow 0.35s ease;
+  animation: step-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--i, 0) * 110ms);
+}
+
+/* gradient border that fades in on hover */
+.step-card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--accent), var(--accent-2));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity 0.35s ease;
+  pointer-events: none;
+}
+.step-card:hover::before {
+  opacity: 1;
 }
 .step-card:hover {
-  transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0) translateY(-4px);
-  box-shadow: 0 12px 32px rgba(22, 101, 52, 0.25);
+  border-color: rgba(34, 197, 94, 0.2);
+  box-shadow: 0 12px 32px rgba(20, 83, 45, 0.1);
 }
-.step-card.is-tilt {
-  transition: transform 80ms linear, box-shadow 0.3s ease;
-}
+
+/* number */
 .step-number {
-  font-size: 28px;
-  font-weight: 900;
-  color: rgba(255,255,255,0.7);
-  margin-bottom: 20px;
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 44px;
+  font-weight: 700;
   line-height: 1;
-  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: -0.04em;
+  background: linear-gradient(135deg, #166534, var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0.9;
+  margin-bottom: 18px;
+  transform: translateZ(38px);
+  transition: transform 0.35s ease;
 }
 .step-card:hover .step-number {
-  color: rgba(255,255,255,1);
+  transform: translateZ(52px) scale(1.04);
 }
+
+/* dashed connector to the next card */
+.step-connector {
+  position: absolute;
+  top: 44px;
+  right: -28px; /* must match .steps-timeline gap */
+  width: 28px;
+  height: 2px;
+  background: repeating-linear-gradient(90deg, rgba(34, 197, 94, 0.35) 0 6px, transparent 6px 12px);
+}
+.step-connector::after {
+  content: "";
+  position: absolute;
+  right: -1px;
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  transform: translateY(-50%);
+  background: var(--accent);
+  box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.2);
+}
+
+/* text */
 .step-card h3 {
-  margin: 0 0 8px;
-  font-size: 16px;
+  margin: 0 0 10px;
+  font-size: 17px;
   font-weight: 800;
-  color: #fff;
+  letter-spacing: -0.01em;
+  color: #14532d;
+  transform: translateZ(24px);
 }
 .step-card p {
   margin: 0;
   font-size: 13px;
-  line-height: 1.6;
-  color: rgba(255,255,255,0.7);
+  line-height: 1.65;
+  color: var(--muted);
+  transform: translateZ(14px);
 }
-.step-connector {
-  position: absolute;
-  top: 40px;
-  right: -12px;
-  width: 12px;
-  height: 2px;
-  background: rgba(34,197,94,0.3);
+
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  /* no transform in `to` so the card keeps its own perspective transform */
+  to {
+    opacity: 1;
+  }
 }
+
 @media (max-width: 820px) {
   .steps-timeline {
     grid-template-columns: repeat(2, 1fr);
   }
-  .step-connector { display: none; }
+  .step-connector {
+    display: none;
+  }
 }
-@media (max-width: 500px) {
-  .steps-timeline { grid-template-columns: 1fr; }
+
+/* stacked layout — connector turns vertical */
+@media (max-width: 640px) {
+  .steps-timeline {
+    grid-template-columns: 1fr;
+    gap: 34px;
+  }
+  .step-connector {
+    display: block;
+    top: auto;
+    bottom: -34px;
+    right: auto;
+    left: 40px;
+    width: 2px;
+    height: 34px;
+    background: repeating-linear-gradient(180deg, rgba(34, 197, 94, 0.35) 0 6px, transparent 6px 12px);
+  }
+  .step-connector::after {
+    right: auto;
+    left: 50%;
+    top: auto;
+    bottom: -1px;
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step-card {
+    animation: none;
+  }
 }
 
 /* ============================================================
-   CTA SECTION
+   CTA SECTION — white rounded card, mint corner circles,
+   green arcs peeking from the section corners, pill button
    ============================================================ */
 .cta-section {
   position: relative;
-  padding: 100px 24px;
-  background: linear-gradient(160deg, rgba(240, 253, 244, 0.5) 0%, rgba(220, 252, 231, 0.42) 30%, rgba(240, 253, 244, 0.5) 60%, rgba(232, 245, 233, 0.55) 100%);
+  padding: 90px 24px;
   text-align: center;
   overflow: hidden;
 }
+
+/* thin green arcs peeking from the section corners */
+.cta-section::before,
+.cta-section::after {
+  content: "";
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  border-radius: 50%;
+  border: 2.5px solid rgba(34, 197, 94, 0.4);
+  pointer-events: none;
+  z-index: 0;
+}
+.cta-section::before {
+  top: -135px;
+  right: -135px;
+}
+.cta-section::after {
+  bottom: -135px;
+  left: -135px;
+}
+
+/* the big white card */
+.cta-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 70px 32px;
+  border-radius: 36px;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.03);
+  box-shadow:
+    0 24px 60px rgba(20, 83, 45, 0.08),
+    0 6px 18px rgba(0, 0, 0, 0.03);
+  overflow: hidden;
+}
+
+/* soft mint circles clipped inside the card corners */
 .cta-bg-shapes {
   position: absolute;
   inset: 0;
@@ -1666,175 +1883,127 @@ onUnmounted(() => {
   border-radius: 50%;
 }
 .cta-shape-1 {
-  width: 400px; height: 400px;
-  background: radial-gradient(circle, rgba(255,255,255,0.03), transparent 70%);
-  top: -100px; right: -80px;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle at 35% 35%, #dcf8ea, #b6ebcc);
+  top: -190px;
+  right: -120px;
 }
 .cta-shape-2 {
-  width: 300px; height: 300px;
-  background: radial-gradient(circle, rgba(255,255,255,0.03), transparent 70%);
-  bottom: -80px; left: -60px;
+  width: 320px;
+  height: 320px;
+  background: radial-gradient(circle at 60% 60%, #dcf8ea, #c0eed4);
+  bottom: -170px;
+  left: -110px;
 }
-.cta-inner {
-  position: relative;
-  z-index: 2;
-  max-width: 640px;
-  margin: 0 auto;
-}
-.cta-icon-wrapper {
-  width: 72px;
-  height: 72px;
-  margin: 0 auto 20px;
-  border-radius: 18px;
-  background: rgba(34,197,94,0.15);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #14532d;
-}
+
 .cta-inner h2 {
+  position: relative;
   margin: 0 0 14px;
-  font-size: clamp(24px, 4vw, 38px);
+  font-size: clamp(24px, 4vw, 34px);
   font-weight: 900;
   line-height: 1.15;
   color: #14532d;
 }
 .cta-inner p {
-  color: #4a6650;
+  position: relative;
+  color: #6b7280;
   font-size: 15px;
   line-height: 1.7;
-  margin-bottom: 30px;
+  margin-bottom: 34px;
 }
 .cta-btn {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 15px 34px;
-  border-radius: 12px;
-  background: #fff;
+  gap: 10px;
+  padding: 18px 44px;
+  border-radius: 999px; /* pill, like the mock */
+  background: #15803d;
   color: #fff;
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 800;
   text-decoration: none;
-  transition: all 0.25s;
-  background: linear-gradient(135deg, #166534, #22c55e);
+  box-shadow: 0 10px 26px rgba(21, 128, 61, 0.35);
+  transition: transform 0.25s, box-shadow 0.25s, background 0.25s;
 }
 .cta-btn:hover {
+  background: #166534;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  box-shadow: 0 16px 34px rgba(21, 128, 61, 0.42);
+}
+.cta-btn svg {
+  transition: transform 0.25s ease;
+}
+.cta-btn:hover svg {
+  transform: translateX(3px);
+}
+
+@media (max-width: 640px) {
+  .cta-section {
+    padding: 50px 14px;
+  }
+  .cta-inner {
+    padding: 64px 20px;
+    border-radius: 26px;
+  }
+  .cta-shape-1 {
+    width: 260px;
+    height: 260px;
+    top: -140px;
+    right: -90px;
+  }
+  .cta-shape-2 {
+    width: 220px;
+    height: 220px;
+    bottom: -120px;
+    left: -80px;
+  }
 }
 
 /* ============================================================
-   FOOTER
+   FOOTER — rounded inset card, centered brand, socials
    ============================================================ */
 .footer {
   position: relative;
   z-index: 1;
-  padding: 50px 24px 24px;
-  background: linear-gradient(135deg, #166534, #22c55e);
-  -webkit-backdrop-filter: blur(10px);
-  backdrop-filter: blur(10px);
+  margin: 0 12px 12px;
+  padding: 20px 32px 20px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, #166534 0%, #1f9a4a 55%, #22c55e 100%);
   overflow: hidden;
-}
-.footer-bg-overlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.06) 0%, transparent 60%);
-  pointer-events: none;
-}
-.footer-inner {
-  position: relative;
-  z-index: 2;
-  width: min(1180px, 100%);
-  margin: 0 auto;
-  display: flex;
-  justify-content: center;
-  gap: 40px;
-  flex-wrap: wrap;
-}
-.footer-brand {
-  max-width: 400px;
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-}
-.footer-brand-text {
-  flex: 1;
-}
-.footer-logo-wrapper {
-  width: 44px;
-  height: 44px;
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  filter: brand-logo(0.8) brightness(1.5) contrast(1.2);
-}
-.footer-brand strong {
-  display: block;
-  font-size: 16px;
-  font-weight: 800;
-  color: #fff;
-  margin-bottom: 4px;
-}
-.footer-brand p {
-  margin: 0;
-  font-size: 13px;
-  line-height: 1.65;
-  color: rgba(255, 255, 255, 0.6);
-}
-.footer-links {
-  display: flex;
-  gap: 48px;
-}
-.footer-col h4 {
-  margin: 0 0 14px;
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: rgba(255, 255, 255, 0.5);
-}
-.footer-col a {
-  display: block;
-  color: rgba(255, 255, 255, 0.7);
-  text-decoration: none;
-  font-size: 13px;
-  margin-bottom: 8px;
-  transition: color 0.15s;
-}
-.footer-col a:hover {
-  color: #fff;
-}
-.footer-divider {
-  position: relative;
-  z-index: 2;
-  width: min(1180px, 100%);
-  margin: 36px auto 0;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.1);
 }
 .footer-bottom {
   position: relative;
   z-index: 2;
   width: min(1180px, 100%);
-  margin: 16px auto 0;
-  text-align: center;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .footer-bottom p {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.85);
   margin: 0;
 }
 @media (max-width: 640px) {
-  .footer-inner {
-    flex-direction: column;
+  .footer {
+    margin: 0 8px 8px;
+    padding: 44px 20px 16px;
+    border-radius: 20px;
   }
-  .footer-links {
-    gap: 32px;
+  .footer-name {
+    font-size: 22px;
+  }
+  .footer-bottom {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+  }
+  .footer-nav {
+    justify-content: center;
+    gap: 20px;
   }
 }
 @media (max-width: 920px) {

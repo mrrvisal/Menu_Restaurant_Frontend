@@ -178,6 +178,18 @@
             orders.length
           }}</span>
         </button>
+        <!-- Sales reports — the screen owners judge the SaaS by -->
+        <button
+          class="nav-i"
+          :class="{ active: adminTab === 'reports' }"
+          @click="
+            openReports();
+            showMobile = false;
+          "
+        >
+          <AppIcon name="chart" :size="18" />
+          <span>{{ i18n.t.reports || "Reports" }}</span>
+        </button>
         <!-- Kitchen Display System — opens on its own (wall) screen -->
         <button class="nav-i" @click="openKds">
           <AppIcon name="chef" :size="18" />
@@ -209,15 +221,18 @@
 
     <!-- ─── MAIN ─── -->
     <main class="main">
-      <!-- Header -->
-      <div class="hdr">
+      <!-- Header (sticky — see .hdr in the stylesheet; hdrEl feeds --hdr-h) -->
+      <div class="hdr" ref="hdrEl">
         <div class="hdr-l">
           <h1 class="hdr-title">
+            <AppIcon name="sparkle" :size="18" class="hdr-title-i" />
             {{
               adminTab === "foods"
                 ? i18n.t.foods
                 : adminTab === "categories"
                 ? i18n.t.categories
+                : adminTab === "reports"
+                ? i18n.t.reports || "Reports"
                 : i18n.t.orders
             }}
           </h1>
@@ -401,7 +416,7 @@
           </div>
           <div class="metric-b">
             <span class="metric-v"
-              >{{ currencyStore.fmt(stats.totalRevenue) }}</span
+              >{{ currencyStore.fmt(stats.summary?.revenue ?? stats.totalRevenue) }}</span
             >
             <span class="metric-l">{{ i18n.t.revenue }}</span>
           </div>
@@ -424,7 +439,7 @@
             </svg>
           </div>
           <div class="metric-b">
-            <span class="metric-v">{{ stats.totalOrders || 0 }}</span>
+            <span class="metric-v">{{ stats.summary?.orders ?? (stats.totalOrders || 0) }}</span>
             <span class="metric-l">{{ i18n.t.orders }}</span>
           </div>
           <div class="metric-glow"></div>
@@ -733,7 +748,9 @@
           <div v-for="order in orders" :key="order.id" class="order-c">
             <div class="order-h">
               <div class="order-hl">
-                <span class="order-id">#{{ order.id }}</span>
+                <span class="order-id"
+                  ><AppIcon name="clipboard" :size="12" />#{{ order.id }}</span
+                >
                 <span class="order-t"
                   ><svg
                     width="12"
@@ -751,9 +768,10 @@
                 >
               </div>
               <div class="order-m">
-                <span class="order-st" :class="order.status">{{
-                  statusLabel(order.status)
-                }}</span>
+                <span class="order-st" :class="order.status">
+                  <AppIcon :name="statusIcon(order.status)" :size="11" />
+                  {{ statusLabel(order.status) }}
+                </span>
                 <span class="order-time">{{
                   formatDate(order.created_at)
                 }}</span>
@@ -804,11 +822,280 @@
                   :class="'st-' + s"
                   @click="updateOrderStatus(order.id, s)"
                 >
+                  <AppIcon :name="statusIcon(s)" :size="11" />
                   {{ statusLabel(s) }}
                 </button>
               </div>
             </div>
           </div>
+        </div>
+      </template>
+      <!-- ──────── REPORTS ──────── -->
+      <template v-if="adminTab === 'reports'">
+        <!-- Filter panel (left) + summary cards (right) -->
+        <div class="rep-top">
+        <div class="rep-side">
+        <!-- Filters: presets / range / grouping / export -->
+        <div class="bar rep-bar">
+          <div class="rep-presets">
+            <button
+              v-for="p in reportPresets"
+              :key="p.key"
+              class="chip"
+              :class="{ active: reportPreset === p.key }"
+              @click="applyReportPreset(p.key)"
+            >
+              {{ p.label }}
+            </button>
+          </div>
+          <div class="rep-controls">
+            <label class="rep-date">
+              <span>{{ i18n.t.report_from }}</span>
+              <AppDatePicker
+                v-model="reportStartDate"
+                :max="reportEndDate"
+                @change="
+                  reportPreset = 'custom';
+                  fetchReport();
+                "
+              />
+            </label>
+            <label class="rep-date">
+              <span>{{ i18n.t.report_to }}</span>
+              <AppDatePicker
+                v-model="reportEndDate"
+                :min="reportStartDate"
+                @change="
+                  reportPreset = 'custom';
+                  fetchReport();
+                "
+              />
+            </label>
+            <div class="rep-groups">
+              <button
+                v-for="g in reportGroups"
+                :key="g.key"
+                class="chip"
+                :class="{ active: reportGroup === g.key }"
+                @click="
+                  reportGroup = g.key;
+                  fetchReport();
+                "
+              >
+                {{ g.label }}
+              </button>
+            </div>
+          </div>
+          <div class="rep-export">
+            <AppSelect
+              v-model="reportDataset"
+              :options="reportDatasets"
+              size="md"
+              tone="soft"
+              variant="teal"
+            />
+            <button
+              class="ac ac-primary"
+              :disabled="reportExporting"
+              @click="exportReport"
+            >
+              <AppIcon name="download" :size="14" />
+              {{ reportExporting ? i18n.t.report_exporting : i18n.t.report_export }}
+            </button>
+          </div>
+        </div>
+        <div
+          v-if="reportExportMsg"
+          class="msg rep-msg"
+          :class="reportExportError ? 'msg-e' : 'msg-s'"
+        >
+          <AppIcon
+            :name="reportExportError ? 'alert-circle' : 'check-circle'"
+            :size="14"
+          />
+          {{ reportExportMsg }}
+        </div>
+        </div>
+
+        <div class="rep-main-col">
+        <div v-if="reportLoading" class="empty">
+          <div class="spinner"></div>
+          <p>{{ i18n.t.loading }}</p>
+        </div>
+        <div v-else-if="reportError" class="empty">
+          <AppIcon name="alert-circle" :size="34" />
+          <p>{{ reportError }}</p>
+        </div>
+        <template v-else>
+          <!-- Summary cards -->
+          <div class="rep-cards">
+            <div class="rep-card">
+              <div class="rep-card-i rep-i-teal"><AppIcon name="money" :size="18" /></div>
+              <div class="metric-b">
+                <span class="metric-v">{{ currencyStore.fmt(report.summary?.revenue) }}</span>
+                <span class="metric-l">{{ i18n.t.revenue }}</span>
+              </div>
+            </div>
+            <div class="rep-card">
+              <div class="rep-card-i rep-i-green"><AppIcon name="orders" :size="18" /></div>
+              <div class="metric-b">
+                <span class="metric-v">{{ report.summary?.orders ?? 0 }}</span>
+                <span class="metric-l">{{ i18n.t.orders }}</span>
+              </div>
+            </div>
+            <div class="rep-card">
+              <div class="rep-card-i rep-i-blue"><AppIcon name="chart" :size="18" /></div>
+              <div class="metric-b">
+                <span class="metric-v">{{ currencyStore.fmt(report.summary?.avgOrderValue) }}</span>
+                <span class="metric-l">{{ i18n.t.report_avg_order }}</span>
+              </div>
+            </div>
+            <div class="rep-card">
+              <div class="rep-card-i rep-i-amber"><AppIcon name="food" :size="18" /></div>
+              <div class="metric-b">
+                <span class="metric-v">{{ report.summary?.itemsSold ?? 0 }}</span>
+                <span class="metric-l">{{ i18n.t.report_items_sold }}</span>
+              </div>
+            </div>
+            <div class="rep-card" :class="{ 'rep-card-dim': !report.summary?.cancelledOrders }">
+              <div class="rep-card-i rep-i-red"><AppIcon name="x-circle" :size="18" /></div>
+              <div class="metric-b">
+                <span class="metric-v">{{ report.summary?.cancelledOrders ?? 0 }}</span>
+                <span class="metric-l">{{ i18n.t.cancelled }} · {{ currencyStore.fmt(report.summary?.cancelledRevenue) }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Revenue chart -->
+          <div class="rep-panel">
+            <div class="rep-panel-h">
+              <span><AppIcon name="chart" :size="15" /> {{ i18n.t.report_chart_title }}</span>
+              <span v-if="report.summary?.bestPeriod" class="rep-panel-sub">
+                {{ i18n.t.report_best_period }}: {{ report.summary.bestPeriod.label }} ·
+                {{ currencyStore.fmt(report.summary.bestPeriod.revenue) }}
+              </span>
+            </div>
+            <SalesChart
+              :points="reportSeriesPoints"
+              :color="chartColor"
+              :format-value="(v) => currencyStore.fmt(v)"
+              :format-axis="fmtAxis"
+              :aria-label="i18n.t.report_chart_title"
+              :empty-text="i18n.t.no_data"
+            />
+          </div>
+          <div class="rep-two">
+            <!-- Top-selling dishes -->
+            <div class="rep-panel">
+              <div class="rep-panel-h">
+                <span><AppIcon name="food" :size="15" /> {{ i18n.t.report_top_title }}</span>
+              </div>
+              <div v-if="!report.topItems?.length" class="rep-empty">{{ i18n.t.no_data }}</div>
+              <div v-else class="rep-rows">
+                <div
+                  v-for="(item, i) in report.topItems"
+                  :key="item.name"
+                  class="rep-row"
+                >
+                  <span class="rep-rank">{{ i + 1 }}</span>
+                  <div class="rep-row-b">
+                    <span class="rep-row-l">{{ item.name }}</span>
+                    <div class="rep-row-bar">
+                      <span
+                        :style="{ width: topItemWidth(item) }"
+                        :title="currencyStore.fmt(item.revenue)"
+                      ></span>
+                    </div>
+                  </div>
+                  <span class="rep-row-v">
+                    <strong>{{ item.qty }}</strong>
+                    <em>{{ i18n.t.report_qty }}</em>
+                    <b>{{ currencyStore.fmt(item.revenue) }}</b>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Orders by hour -->
+            <div class="rep-panel">
+              <div class="rep-panel-h">
+                <span><AppIcon name="clock" :size="15" /> {{ i18n.t.report_hours_title }}</span>
+              </div>
+              <SalesChart
+                :points="reportHourPoints"
+                :color="chartColor"
+                :format-value="(v) => `${v} ${i18n.t.orders}`"
+                :format-axis="(v) => v"
+                :aria-label="i18n.t.report_hours_title"
+                :empty-text="i18n.t.no_data"
+              />
+            </div>
+          </div>
+
+          <div class="rep-two">
+            <!-- Orders by table -->
+            <div class="rep-panel">
+              <div class="rep-panel-h">
+                <span><AppIcon name="table" :size="15" /> {{ i18n.t.report_tables_title }}</span>
+              </div>
+              <div v-if="!report.byTable?.length" class="rep-empty">{{ i18n.t.no_data }}</div>
+              <div v-else class="rep-rows">
+                <div
+                  v-for="row in report.byTable"
+                  :key="row.table_no"
+                  class="rep-row"
+                >
+                  <div class="rep-row-b">
+                    <span class="rep-row-l">{{ i18n.t.table }} {{ row.table_no }}</span>
+                    <div class="rep-row-bar">
+                      <span
+                        :style="{ width: tableBarWidth(row) }"
+                        :title="currencyStore.fmt(row.revenue)"
+                      ></span>
+                    </div>
+                  </div>
+                  <span class="rep-row-v">
+                    <strong>{{ row.orders }}</strong>
+                    <b>{{ currencyStore.fmt(row.revenue) }}</b>
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status breakdown -->
+            <div class="rep-panel">
+              <div class="rep-panel-h">
+                <span><AppIcon name="orders" :size="15" /> {{ i18n.t.report_status_title }}</span>
+              </div>
+              <div v-if="!report.byStatus?.length" class="rep-empty">{{ i18n.t.no_data }}</div>
+              <div v-else class="rep-rows">
+                <div
+                  v-for="row in report.byStatus"
+                  :key="row.status"
+                  class="rep-row"
+                >
+                  <span class="order-st" :class="row.status">
+                    <AppIcon :name="statusIcon(row.status)" :size="11" />
+                    {{ statusLabel(row.status) }}
+                  </span>
+                  <div class="rep-row-b">
+                    <div class="rep-row-bar">
+                      <span
+                        :style="{ width: statusBarWidth(row) }"
+                        :title="currencyStore.fmt(row.revenue)"
+                      ></span>
+                    </div>
+                  </div>
+                  <span class="rep-row-v">
+                    <strong>{{ row.orders }}</strong>
+                    <b>{{ currencyStore.fmt(row.revenue) }}</b>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+        </div>
         </div>
       </template>
     </main>
@@ -1631,10 +1918,13 @@
                         class="dev-flags"
                       >
                         <span v-if="device.isProxy" class="dev-flag">
-                          ⚠ {{ i18n.t.device_vpn_flag || "VPN / Proxy" }}</span
+                          <AppIcon name="alert-circle" :size="11" />
+                          {{
+                            i18n.t.device_vpn_flag || "VPN / Proxy"
+                          }}</span
                         >
                         <span v-if="device.isHosting" class="dev-flag">
-                          ⚠
+                          <AppIcon name="alert-circle" :size="11" />
                           {{
                             i18n.t.device_hosting_flag || "Server / Hosting IP"
                           }}</span
@@ -2277,9 +2567,14 @@
                   }}
                 </p>
                 <div class="push-row">
-                  <span class="push-state" :class="'push-st-' + pushState"
-                    >{{ pushStateLabel }}</span
-                  >
+                  <span class="push-state" :class="'push-st-' + pushState">
+                    <AppIcon
+                      v-if="pushState === 'enabled'"
+                      name="bell"
+                      :size="12"
+                    />
+                    {{ pushStateLabel }}
+                  </span>
                   <button
                     type="button"
                     class="btn btn-sm"
@@ -2378,7 +2673,9 @@ import { useI18nStore } from "@/stores/i18n";
 import FoodCard from "@/components/FoodCard.vue";
 import FoodFormModal from "@/components/FoodFormModal.vue";
 import AppSelect from "@/components/AppSelect.vue";
+import AppDatePicker from "@/components/AppDatePicker.vue";
 import AppIcon from "@/components/AppIcon.vue";
+import SalesChart from "@/components/SalesChart.vue";
 import NotificationBell from "@/components/NotificationBell.vue";
 import { useThemeStore } from "@/stores/theme";
 import { useNotificationsStore } from "@/stores/notifications";
@@ -2425,6 +2722,11 @@ const settingsCurrencyError = ref("");
 const currencySubmitting = ref(false);
 const profileMenuOpen = ref(false);
 const profileWrap = ref(null);
+// Sticky page header (see .hdr in the stylesheet). Its measured height is
+// published as --hdr-h on .main so the sticky Reports filter panel
+// (.rep-side) can park exactly underneath it.
+const hdrEl = ref(null);
+let hdrResizeObserver = null;
 const profileName = ref("");
 const profileCurrency = ref("KHR");
 const profileRate = ref(4100);
@@ -2694,7 +2996,8 @@ const pushStateLabel = computed(() => {
   const t = i18n.t;
   switch (pushState.value) {
     case "enabled":
-      return `🔔 ${t.push_on || "On"}`;
+      // The bell is an SVG <AppIcon> in the template (see push-state span)
+      return t.push_on || "On";
     case "blocked":
       return t.push_blocked || "Blocked by browser";
     case "unsupported":
@@ -2745,6 +3048,21 @@ async function togglePush() {
   } finally {
     pushBusy.value = false;
   }
+}
+
+// ─── STICKY PAGE HEADER HEIGHT ────────────────────────────
+// `.hdr` is stuck to the top of the scroll area and `.rep-side` parks right
+// below it, so the header's own height must be known in CSS. It is measured
+// here (and kept in sync by a ResizeObserver — Khmer web fonts change their
+// line metrics once they finish loading, which changes the height) and
+// exposed as --hdr-h on .main, the shared parent of both elements.
+function syncHdrHeight() {
+  const el = hdrEl.value;
+  const parent = el?.parentElement;
+  if (!el || !parent) return;
+  const next = `${el.offsetHeight}px`;
+  if (parent.style.getPropertyValue("--hdr-h") === next) return;
+  parent.style.setProperty("--hdr-h", next);
 }
 
 // ─── HEADER PROFILE MENU ─────────────────────────────────
@@ -3010,15 +3328,29 @@ function parseItems(items) {
   }
 }
 function statusLabel(status) {
-  // Match Telegram bot status labels (Khmer)
+  // Khmer order-status text only. The glyph that used to be baked into these
+  // labels (hourglass / chef / plate / check / cross) is now an SVG <AppIcon>
+  // rendered next to this text via statusIcon() below.
   const labels = {
-    pending: "⏳ រង់ចាំ",
-    preparing: "👨‍🍳 កំពុងរៀបចំ",
-    ready: "🍽️ រួចរាល់",
-    served: "✔️ បានបម្រើ",
-    cancelled: "❌ បោះបង់",
+    pending: "រង់ចាំ",
+    preparing: "កំពុងរៀបចំ",
+    ready: "រួចរាល់",
+    served: "បានបម្រើ",
+    cancelled: "បោះបង់",
   };
   return labels[status] || status;
+}
+// AppIcon name for an order status (dashboard order cards + status buttons).
+function statusIcon(status) {
+  const icons = {
+    pending: "clock",
+    confirmed: "clock-check",
+    preparing: "chef",
+    ready: "plate",
+    served: "check-circle",
+    cancelled: "x-circle",
+  };
+  return icons[status] || "clock";
 }
 function getStatusOptions(currentStatus) {
   // Show ALL statuses (except current) so admin can change to any status directly
@@ -3267,6 +3599,216 @@ async function fetchStats() {
     statsLoading.value = false;
   }
 }
+// ─── SALES REPORTS (Reports tab) ─────────────────────────────
+// Backed by the same /orders/stats endpoint as the metric cards, but with a
+// selectable range + day/week/month grouping and CSV export. `summary`
+// numbers exclude cancelled orders; cancelled totals are shown apart.
+const report = ref({});
+const reportLoading = ref(false);
+const reportError = ref("");
+const reportGroup = ref("day");
+const reportPreset = ref("7d");
+const reportStartDate = ref("");
+const reportEndDate = ref("");
+const reportDataset = ref("series");
+const reportExporting = ref(false);
+const reportExportMsg = ref("");
+const reportExportError = ref(false);
+
+// Preset ranges, each with the period grouping it defaults to
+const REPORT_PRESETS = [
+  { key: "today", group: "day" },
+  { key: "7d", group: "day" },
+  { key: "30d", group: "day" },
+  { key: "month", group: "day" },
+  { key: "last_month", group: "month" },
+  { key: "year", group: "month" },
+];
+
+const reportPresets = computed(() =>
+  REPORT_PRESETS.map((p) => ({
+    key: p.key,
+    label:
+      {
+        today: i18n.t.report_today,
+        "7d": i18n.t.report_7d,
+        "30d": i18n.t.report_30d,
+        month: i18n.t.report_this_month,
+        last_month: i18n.t.report_last_month,
+        year: i18n.t.report_this_year,
+      }[p.key] || p.key,
+  })),
+);
+
+const reportGroups = computed(() => [
+  { key: "day", label: i18n.t.report_group_day },
+  { key: "week", label: i18n.t.report_group_week },
+  { key: "month", label: i18n.t.report_group_month },
+]);
+
+const reportDatasets = computed(() => [
+  { value: "series", label: i18n.t.report_ds_series },
+  { value: "summary", label: i18n.t.report_ds_summary },
+  { value: "orders", label: i18n.t.report_ds_orders },
+  { value: "items", label: i18n.t.report_ds_items },
+  { value: "tables", label: i18n.t.report_ds_tables },
+  { value: "hours", label: i18n.t.report_ds_hours },
+  { value: "status", label: i18n.t.report_ds_status },
+]);
+
+// Local-time YYYY-MM-DD (toISOString() would shift by the UTC offset)
+function reportDateStr(d) {
+  const off = d.getTimezoneOffset();
+  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
+}
+
+function applyReportPreset(key) {
+  reportPreset.value = key;
+  const preset = REPORT_PRESETS.find((p) => p.key === key);
+  const now = new Date();
+  let start = reportDateStr(now);
+  let end = start;
+
+  if (key === "7d") start = reportDateStr(new Date(now.getTime() - 6 * 86400000));
+  else if (key === "30d")
+    start = reportDateStr(new Date(now.getTime() - 29 * 86400000));
+  else if (key === "month")
+    start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+  else if (key === "last_month") {
+    start = reportDateStr(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+    end = reportDateStr(new Date(now.getFullYear(), now.getMonth(), 0));
+  } else if (key === "year") start = `${now.getFullYear()}-01-01`;
+
+  reportStartDate.value = start;
+  reportEndDate.value = end;
+  if (preset?.group) reportGroup.value = preset.group;
+  fetchReport();
+}
+
+function openReports() {
+  adminTab.value = "reports";
+  if (!reportStartDate.value || !reportEndDate.value) applyReportPreset("7d");
+  else if (!Object.keys(report.value).length) fetchReport();
+}
+
+async function fetchReport() {
+  if (!auth.restaurantId) return;
+  reportLoading.value = true;
+  reportError.value = "";
+  try {
+    const res = await axios.get(`${API_BASE}/api/orders/stats`, {
+      params: {
+        restaurant_id: auth.restaurantId,
+        start_date: reportStartDate.value,
+        end_date: reportEndDate.value,
+        group: reportGroup.value,
+      },
+    });
+    report.value = res.data;
+  } catch (err) {
+    reportError.value =
+      err.response?.data?.error || "Failed to load sales report";
+  } finally {
+    reportLoading.value = false;
+  }
+}
+
+// Trigger the CSV download as a blob so the JWT header travels with it
+// (a plain <a href> cannot authenticate).
+async function exportReport() {
+  if (reportExporting.value) return;
+  reportExporting.value = true;
+  reportExportMsg.value = "";
+  reportExportError.value = false;
+  try {
+    const res = await axios.get(`${API_BASE}/api/orders/export`, {
+      params: {
+        restaurant_id: auth.restaurantId,
+        start_date: reportStartDate.value,
+        end_date: reportEndDate.value,
+        group: reportGroup.value,
+        type: reportDataset.value,
+        lang: i18n.locale,
+      },
+      responseType: "blob",
+    });
+    // The server names the file via Content-Disposition (exposed by CORS);
+    // fall back to a local default when that header is not readable.
+    const match = /filename="?([^";]+)"?/.exec(
+      res.headers["content-disposition"] || "",
+    );
+    const name = match ? match[1] : `sales-${reportDataset.value}.csv`;
+    const url = URL.createObjectURL(res.data);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = name;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    reportExportMsg.value = i18n.t.report_export_ok || "Export ready!";
+    setTimeout(() => {
+      reportExportMsg.value = "";
+    }, 2500);
+  } catch (err) {
+    console.error("Sales export error:", err);
+    reportExportMsg.value =
+      err.response?.data?.error ||
+      i18n.t.report_export_err ||
+      "Could not export the report";
+    reportExportError.value = true;
+  } finally {
+    reportExporting.value = false;
+  }
+}
+
+// Chart inputs
+const reportSeriesPoints = computed(() =>
+  (report.value.series || []).map((r) => ({ label: r.label, value: r.revenue })),
+);
+const reportHourPoints = computed(() =>
+  (report.value.byHour || []).map((r) => ({
+    label: `${String(r.hour).padStart(2, "0")}:00`,
+    value: r.orders,
+  })),
+);
+// The chart picks up the restaurant's theme color
+const chartColor = computed(() => theme.primary || "#0f766e");
+
+// Compact axis labels — full currency strings overflow the small axis area
+function fmtAxis(value) {
+  const v = Number(value) || 0;
+  if (v >= 1000000) return `${(v / 1000000).toFixed(1).replace(/\.0$/, "")}M`;
+  if (v >= 1000) return `${Math.round(v / 1000)}K`;
+  return String(Math.round(v));
+}
+
+// Inline bar widths for the list panels (relative to the row leader)
+const maxTopQty = computed(() =>
+  Math.max(
+    1,
+    ...(report.value.topItems || []).map((item) => Number(item.qty) || 0),
+  ),
+);
+function topItemWidth(item) {
+  return `${Math.round(((Number(item.qty) || 0) / maxTopQty.value) * 100)}%`;
+}
+const maxTableRevenue = computed(() =>
+  Math.max(
+    1,
+    ...(report.value.byTable || []).map((r) => Number(r.revenue) || 0),
+  ),
+);
+function tableBarWidth(row) {
+  return `${Math.round(((Number(row.revenue) || 0) / maxTableRevenue.value) * 100)}%`;
+}
+const maxStatusCount = computed(() =>
+  Math.max(1, ...(report.value.byStatus || []).map((r) => Number(r.orders) || 0)),
+);
+function statusBarWidth(row) {
+  return `${Math.round(((Number(row.orders) || 0) / maxStatusCount.value) * 100)}%`;
+}
+
 function copyPreviewLink() {
   if (!navigator.clipboard || previewMenuUrl.value === "#") return;
   navigator.clipboard.writeText(previewMenuUrl.value);
@@ -3396,6 +3938,8 @@ async function initForRestaurant() {
   // notification bell via the watch(orders) → seedNotificationsFromOrders.
   await fetchOrders();
   fetchStats();
+  // The Reports tab is restaurant-scoped too — refresh it when it is open
+  if (adminTab.value === "reports") fetchReport();
   // Reconnect the order stream to the selected restaurant
   disconnectOrderStream();
   connectOrderStream();
@@ -3715,6 +4259,8 @@ async function connectOrderStream() {
 
       // Refresh stats so dashboard numbers stay current
       fetchStats();
+      // A live order changes the report too (when the tab is open)
+      if (adminTab.value === "reports") fetchReport();
 
       // Also refresh foods badge if pending orders exist
       const badgeEl = document.querySelector(".nav-badge");
@@ -3806,6 +4352,14 @@ onMounted(async () => {
   window.addEventListener("keydown", handleEscKey);
   connectOrderStream();
 
+  // Publish the sticky header height (--hdr-h) and keep it in sync when the
+  // Khmer font finishes loading or the header wraps on a narrow viewport.
+  syncHdrHeight();
+  if (typeof ResizeObserver !== "undefined" && hdrEl.value) {
+    hdrResizeObserver = new ResizeObserver(syncHdrHeight);
+    hdrResizeObserver.observe(hdrEl.value);
+  }
+
   // When the viewport crosses back above the mobile breakpoint, close the
   // drawer so the layout doesn't carry a stuck "open" state into desktop.
   const mq = window.matchMedia("(min-width: 901px)");
@@ -3820,6 +4374,10 @@ onUnmounted(() => {
   window.removeEventListener("keydown", handleEscKey);
   document.removeEventListener("click", onProfileMenuDocClick);
   disconnectOrderStream();
+  if (hdrResizeObserver) {
+    hdrResizeObserver.disconnect();
+    hdrResizeObserver = null;
+  }
   if (desktopBreakpointQuery) {
     const { mq, onDesktopBreakpoint } = desktopBreakpointQuery;
     if (mq.removeEventListener) mq.removeEventListener("change", onDesktopBreakpoint);
@@ -3946,6 +4504,12 @@ onUnmounted(() => {
   }
   .root.layout-bottom .main {
     padding-bottom: calc(var(--hbar-h) + 24px);
+  }
+
+  /* the sticky page header parks right below the fixed sidebar bar */
+  .root.layout-top .main,
+  .root.layout-bottom .main {
+    --hdr-stick-top: var(--hbar-h, 0px);
   }
 
   /* ── shared horizontal-bar cells (top & bottom) ── */
@@ -4278,19 +4842,50 @@ onUnmounted(() => {
   /* max-width: 1320px; */
   width: 100%;
   min-width: 0;
+  /* `clip` and NOT `hidden`: `overflow-x: hidden` implicitly computes
+     overflow-y to `auto`, which turns .main into a scroll container and
+     silently breaks `position: sticky` on every descendant (the Reports
+     filter panel `.rep-side` relies on it). `clip` still hides horizontal
+     overflow but never creates a scroll container, so sticky keeps working
+     against the viewport. The `hidden` line stays as a fallback for engines
+     that do not support `clip` yet (they simply keep today's behaviour). */
   overflow-x: hidden;
+  overflow-x: clip;
 }
 
-/* Header */
+/* Header — pinned to the top so the page title (with its notification bell
+   and avatar) stays visible while the tab content scrolls underneath.
+   `--hdr-stick-top` is re-pointed below the fixed sidebar bars
+   (layout-top / layout-bottom) and below the mobile bar so the header can
+   never slide under them. `--hdr-h` carries the measured height (written by
+   the ResizeObserver in <script setup>) and is what lets the sticky Reports
+   filter panel park itself exactly underneath this header.
+   The bottom rule is drawn with ::before instead of border-bottom, and the
+   old margin-bottom gap became padding: that way the header's opaque
+   background covers the whole band, so cards scrolling past cannot show
+   through the strip below the rule. */
 .hdr {
+  position: sticky;
+  top: var(--hdr-stick-top, 0px);
+  z-index: 60; /* above the tab content, below .side (100) and the modals */
+  background: #f8fafc;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 24px;
-  padding-bottom: 20px;
-  border-bottom: 2px solid var(--border-green);
+  margin-bottom: 0;
+  padding-bottom: 46px; /* 20px visual gap + the former 24px margin */
+  border-bottom: none;
   flex-wrap: wrap;
   gap: 10px;
+}
+.hdr::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 24px; /* leaves 24px of header background below the rule */
+  height: 2px;
+  background: var(--border-green);
 }
 .hdr-l {
   display: flex;
@@ -4300,14 +4895,18 @@ onUnmounted(() => {
   min-width: 150px;
 }
 .hdr-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 24px;
   font-weight: 700;
   color: var(--ink);
   margin: 0;
   letter-spacing: -0.3px;
 }
-.hdr-title::before {
-  content: "✦ ";
+/* Header title glyph — SVG <AppIcon name="sparkle"> (replaces the old
+   glyph drawn with a CSS `content:` pseudo-element) */
+.hdr-title-i {
   color: var(--primary-strong, var(--primary));
 }
 .hdr-sub {
@@ -4600,7 +5199,7 @@ onUnmounted(() => {
   opacity: 1;
 }
 .metric:hover {
-  transform: translateY(-2px);
+  /* no translateY: the metric cards must stay level with each other */
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
 .metric-teal::before {
@@ -4660,25 +5259,27 @@ onUnmounted(() => {
 .metric-b {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px; /* value → label breathing room */
   min-width: 0;
 }
 .metric-v {
   font-size: 20px;
   font-weight: 700;
   color: var(--text);
-  line-height: 1.1;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
 }
 .metric-l {
-  font-size: 10px;
+  font-size: 11px;
+  line-height: 1.35;
   color: var(--muted);
   font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
+  /* letter-spacing 0: tracking inserts visible gaps between Khmer glyphs */
+  letter-spacing: 0;
 }
 
 /* Menu selector strip (restaurant → menu gating) */
@@ -4910,9 +5511,9 @@ onUnmounted(() => {
   transition: all 0.2s ease;
 }
 .cat-c:hover {
+  /* no translateY: keeps every category card in line */
   border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 2px 12px var(--primary-glow);
-  transform: translateY(-2px);
 }
 .cat-n {
   font-size: 13px;
@@ -4971,9 +5572,9 @@ onUnmounted(() => {
   transition: all 0.25s ease;
 }
 .order-c:hover {
+  /* no translateY: keeps every order card in line */
   border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 4px 16px var(--primary-glow);
-  transform: translateY(-2px);
 }
 .order-h {
   display: flex;
@@ -4992,10 +5593,10 @@ onUnmounted(() => {
   font-size: 14px;
   font-weight: 700;
   color: var(--ink);
-}
-.order-id::before {
-  content: "📋 ";
-  font-size: 12px;
+  /* The clipboard glyph is now an SVG <AppIcon> inside the span */
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 .order-t {
   font-size: 11px;
@@ -5024,6 +5625,10 @@ onUnmounted(() => {
   flex-shrink: 0;
   white-space: nowrap;
   letter-spacing: 0.2px;
+  /* SVG status icon + label */
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 .order-st.pending {
   background: #fef3c7;
@@ -5111,6 +5716,11 @@ onUnmounted(() => {
   min-height: 30px;
   background: var(--surface);
   color: var(--text);
+  /* SVG status icon + label */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
 }
 .order-status-btn:hover {
   transform: translateY(-1px);
@@ -5151,6 +5761,337 @@ onUnmounted(() => {
 .order-status-btn.st-cancelled:hover {
   background: #fecaca;
   border-color: #fca5a5;
+}
+
+/* ═══ REPORTS TAB ═══ */
+/* Filter panel (left) + summary cards (right) — stacks when resized */
+.rep-top {
+  display: grid;
+  grid-template-columns: minmax(250px, 300px) 1fr;
+  gap: 16px;
+  align-items: start;
+  margin-bottom: 16px;
+}
+.rep-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+/* Keep the filter panel pinned in place while the reports column scrolls.
+   Desktop-only (the 2-column layout): below 1281px .rep-top stacks into one
+   column, and a stuck panel would end up covering the cards underneath.
+   `align-items: start` on .rep-top (already set) makes the grid item only as
+   tall as its content, which is what gives sticky any room to travel inside
+   its much taller grid area. The dropdowns inside teleport to <body>, so the
+   max-height / overflow safeguard below cannot clip them. */
+@media (min-width: 1281px) {
+  .rep-side {
+    position: sticky;
+    /* clears the sticky header (--hdr-h is its measured height) and, when the
+       sidebar is a fixed top/bottom bar, that bar as well (--hdr-stick-top) */
+    top: calc(var(--hdr-stick-top, 0px) + var(--hdr-h, 0px) + 16px);
+    align-self: start;
+    max-height: calc(
+      100vh - var(--hdr-stick-top, 0px) - var(--hdr-h, 0px) - 32px
+    );
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    /* room for the scrollbar so the panel border is never overlapped */
+    scrollbar-gutter: stable;
+  }
+  /* pinned filter panel: surface the card border so the sticky panel reads
+     as a self-contained card even when it's flush with the viewport top */
+  .rep-side .bar {
+    margin: 0;
+    padding: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+  }
+  /* tighter gap inside the pinned panel */
+  .rep-side .rep-controls {
+    gap: 12px;
+  }
+}
+.rep-main-col {
+  min-width: 0;
+}
+/* panel card (applies to the .bar inside .rep-side at every breakpoint) */
+.rep-side .bar {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 14px;
+  margin-bottom: 0;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+/* segmented controls (presets + groups) */
+.rep-presets,
+.rep-groups {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 4px;
+  background: #eef2f7;
+  padding: 4px;
+  border-radius: 12px;
+}
+.rep-presets .chip,
+.rep-groups .chip {
+  border: none;
+  background: transparent;
+  border-radius: 9px;
+  min-height: 34px;
+  padding: 6px 4px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  text-align: center;
+}
+.rep-presets .chip:hover,
+.rep-groups .chip:hover {
+  transform: none;
+  box-shadow: none;
+  color: var(--text);
+}
+.rep-presets .chip.active {
+  background: var(--blue, #2563eb);
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
+}
+.rep-groups .chip.active {
+  background: #1f2937;
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.3);
+}
+.rep-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+.rep-date {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rep-date span {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0; /* keeps Khmer labels tight (no visible gaps) */
+}
+.rep-date .dp {
+  width: 100%;
+}
+.rep-export {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+.rep-export .as-root {
+  min-width: 0;
+  width: 100%;
+}
+.rep-export .ac {
+  width: 100%;
+  justify-content: center;
+}
+.rep-msg {
+  margin: 0;
+}
+
+.rep-cards {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  /* breathing room between the summary cards and the chart panel below —
+     .rep-panel only carries a bottom margin, so without this the cancelled
+     card visually collides with the "ចំណូលតាមរយៈពេល" panel. */
+  margin-bottom: 16px;
+}
+/* the cancelled card spans the full row */
+.rep-cards .rep-card:last-child {
+  grid-column: 1 / -1;
+}
+.rep-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 100%; /* equal height with the sibling card in the row */
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  transition: all 0.25s ease;
+}
+.rep-card:hover {
+  /* no translateY: hovering must not shift the card out of line */
+  border-color: var(--primary-strong, var(--primary));
+  box-shadow: 0 4px 16px var(--primary-glow);
+}
+.rep-card-dim {
+  opacity: 0.75;
+}
+.rep-card-i {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.rep-i-teal {
+  background: var(--tint-hover, #ccfbf1);
+  color: var(--primary-strong, var(--primary));
+}
+.rep-i-green {
+  background: var(--tint-hover, #dcfce7);
+  color: var(--green-dark);
+}
+.rep-i-blue {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+.rep-i-amber {
+  background: #fef3c7;
+  color: var(--amber);
+}
+.rep-i-red {
+  background: #fee2e2;
+  color: var(--red);
+}
+
+.rep-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  min-width: 0;
+}
+.rep-panel-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.rep-panel-h > span:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.rep-panel-sub {
+  font-size: 10.5px;
+  color: var(--muted);
+}
+.rep-two {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+.rep-two .rep-panel {
+  margin-bottom: 16px;
+}
+.rep-empty {
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+  padding: 18px 0;
+}
+
+.rep-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rep-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+.rep-rank {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--surface-green);
+  border: 1px solid var(--border-green);
+  color: var(--primary-strong, var(--primary));
+  font-size: 10px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.rep-row-b {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.rep-row-l {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.rep-row-bar {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-green);
+  overflow: hidden;
+}
+.rep-row-bar span {
+  display: block;
+  height: 100%;
+  min-width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    var(--primary-strong, var(--primary)),
+    var(--primary-light, #14b8a6)
+  );
+  transition: width 0.4s ease;
+}
+.rep-row-v {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-shrink: 0;
+  justify-content: flex-end;
+}
+.rep-row-v strong {
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.rep-row-v em {
+  font-size: 9px;
+  font-style: normal;
+  color: var(--muted-light);
+  text-transform: uppercase;
+}
+.rep-row-v b {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
 }
 
 /* Empty */
@@ -5925,6 +6866,10 @@ onUnmounted(() => {
   color: #92400e;
   border: 1px solid #fde68a;
   flex-shrink: 0;
+  /* SVG warning icon + label */
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 /* Details toggle + expanded forensic details */
 .dev-details-btn {
@@ -6069,14 +7014,20 @@ onUnmounted(() => {
 @media (max-width: 900px) {
   .root {
     grid-template-columns: 1fr;
+    --mob-h: 53px; /* exact .mob height — see below */
+    /* the sticky page header parks right below the mobile bar */
+    --hdr-stick-top: var(--mob-h);
   }
 
-  /* Mobile Header */
+  /* Mobile Header — the height is exact (and border-box) so the sticky .hdr
+     below it can offset by precisely --mob-h instead of guessing */
   .mob {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 14px;
+    box-sizing: border-box;
+    height: var(--mob-h);
+    padding: 0 14px;
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     position: sticky;
@@ -6179,9 +7130,6 @@ onUnmounted(() => {
   /* Hide text on small screens */
   .hdr-hide {
     display: none;
-  }
-  .hdr-title::before {
-    content: "✦ ";
   }
 
   /* Metrics - 2 columns */
@@ -6469,6 +7417,10 @@ onUnmounted(() => {
 .push-state {
   font-size: 12px;
   font-weight: 700;
+  /* SVG bell icon (enabled state) + label */
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 }
 .push-st-enabled {
   color: var(--green-mid, #2d7a2d);
@@ -6480,5 +7432,35 @@ onUnmounted(() => {
 }
 .push-st-blocked {
   color: var(--red, #ef4444);
+}
+
+/* ─── Reports tab: responsive ─── */
+@media (max-width: 1280px) {
+  /* narrow: filters stack above the cards (like the resized mock) */
+  .rep-top {
+    grid-template-columns: 1fr;
+  }
+  .rep-main-col {
+    border-top: 1px dashed var(--border);
+    padding-top: 14px;
+  }
+}
+@media (max-width: 900px) {
+  .rep-two {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+}
+@media (max-width: 420px) {
+  .rep-cards {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  .rep-cards .rep-card:last-child {
+    grid-column: auto;
+  }
+  .rep-panel {
+    padding: 14px;
+  }
 }
 </style>

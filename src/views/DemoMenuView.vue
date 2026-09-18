@@ -40,7 +40,7 @@
               @click="catId = c.id"
             >
               <AppIcon v-if="c.icon" :name="c.icon" :size="14" />
-              <span v-else class="tab-emoji">{{ c.emoji }}</span>
+              <AppIcon v-else name="category" :size="14" />
               <span class="tab-label">{{ i18n.locale === "km" ? c.label_km : c.label_en }}</span>
             </button>
           </div>
@@ -554,7 +554,6 @@ function resetDemo() {
   transition: all 0.2s ease;
 }
 @media (max-width: 480px) { .tab { padding: 8px 13px; font-size: 12px; } }
-.tab-emoji { font-size: 14px; }
 .tab-label { letter-spacing: 0.01em; }
 .tab.active {
   color: var(--on-primary, #fff); font-weight: 700;

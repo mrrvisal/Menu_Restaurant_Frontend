@@ -24,11 +24,19 @@
       <nav class="nav">
         <button
           class="nav-item"
-          :class="{ active: tab === 'users' }"
-          @click="tab = 'users'; fetchUsers(); mobileNavOpen = false"
+          :class="{ active: tab === 'admins' }"
+          @click="tab = 'admins'; fetchAdmins(); mobileNavOpen = false"
         >
           <AppIcon name="users" :size="18" />
-          <span>{{ t.users }}</span>
+          <span>{{ t.admin_management }}</span>
+        </button>
+        <button
+          class="nav-item"
+          :class="{ active: tab === 'super-admins' }"
+          @click="tab = 'super-admins'; fetchSuperAdmins(); mobileNavOpen = false"
+        >
+          <AppIcon name="shield" :size="18" />
+          <span>{{ t.super_admin_management }}</span>
         </button>
         <button
           class="nav-item"
@@ -72,7 +80,7 @@
     <main class="main">
       <header class="topbar">
         <div>
-          <h1 class="page-title">{{ tab === 'users' ? t.users : tab === 'orders' ? t.orders : tab === 'access' ? t.access_logs : t.restaurants }}</h1>
+          <h1 class="page-title">{{ getPageTitle() }}</h1>
           <p class="page-sub">{{ t.super_admin }} · {{ t.manage_system }}</p>
         </div>
         <button
@@ -87,18 +95,26 @@
 
       <!-- STATS -->
       <section class="stats-grid">
-        <div class="stat-card stat-click" role="button" :title="t.users" @click="goToTab('users')">
+        <div class="stat-card stat-click" role="button" :title="t.admin_management" @click="goToTab('admins')">
           <div class="stat-icon-wrap icon-teal"><AppIcon name="users" :size="20" /></div>
           <div class="stat-body">
-            <span class="stat-num">{{ stats.totalUsers }}</span>
-            <span class="stat-label">{{ t.total_users }}</span>
+            <span class="stat-num">{{ adminStats?.byRole?.owner?.total ?? 0 }}</span>
+            <span class="stat-label">{{ t.admins }}</span>
           </div>
           <div class="stat-spark teal"></div>
+        </div>
+        <div class="stat-card stat-click" role="button" :title="t.super_admin_management" @click="goToTab('super-admins')">
+          <div class="stat-icon-wrap icon-purple"><AppIcon name="shield" :size="20" /></div>
+          <div class="stat-body">
+            <span class="stat-num">{{ adminStats?.byRole?.super_admin?.total ?? 0 }}</span>
+            <span class="stat-label">{{ t.super_admins }}</span>
+          </div>
+          <div class="stat-spark purple"></div>
         </div>
         <div class="stat-card stat-click" role="button" :title="t.restaurants" @click="goToTab('restaurants')">
           <div class="stat-icon-wrap icon-amber"><AppIcon name="store" :size="20" /></div>
           <div class="stat-body">
-            <span class="stat-num">{{ stats.totalRestaurants }}</span>
+            <span class="stat-num">{{ adminStats?.totalRestaurants ?? stats.totalRestaurants }}</span>
             <span class="stat-label">{{ t.total_restaurants }}</span>
           </div>
           <div class="stat-spark amber"></div>
@@ -106,7 +122,7 @@
         <div class="stat-card stat-click" role="button" :title="t.orders" @click="goToTab('orders')">
           <div class="stat-icon-wrap icon-blue"><AppIcon name="clipboard" :size="20" /></div>
           <div class="stat-body">
-            <span class="stat-num">{{ stats.totalOrders }}</span>
+            <span class="stat-num">{{ adminStats?.totalOrders ?? stats.totalOrders }}</span>
             <span class="stat-label">{{ t.total_orders }}</span>
           </div>
           <div class="stat-spark blue"></div>
@@ -127,13 +143,13 @@
           </div>
           <div class="stat-spark blue"></div>
         </div>
-        <div class="stat-card stat-click" role="button" :title="t.unverified_users" @click="goToTab('users')">
-          <div class="stat-icon-wrap icon-teal"><AppIcon name="tick-circle" :size="20" /></div>
+        <div class="stat-card stat-click" role="button" :title="t.active_sessions" @click="goToTab('admins')">
+          <div class="stat-icon-wrap icon-blue"><AppIcon name="activity" :size="20" /></div>
           <div class="stat-body">
-            <span class="stat-num">{{ stats.unverifiedUsers ?? 0 }}</span>
-            <span class="stat-label">{{ t.unverified_users }}</span>
+            <span class="stat-num">{{ adminStats?.activeSessions ?? 0 }}</span>
+            <span class="stat-label">{{ t.active_sessions }}</span>
           </div>
-          <div class="stat-spark teal"></div>
+          <div class="stat-spark blue"></div>
         </div>
         <div class="stat-card stat-click" role="button" :title="t.pending" @click="goToTab('orders')">
           <div class="stat-icon-wrap icon-amber"><AppIcon name="clock" :size="20" /></div>
@@ -152,6 +168,174 @@
           <div class="stat-spark green"></div>
         </div>
       </section>
+      <!-- ADMINS (Owners) -->
+       <section v-if="tab === 'admins'" class="panel">
+         <div class="panel-head">
+           <span class="panel-title"><AppIcon name="users" :size="16" /> {{ t.admins }}</span>
+           <div class="panel-tools">
+             <div class="search-box">
+               <AppIcon name="search" :size="14" />
+               <input v-model="adminSearch" class="search-input" :placeholder="t.search" />
+             </div>
+             <AppSelect
+               size="sm"
+               variant="teal"
+               min-width="110px"
+               :model-value="adminStatusFilter"
+               :options="adminStatusOptions"
+               @update:model-value="adminStatusFilter = $event"
+             />
+             <span class="panel-count">{{ filteredAdmins.length }}</span>
+           </div>
+         </div>
+
+         <div class="panel-actions">
+           <button class="btn btn-teal" @click="showCreateAdminModal = true">
+             <AppIcon name="plus" :size="14" /> {{ t.add_admin }}
+           </button>
+         </div>
+
+         <div v-if="adminLoading && !admins.length" class="rows">
+           <div v-for="i in 3" :key="i" class="skel-row">
+             <span class="skel skel-avatar"></span>
+             <span class="skel skel-line"></span>
+             <span class="skel skel-line short"></span>
+           </div>
+         </div>
+         <div v-else-if="filteredAdmins.length" class="rows">
+           <div
+             v-for="admin in filteredAdmins"
+             :key="admin.id"
+             class="row"
+             @click="openAdminDetail(admin)"
+           >
+             <div class="row-main">
+               <div class="avatar avatar-teal">
+                 {{ (admin.full_name || admin.email || '?').charAt(0).toUpperCase() }}
+               </div>
+               <div class="row-text">
+                 <span class="row-muted">{{ admin.full_name || admin.email }}</span>
+                 <span class="row-sub">{{ admin.restaurant_name || t.restaurant_owner }}</span>
+               </div>
+             </div>
+
+             <div class="row-meta">
+               <span class="tag tag-teal">{{ t.owner }}</span>
+               <span class="status-dot" :class="'sd-' + admin.status">
+                 <i></i>{{ statusLabel(admin.status) }}
+               </span>
+               <span class="status-dot" :class="admin.email_verified ? 'sd-verified' : 'sd-pending'">
+                 <i></i>{{ admin.email_verified ? t.email_verified : t.not_verified }}
+               </span>
+               <span class="row-muted">{{ admin.restaurant_count }} {{ t.restaurants }}</span>
+             </div>
+
+             <div class="row-actions" @click.stop>
+               <AppSelect
+                 size="sm"
+                 variant="teal"
+                 min-width="110px"
+                 :model-value="admin.status"
+                 :options="[
+                   { value: 'active', label: t.activate },
+                   { value: 'suspended', label: t.suspend },
+                   { value: 'inactive', label: t.inactive },
+                 ]"
+                 @update:model-value="(v) => updateAdminStatus(admin.id, v)"
+               />
+             </div>
+           </div>
+         </div>
+         <div v-else class="empty">
+           <AppIcon name="category" :size="34" />
+           <p>{{ (adminSearch || adminStatusFilter) ? t.no_results : t.no_admins }}</p>
+         </div>
+       </section>
+      <!-- SUPER ADMINS -->
+       <section v-if="tab === 'super-admins'" class="panel">
+         <div class="panel-head">
+           <span class="panel-title"><AppIcon name="shield" :size="16" /> {{ t.super_admins }}</span>
+           <div class="panel-tools">
+             <div class="search-box">
+               <AppIcon name="search" :size="14" />
+               <input v-model="superAdminSearch" class="search-input" :placeholder="t.search" />
+             </div>
+             <AppSelect
+               size="sm"
+               variant="purple"
+               min-width="110px"
+               :model-value="superAdminStatusFilter"
+               :options="adminStatusOptions"
+               @update:model-value="superAdminStatusFilter = $event"
+             />
+             <span class="panel-count">{{ filteredSuperAdmins.length }}</span>
+           </div>
+         </div>
+
+         <div class="panel-actions">
+           <button class="btn btn-purple" @click="showCreateSuperAdminModal = true">
+             <AppIcon name="plus" :size="14" /> {{ t.add_super_admin }}
+           </button>
+         </div>
+
+         <div v-if="superAdminLoading && !superAdmins.length" class="rows">
+           <div v-for="i in 3" :key="i" class="skel-row">
+             <span class="skel skel-avatar"></span>
+             <span class="skel skel-line"></span>
+             <span class="skel skel-line short"></span>
+           </div>
+         </div>
+         <div v-else-if="filteredSuperAdmins.length" class="rows">
+           <div
+             v-for="admin in filteredSuperAdmins"
+             :key="admin.id"
+             class="row"
+             @click="openSuperAdminDetail(admin)"
+           >
+             <div class="row-main">
+               <div class="avatar avatar-purple">
+                 {{ (admin.full_name || admin.email || '?').charAt(0).toUpperCase() }}
+               </div>
+               <div class="row-text">
+                 <span class="row-muted">{{ admin.full_name || admin.email }}</span>
+                 <span class="row-sub">{{ t.super_admin_label }}</span>
+               </div>
+             </div>
+
+             <div class="row-meta">
+               <span class="tag tag-purple">{{ t.super_admin_label }}</span>
+               <span class="status-dot" :class="'sd-' + admin.status">
+                 <i></i>{{ statusLabel(admin.status) }}
+               </span>
+               <span class="status-dot" :class="admin.email_verified ? 'sd-verified' : 'sd-pending'">
+                 <i></i>{{ admin.email_verified ? t.email_verified : t.not_verified }}
+               </span>
+               <span class="status-dot sd-lastlogin" :title="t.last_login">
+                 <i></i>{{ admin.last_login_at ? formatDate(admin.last_login_at) : t.never }}
+               </span>
+             </div>
+
+             <div class="row-actions" @click.stop>
+               <AppSelect
+                 size="sm"
+                 variant="purple"
+                 min-width="110px"
+                 :model-value="admin.status"
+                 :options="[
+                   { value: 'active', label: t.activate },
+                   { value: 'suspended', label: t.suspend },
+                   { value: 'inactive', label: t.inactive },
+                 ]"
+                 @update:model-value="(v) => updateSuperAdminStatus(admin.id, v)"
+               />
+             </div>
+           </div>
+         </div>
+         <div v-else class="empty">
+           <AppIcon name="shield" :size="34" />
+           <p>{{ (superAdminSearch || superAdminStatusFilter) ? t.no_results : t.no_super_admins }}</p>
+         </div>
+       </section>
 
       <!-- USERS -->
       <section v-if="tab === 'users'" class="panel">
@@ -907,6 +1091,98 @@
     <!-- CUSTOM CONFIRM -->
     <Teleport to="body">
       <Transition name="fade">
+
+     <!-- CREATE ADMIN MODAL -->
+     <Teleport to="body">
+       <Transition name="fade">
+         <div v-if="showCreateAdminModal" class="modal-overlay" @click.self="showCreateAdminModal = false">
+           <div class="modal-card pop-in">
+             <div class="modal-header">
+               <span class="modal-title"><AppIcon name="users" :size="16" /> {{ t.add_admin }}</span>
+               <button class="modal-close" @click="showCreateAdminModal = false">
+                 <AppIcon name="x" :size="18" />
+               </button>
+             </div>
+             <form @submit.prevent="createAdmin" class="modal-form">
+               <div class="form-group">
+                 <label>{{ t.email }} *</label>
+                 <input v-model="newAdminForm.email" type="email" class="input" placeholder="admin@example.com" required />
+               </div>
+               <div class="form-group">
+                 <label>{{ t.full_name }} *</label>
+                 <input v-model="newAdminForm.fullName" type="text" class="input" placeholder="Admin Name" required />
+               </div>
+               <div class="form-group">
+                 <label>{{ t.role }}</label>
+                 <AppSelect
+                   block size="sm"
+                   variant="teal"
+                   :model-value="newAdminForm.role"
+                   :options="[
+                     { value: 'owner', label: t.owner },
+                     { value: 'super_admin', label: t.super_admin_label },
+                   ]"
+                   @update:model-value="newAdminForm.role = $event"
+                 />
+               </div>
+               <div class="form-group" v-if="newAdminForm.role === 'super_admin'">
+                 <label>{{ t.password }} * (min 8 chars)</label>
+                 <input v-model="newAdminForm.password" type="password" class="input" placeholder="••••••••" required minlength="8" />
+               </div>
+               <div class="form-group" v-else>
+                 <label>{{ t.password }} <span class="text-muted">(optional)</span></label>
+                 <input v-model="newAdminForm.password" type="password" class="input" placeholder="•••••••• (optional)" />
+               </div>
+               <div class="form-hint">{{ t.fill_required_fields }}</div>
+               <div class="modal-actions">
+                 <button type="button" class="btn btn-ghost" @click="showCreateAdminModal = false">{{ t.cancel }}</button>
+                 <button type="submit" class="btn btn-teal" :disabled="adminLoading">
+                   <AppIcon name="check" :size="14" /> {{ t.save }}
+                 </button>
+               </div>
+             </form>
+           </div>
+         </div>
+       </Transition>
+     </Teleport>
+
+     <!-- CREATE SUPER ADMIN MODAL -->
+     <Teleport to="body">
+       <Transition name="fade">
+         <div v-if="showCreateSuperAdminModal" class="modal-overlay" @click.self="showCreateSuperAdminModal = false">
+           <div class="modal-card pop-in">
+             <div class="modal-header">
+               <span class="modal-title modal-title--purple"><AppIcon name="shield" :size="16" /> {{ t.add_super_admin }}</span>
+               <button class="modal-close" @click="showCreateSuperAdminModal = false">
+                 <AppIcon name="x" :size="18" />
+               </button>
+             </div>
+             <form @submit.prevent="createSuperAdmin" class="modal-form">
+               <div class="form-group">
+                 <label>{{ t.email }} *</label>
+                 <input v-model="newSuperAdminForm.email" type="email" class="input" placeholder="admin@example.com" required />
+               </div>
+               <div class="form-group">
+                 <label>{{ t.full_name }} *</label>
+                 <input v-model="newSuperAdminForm.fullName" type="text" class="input" placeholder="Super Admin Name" required />
+               </div>
+               <div class="form-group">
+                 <label>{{ t.password }} * (min 8 chars)</label>
+                 <input v-model="newSuperAdminForm.password" type="password" class="input" placeholder="••••••••" required minlength="8" />
+               </div>
+               <div class="form-hint">{{ t.fill_required_fields }}</div>
+               <div class="modal-actions">
+                 <button type="button" class="btn btn-ghost" @click="showCreateSuperAdminModal = false">{{ t.cancel }}</button>
+                 <button type="submit" class="btn btn-purple" :disabled="superAdminLoading">
+                   <AppIcon name="check" :size="14" /> {{ t.save }}
+                 </button>
+               </div>
+             </form>
+           </div>
+         </div>
+       </Transition>
+     </Teleport>
+
         <div v-if="confirmState" class="modal-overlay" @click.self="closeConfirm">
           <div class="confirm-box pop-in">
             <div class="confirm-icon"><AppIcon :name="confirmState.danger ? 'trash' : 'check'" :size="36" /></div>
@@ -966,6 +1242,8 @@ const API_BASE = import.meta.env.VITE_API_URL;
 
 const tab = ref("users");
 const users = ref([]);
+const admins = ref([]);
+const superAdmins = ref([]);
 const restaurants = ref([]);
 const stats = ref({
   totalUsers: 0,
@@ -973,23 +1251,48 @@ const stats = ref({
   totalOrders: 0,
   totalFoods: 0,
 });
+const adminStats = ref({
+  byRole: { owner: { total: 0, active: 0 }, super_admin: { total: 0, active: 0 } },
+  totalRestaurants: 0,
+  totalOrders: 0,
+  completedOrders: 0,
+  totalRevenue: 0,
+  activeSessions: 0,
+  recentAdmins: [],
+});
 
 // Modal / drawer state
 const selectedUser = ref(null);
+const selectedAdmin = ref(null);
+const selectedSuperAdmin = ref(null);
 const selectedRestaurant = ref(null);
 const showLogoutModal = ref(false);
 const mobileNavOpen = ref(false);
+const showCreateAdminModal = ref(false);
+const showCreateSuperAdminModal = ref(false);
+const newAdminForm = ref({ email: "", fullName: "", password: "", role: "owner" });
+const newSuperAdminForm = ref({ email: "", fullName: "", password: "" });
 
 // Loading + search state
 const loading = ref(false);
+const adminLoading = ref(false);
+const superAdminLoading = ref(false);
 const userSearch = ref("");
+const adminSearch = ref("");
+const superAdminSearch = ref("");
 const restaurantSearch = ref("");
 
 // Filters, sort, toast / confirm / temp-password state
 const userRoleFilter = ref("");
 const userSort = ref("newest");
+const adminStatusFilter = ref("");
+const superAdminStatusFilter = ref("");
+const adminSort = ref("newest");
+const superAdminSort = ref("newest");
 const restStatusFilter = ref("");
 const restSort = ref("newest");
+const adminPagination = ref({ page: 1, limit: 20, total: 0, totalPages: 1 });
+const superAdminPagination = ref({ page: 1, limit: 20, total: 0, totalPages: 1 });
 const toasts = ref([]);
 const confirmState = ref(null);
 const tempPw = ref(null);
@@ -1074,6 +1377,68 @@ const filteredUsers = computed(() => {
     return s === "oldest" ? ta - tb : tb - ta;
   });
 });
+
+const filteredAdmins = computed(() => {
+  let list = admins.value;
+  const q = adminSearch.value.trim().toLowerCase();
+  if (q) {
+    list = list.filter(
+      (a) =>
+        (a.full_name || "").toLowerCase().includes(q) ||
+        (a.email || "").toLowerCase().includes(q) ||
+        (a.restaurant_name || "").toLowerCase().includes(q),
+    );
+  }
+  if (adminStatusFilter.value) {
+    list = list.filter((a) => a.status === adminStatusFilter.value);
+  }
+  const s = adminSort.value;
+  return [...list].sort((a, b) => {
+    if (s === "name") {
+      return (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "");
+    }
+    const ta = new Date(a.created_at || 0).getTime();
+    const tb = new Date(b.created_at || 0).getTime();
+    return s === "oldest" ? ta - tb : tb - ta;
+  });
+});
+
+const filteredSuperAdmins = computed(() => {
+  let list = superAdmins.value;
+  const q = superAdminSearch.value.trim().toLowerCase();
+  if (q) {
+    list = list.filter(
+      (a) =>
+        (a.full_name || "").toLowerCase().includes(q) ||
+        (a.email || "").toLowerCase().includes(q),
+    );
+  }
+  if (superAdminStatusFilter.value) {
+    list = list.filter((a) => a.status === superAdminStatusFilter.value);
+  }
+  const s = superAdminSort.value;
+  return [...list].sort((a, b) => {
+    if (s === "name") {
+      return (a.full_name || a.email || "").localeCompare(b.full_name || b.email || "");
+    }
+    const ta = new Date(a.created_at || 0).getTime();
+    const tb = new Date(b.created_at || 0).getTime();
+    return s === "oldest" ? ta - tb : tb - ta;
+  });
+});
+
+const adminStatusOptions = computed(() => [
+  { value: "", label: t.value.all },
+  { value: "active", label: t.value.active },
+  { value: "suspended", label: t.value.suspend },
+  { value: "inactive", label: t.value.inactive },
+]);
+
+const adminSortOptions = computed(() => [
+  { value: "newest", label: t.value.sort_newest },
+  { value: "oldest", label: t.value.sort_oldest },
+  { value: "name", label: t.value.sort_name },
+]);
 
 const filteredRestaurants = computed(() => {
   let list = restaurants.value;
@@ -1162,6 +1527,12 @@ const orderStatusOptions = computed(() =>
 async function refreshAll() {
   loading.value = true;
   try {
+    // Admin / super-admin management data
+    fetchAdminStats();
+    fetchAdmins(adminPagination.value.page);
+    fetchSuperAdmins(superAdminPagination.value.page);
+
+    // Dashboard-wide data (stats, users, restaurants, orders, access logs)
     const [s, u, r, o, a] = await Promise.all([
       axios.get(`${API_BASE}/api/admin/stats`),
       axios.get(`${API_BASE}/api/admin/users`),
@@ -1192,6 +1563,160 @@ async function fetchUsers() {
     users.value = res.data;
   } catch (err) {
     console.error(err);
+  }
+}
+
+// ─── ADMIN MANAGEMENT ────────────────────────────────────
+
+async function fetchAdmins(page = 1) {
+  adminLoading.value = true;
+  try {
+    const res = await axios.get(`${API_BASE}/api/admin/admins`, {
+      params: { page, limit: adminPagination.value.limit, search: adminSearch.value || undefined, status: adminStatusFilter.value || undefined },
+    });
+    admins.value = res.data.admins || [];
+    adminPagination.value = res.data.pagination || adminPagination.value;
+  } catch (err) {
+    console.error(err);
+    pushToast(t.value.error, "error");
+  } finally {
+    adminLoading.value = false;
+  }
+}
+
+async function fetchSuperAdmins(page = 1) {
+  superAdminLoading.value = true;
+  try {
+    const res = await axios.get(`${API_BASE}/api/admin/admins`, {
+      params: { page, limit: superAdminPagination.value.limit, role: "super_admin", search: superAdminSearch.value || undefined, status: superAdminStatusFilter.value || undefined },
+    });
+    superAdmins.value = res.data.admins || [];
+    superAdminPagination.value = res.data.pagination || superAdminPagination.value;
+  } catch (err) {
+    console.error(err);
+    pushToast(t.value.error, "error");
+  } finally {
+    superAdminLoading.value = false;
+  }
+}
+
+async function fetchAdminStats() {
+  try {
+    const res = await axios.get(`${API_BASE}/api/admin/admins/stats`);
+    adminStats.value = res.data.stats || adminStats.value;
+  } catch (err) {
+    console.error(err);
+  }
+}
+
+function goToAdminPage(page) {
+  adminPagination.value.page = page;
+  fetchAdmins(page);
+}
+
+function goToSuperAdminPage(page) {
+  superAdminPagination.value.page = page;
+  fetchSuperAdmins(page);
+}
+
+function openAdminDetail(admin) {
+  selectedAdmin.value = { ...admin };
+}
+
+function openSuperAdminDetail(admin) {
+  selectedSuperAdmin.value = { ...admin };
+}
+
+async function updateAdminStatus(adminId, status) {
+  try {
+    await axios.patch(`${API_BASE}/api/admin/admins/${adminId}`, { status });
+    const admin = admins.value.find((a) => a.id === adminId);
+    if (admin) admin.status = status;
+    pushToast(t.value.success);
+  } catch (err) {
+    pushToast(err.response?.data?.error || t.value.error, "error");
+  }
+}
+
+async function updateSuperAdminStatus(adminId, status) {
+  try {
+    await axios.patch(`${API_BASE}/api/admin/admins/${adminId}`, { status });
+    const admin = superAdmins.value.find((a) => a.id === adminId);
+    if (admin) admin.status = status;
+    pushToast(t.value.success);
+  } catch (err) {
+    pushToast(err.response?.data?.error || t.value.error, "error");
+  }
+}
+
+async function createAdmin() {
+  if (!newAdminForm.value.email || !newAdminForm.value.fullName) {
+    pushToast(t.value.fill_required_fields, "error");
+    return;
+  }
+  if (newAdminForm.value.role === "super_admin" && newAdminForm.value.password.length < 8) {
+    pushToast(t.value.password_min_length, "error");
+    return;
+  }
+  try {
+    await axios.post(`${API_BASE}/api/admin/admins`, {
+      ...newAdminForm.value,
+    });
+    pushToast(t.value.admin_created);
+    showCreateAdminModal.value = false;
+    newAdminForm.value = { email: "", fullName: "", password: "", role: "owner" };
+    fetchAdmins(adminPagination.value.page);
+    fetchAdminStats();
+  } catch (err) {
+    pushToast(err.response?.data?.error || t.value.error, "error");
+  }
+}
+
+async function createSuperAdmin() {
+  if (!newSuperAdminForm.value.email || !newSuperAdminForm.value.fullName || !newSuperAdminForm.value.password) {
+    pushToast(t.value.fill_required_fields, "error");
+    return;
+  }
+  if (newSuperAdminForm.value.password.length < 8) {
+    pushToast(t.value.password_min_length, "error");
+    return;
+  }
+  try {
+    await axios.post(`${API_BASE}/api/admin/admins`, {
+      email: newSuperAdminForm.value.email,
+      fullName: newSuperAdminForm.value.fullName,
+      password: newSuperAdminForm.value.password,
+      role: "super_admin",
+    });
+    pushToast(t.value.super_admin_created);
+    showCreateSuperAdminModal.value = false;
+    newSuperAdminForm.value = { email: "", fullName: "", password: "" };
+    fetchSuperAdmins(superAdminPagination.value.page);
+    fetchAdminStats();
+  } catch (err) {
+    pushToast(err.response?.data?.error || t.value.error, "error");
+  }
+}
+
+async function deleteAdmin(adminId) {
+  try {
+    await axios.delete(`${API_BASE}/api/admin/admins/${adminId}`);
+    admins.value = admins.value.filter((a) => a.id !== adminId);
+    pushToast(t.value.admin_deleted);
+    fetchAdminStats();
+  } catch (err) {
+    pushToast(err.response?.data?.error || t.value.error, "error");
+  }
+}
+
+async function deleteSuperAdmin(adminId) {
+  try {
+    await axios.delete(`${API_BASE}/api/admin/admins/${adminId}`);
+    superAdmins.value = superAdmins.value.filter((a) => a.id !== adminId);
+    pushToast(t.value.super_admin_deleted);
+    fetchAdminStats();
+  } catch (err) {
+    pushToast(err.response?.data?.error || t.value.error, "error");
   }
 }
 
@@ -1385,6 +1910,8 @@ function runConfirm() {
 function goToTab(name) {
   tab.value = name;
   if (name === "users") fetchUsers();
+  if (name === "admins") fetchAdmins();
+  if (name === "super-admins") fetchSuperAdmins();
   else if (name === "restaurants") fetchRestaurants();
   else if (name === "orders") fetchOrders();
   else if (name === "access") fetchAccess();
@@ -1401,6 +1928,16 @@ async function copyText(text) {
 
 function localeTag() {
   return locale.value === "km" ? "km-KH" : "en-US";
+}
+
+function getPageTitle() {
+  if (tab.value === "admins") return t.value.admins;
+  if (tab.value === "super-admins") return t.value.super_admins;
+  if (tab.value === "users") return t.value.users;
+  if (tab.value === "restaurants") return t.value.restaurants;
+  if (tab.value === "orders") return t.value.orders;
+  if (tab.value === "access") return t.value.access_logs;
+  return "";
 }
 
 function updateModalUserStatus(status) {
@@ -1889,6 +2426,7 @@ function confirmLogout() {
 .avatar-lg { width: 46px; height: 46px; font-size: 16px; }
 .avatar-teal { background: linear-gradient(135deg, var(--teal), var(--green)); }
 .avatar-amber { background: linear-gradient(135deg, var(--amber), #f59e0b); }
+.avatar-purple { background: linear-gradient(135deg, var(--purple), var(--purple-light)); }
 
 .row-text {
   display: flex;
@@ -2386,6 +2924,127 @@ function confirmLogout() {
   color: #1a4a1a;
   border: none;
   border-radius: 10px;
+
+/* ═══ MODAL CARD (for create admin/super admin modals) ═══ */
+.modal-card {
+  background: white;
+  border-radius: 22px;
+  width: 100%;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+}
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--surface-soft);
+  border-bottom: 1px solid var(--border);
+}
+.modal-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.modal-title--purple {
+  color: var(--purple);
+}
+.modal-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--muted);
+  padding: 4px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-close:hover {
+  background: var(--border);
+  color: var(--text);
+}
+.modal-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.modal-form .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.modal-form .form-group label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.modal-form .input {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 14px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.modal-form .input:focus {
+  border-color: var(--teal);
+}
+.modal-form .input::placeholder {
+  color: var(--muted-light);
+}
+.modal-form .form-hint {
+  font-size: 11px;
+  color: var(--muted);
+  font-style: italic;
+}
+.modal-form .modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+.modal-form .modal-actions .btn {
+  flex: 1;
+  justify-content: center;
+}
+.btn-purple {
+  background: linear-gradient(135deg, #7c3aed, #a78bfa);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+}
+.btn-purple:hover {
+  filter: brightness(1.05);
+}
+.btn-purple:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+.btn-teal {
+  background: linear-gradient(135deg, #0f766e, #14b8a6);
+  color: white;
+  border: none;
+  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
+}
+.btn-teal:hover {
+  filter: brightness(1.05);
+}
+.btn-teal:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;

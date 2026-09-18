@@ -115,7 +115,10 @@ function buildScene() {
 
   // ---- rotating core (QR cube + wireframe shell + rings + emojis) ----
   core = new THREE.Group();
-  core.position.set(isMobile ? 0.1 : 2.5, isMobile ? 0 : 0.8, 0);
+  // Vertical position of the QR cube — increase the value to move it UP,
+  // decrease (more negative) to drop it further DOWN.
+  const qrDropY = isMobile ? -0.8 : -0.4;
+  core.position.set(isMobile ? 0.1 : 2.5, qrDropY, 0);
   scene.add(core);
 
   const cubeSize = isMobile ? 2.0 : 2.3;
@@ -253,7 +256,7 @@ function buildScene() {
 /* ------------------------------ render loop ------------------------------ */
 
 function startLoop() {
-  clock = new THREE.Clock();
+  clock = new THREE.Timer();
 
   // Paint one frame immediately so the canvas is never blank.
   renderer.render(scene, camera);
@@ -264,8 +267,13 @@ function startLoop() {
     rafId = requestAnimationFrame(animate);
     if (isPaused) return;
 
+    // THREE.Timer requires an explicit update() every frame — unlike the
+    // deprecated THREE.Clock, getDelta()/getElapsed() return 0 otherwise,
+    // which froze the whole scene in place.
+    clock.update();
+
     const dt = Math.min(clock.getDelta(), 0.05);
-    const t = clock.elapsedTime;
+    const t = clock.getElapsed();
 
     core.rotation.y += dt * 0.32;
     core.rotation.x = Math.sin(t * 0.22) * 0.06;
