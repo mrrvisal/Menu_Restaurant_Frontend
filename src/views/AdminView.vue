@@ -4483,7 +4483,7 @@ onUnmounted(() => {
     border-bottom: 1px solid var(--border);
   }
   .root.layout-top .main {
-    padding-top: calc(var(--hbar-h) + 18px);
+    padding-top: calc(var(--hbar-h) + 0px);
   }
 
   /* ── BOTTOM ── */
@@ -4507,8 +4507,7 @@ onUnmounted(() => {
   }
 
   /* the sticky page header parks right below the fixed sidebar bar */
-  .root.layout-top .main,
-  .root.layout-bottom .main {
+  .root.layout-top .main {
     --hdr-stick-top: var(--hbar-h, 0px);
   }
 
@@ -4838,7 +4837,7 @@ onUnmounted(() => {
 
 /* ─── MAIN ─── */
 .main {
-  padding: 28px 32px 60px;
+  padding: 0px 32px 60px;
   /* max-width: 1320px; */
   width: 100%;
   min-width: 0;
@@ -4873,9 +4872,10 @@ onUnmounted(() => {
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 0;
-  padding-bottom: 46px; /* 20px visual gap + the former 24px margin */
+  padding-bottom: 16px; /* 20px visual gap + the former 24px margin */
   border-bottom: none;
   flex-wrap: wrap;
+  padding-top: 20px;
   gap: 10px;
 }
 .hdr::before {
@@ -4883,7 +4883,7 @@ onUnmounted(() => {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 24px; /* leaves 24px of header background below the rule */
+  bottom: 0px; /* leaves 24px of header background below the rule */
   height: 2px;
   background: var(--border-green);
 }
@@ -5170,6 +5170,7 @@ onUnmounted(() => {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
+  margin-top: 20px;
   margin-bottom: 28px;
 }
 .metric {
@@ -5857,16 +5858,14 @@ onUnmounted(() => {
   color: var(--text);
 }
 .rep-presets .chip.active {
-  background: var(--blue, #2563eb);
+  background: var(--primary);
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.35);
 }
 .rep-groups .chip.active {
   background: #1f2937;
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.3);
 }
 .rep-controls {
   display: flex;
@@ -7006,7 +7005,7 @@ onUnmounted(() => {
     gap: 10px;
   }
   .main {
-    padding: 20px 24px 50px;
+    padding: 0px 24px 50px;
   }
 }
 
@@ -7014,7 +7013,7 @@ onUnmounted(() => {
 @media (max-width: 900px) {
   .root {
     grid-template-columns: 1fr;
-    --mob-h: 53px; /* exact .mob height — see below */
+    --mob-h: 48px; /* reduced from 53px for tighter mobile header */
     /* the sticky page header parks right below the mobile bar */
     --hdr-stick-top: var(--mob-h);
   }
@@ -7024,10 +7023,10 @@ onUnmounted(() => {
   .mob {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px; /* reduced from 10px */
     box-sizing: border-box;
     height: var(--mob-h);
-    padding: 0 14px;
+    padding: 0 12px; /* reduced from 14px */
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     position: sticky;
@@ -7035,9 +7034,9 @@ onUnmounted(() => {
     z-index: 90;
   }
   .mob-btn {
-    width: 32px;
-    height: 32px;
-    border-radius: 8px;
+    width: 28px; /* reduced from 32px */
+    height: 28px; /* reduced from 32px */
+    border-radius: 6px; /* reduced from 8px */
     border: 1px solid var(--border);
     background: var(--surface);
     display: flex;
@@ -7054,14 +7053,14 @@ onUnmounted(() => {
   .mob-info {
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px; /* reduced from 10px */
     flex: 1;
     min-width: 0;
   }
   .mob-av {
-    width: 28px;
-    height: 28px;
-    border-radius: 6px;
+    width: 24px; /* reduced from 28px */
+    height: 24px; /* reduced from 28px */
+    border-radius: 5px; /* reduced from 6px */
     overflow: hidden;
     border: 1px solid var(--border-green);
     flex-shrink: 0;
@@ -7077,7 +7076,7 @@ onUnmounted(() => {
     object-fit: cover;
   }
   .mob-label {
-    font-size: 13px;
+    font-size: 12px; /* reduced from 13px */
     font-weight: 700;
     color: var(--ink);
     white-space: nowrap;
@@ -7100,8 +7099,8 @@ onUnmounted(() => {
     position: fixed;
     left: 0;
     top: 0;
-    width: 280px;
-    max-width: 80vw;
+    width: 260px; /* reduced from 280px */
+    max-width: 85vw;
     z-index: 220;
     transform: translateX(-100%);
     transition: transform 0.3s ease;
@@ -7124,7 +7123,7 @@ onUnmounted(() => {
   }
 
   .main {
-    padding: 16px 16px 40px;
+    padding: 12px 14px 32px; /* reduced horizontal padding, tighter bottom */
   }
 
   /* Hide text on small screens */
@@ -7132,33 +7131,35 @@ onUnmounted(() => {
     display: none;
   }
 
-  /* Metrics - 2 columns */
+  /* Metrics - 2 columns with tighter spacing */
   .metrics {
     grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    gap: 8px; /* reduced from 10px */
+    margin-bottom: 16px; /* reduced from 28px */
   }
   .metric {
-    padding: 14px 16px;
+    padding: 12px 14px; /* reduced from 14px 16px */
   }
   .metric-icon {
-    width: 36px;
-    height: 36px;
+    width: 32px; /* reduced from 36px */
+    height: 32px; /* reduced from 36px */
   }
   .metric-v {
-    font-size: 18px;
+    font-size: 17px; /* reduced from 18px */
   }
 
   /* Grid - 3 columns */
   .grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
+    gap: 8px; /* reduced from 10px */
   }
 
-  /* Toolbar - stack */
+  /* Toolbar - stack with tighter gaps */
   .bar {
     flex-direction: column;
     align-items: stretch;
-    gap: 8px;
+    gap: 6px; /* reduced from 8px */
+    margin-bottom: 12px; /* reduced from 18px */
   }
   .bar-acts {
     flex-wrap: wrap;
@@ -7175,121 +7176,137 @@ onUnmounted(() => {
   /* Orders - 1 column */
   .order-grid {
     grid-template-columns: 1fr;
+    gap: 8px; /* reduced from 12px */
   }
 
   /* Categories */
   .cat-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* reduced minmax */
+    gap: 8px; /* reduced from 10px */
   }
 
   /* Buttons - smaller on mobile */
   .ac {
-    padding: 6px 12px;
-    font-size: 11px;
-    min-height: 32px;
-    min-width: 32px;
+    padding: 5px 10px; /* reduced from 6px 12px */
+    font-size: 10px; /* reduced from 11px */
+    min-height: 28px; /* reduced from 32px */
+    min-width: 28px; /* reduced from 32px */
   }
   .hdr-r .ac {
-    padding: 6px 10px;
+    padding: 5px 8px; /* reduced from 6px 10px */
   }
   .ac span {
-    max-width: 80px;
+    max-width: 70px; /* reduced from 80px */
   }
   .hdr-r .ac-avatar {
-    width: 32px;
-    height: 32px;
-    min-width: 32px;
-    padding: 6px;
+    width: 28px; /* reduced from 32px */
+    height: 28px; /* reduced from 32px */
+    min-width: 28px; /* reduced from 32px */
+    padding: 5px; /* reduced from 6px */
   }
   .ac-icon-only {
-    padding: 6px 8px;
+    padding: 5px 6px; /* reduced from 6px 8px */
   }
   .btn {
-    min-height: 34px;
-    min-width: 60px;
-    font-size: 11px;
-    padding: 6px 12px;
+    min-height: 30px; /* reduced from 34px */
+    min-width: 50px; /* reduced from 60px */
+    font-size: 10px; /* reduced from 11px */
+    padding: 5px 10px; /* reduced from 6px 12px */
   }
 
-  /* Header */
+  /* Header — tighter spacing to reduce top space */
   .hdr {
-    padding-bottom: 14px;
-    margin-bottom: 16px;
-    align-items: stretch;
-    gap: 8px;
+    padding: 12px 0 16px; /* reduced from 14px 0px 40px */
+    margin-bottom: 12px; /* reduced from 16px */
+    align-items: flex-start; /* changed from stretch for better alignment */
+    gap: 6px; /* reduced from 8px */
   }
   .hdr-title {
-    font-size: 20px;
+    font-size: 18px; /* reduced from 20px */
   }
   .hdr-r {
     flex-wrap: wrap;
-    gap: 6px;
+    gap: 4px; /* reduced from 6px */
+  }
+
+  /* Menu strip tighter on mobile */
+  .menustrip {
+    padding: 8px 12px; /* reduced from 10px 14px */
+    margin-bottom: 12px; /* reduced from 18px */
   }
 }
 
 /* Small phones */
 @media (max-width: 480px) {
   .main {
-    padding: 12px 10px 32px;
+    padding: 10px 10px 24px; /* reduced from 12px 10px 32px */
   }
 
   .hdr-title {
-    font-size: 18px;
+    font-size: 16px; /* reduced from 18px */
+  }
+
+  .hdr {
+    padding: 10px 0 12px; /* reduced for very small screens */
+    margin-bottom: 10px; /* reduced from 12px */
   }
 
   /* Metrics - 1 column on very small screens */
   .metrics {
     grid-template-columns: 1fr;
-    gap: 8px;
+    gap: 6px; /* reduced from 8px */
+    margin-bottom: 12px; /* reduced from 16px */
   }
   .metric {
-    padding: 12px 14px;
+    padding: 10px 12px; /* reduced from 12px 14px */
   }
   .metric-v {
-    font-size: 17px;
+    font-size: 16px; /* reduced from 17px */
   }
 
   /* Grid - 2 columns */
   .grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
+    gap: 6px; /* reduced from 8px */
   }
 
   /* Categories - 1 column */
   .cat-grid {
     grid-template-columns: 1fr;
+    gap: 6px; /* reduced from 8px */
   }
 
   /* Orders */
   .order-c {
-    padding: 12px;
+    padding: 10px; /* reduced from 12px */
   }
 
   /* Modals - full width */
   .sheet {
     max-width: 100%;
-    margin: 8px;
-    border-radius: 12px;
+    margin: 6px; /* reduced from 8px */
+    border-radius: 10px; /* reduced from 12px */
   }
   .sheet-h {
-    padding: 14px 16px;
-    font-size: 13px;
+    padding: 12px 14px; /* reduced from 14px 16px */
+    font-size: 12px; /* reduced from 13px */
   }
   .sheet-b {
-    padding: 14px;
-    gap: 12px;
+    padding: 12px; /* reduced from 14px */
+    gap: 10px; /* reduced from 12px */
   }
   .dlg {
-    padding: 20px 16px;
+    padding: 16px 14px; /* reduced from 20px 16px */
   }
 
   /* QR */
   .qr-r {
     flex-direction: column;
+    gap: 6px; /* reduced from 8px */
   }
   .qr-p img {
-    width: 140px;
-    height: 140px;
+    width: 120px; /* reduced from 140px */
+    height: 120px; /* reduced from 140px */
   }
 
   /* Chips - wrap */
@@ -7297,102 +7314,123 @@ onUnmounted(() => {
     gap: 4px;
   }
   .chip {
-    padding: 4px 10px;
-    font-size: 10px;
-    min-height: 26px;
+    padding: 3px 8px; /* reduced from 4px 10px */
+    font-size: 9px; /* reduced from 10px */
+    min-height: 24px; /* reduced from 26px */
   }
 
   /* Buttons - even smaller */
   .ac {
-    padding: 4px 10px;
-    font-size: 10px;
-    min-height: 28px;
-    min-width: 28px;
+    padding: 3px 8px; /* reduced from 4px 10px */
+    font-size: 9px; /* reduced from 10px */
+    min-height: 24px; /* reduced from 28px */
+    min-width: 24px; /* reduced from 28px */
   }
   .ac span {
-    max-width: 60px;
+    max-width: 50px; /* reduced from 60px */
   }
   .hdr-r .ac-avatar {
-    width: 28px;
-    height: 28px;
-    min-width: 28px;
-    padding: 4px;
+    width: 24px; /* reduced from 28px */
+    height: 24px; /* reduced from 28px */
+    min-width: 24px; /* reduced from 28px */
+    padding: 3px; /* reduced from 4px */
   }
   .ac-icon-only {
-    padding: 4px 6px;
+    padding: 3px 4px; /* reduced from 4px 6px */
   }
   .btn {
-    min-height: 30px;
-    min-width: 50px;
-    font-size: 10px;
-    padding: 4px 10px;
+    min-height: 26px; /* reduced from 30px */
+    min-width: 40px; /* reduced from 50px */
+    font-size: 9px; /* reduced from 10px */
+    padding: 3px 8px; /* reduced from 4px 10px */
   }
 
-  .order-sel {
-    min-height: 30px;
-    font-size: 10px;
-    padding: 4px 8px;
-  }
   .fld-i {
-    min-height: 32px;
-    font-size: 11px;
-    padding: 6px 8px;
+    min-height: 28px; /* reduced from 32px */
+    font-size: 10px; /* reduced from 11px */
+    padding: 5px 6px; /* reduced from 6px 8px */
   }
   .qr-inp {
-    min-height: 32px;
-    font-size: 11px;
-    padding: 6px 10px;
+    min-height: 28px; /* reduced from 32px */
+    font-size: 10px; /* reduced from 11px */
+    padding: 5px 8px; /* reduced from 6px 10px */
+  }
+
+  /* Menu strip tighter on small phones */
+  .menustrip {
+    padding: 6px 10px; /* reduced from 8px 12px */
+    margin-bottom: 8px; /* reduced from 12px */
   }
 }
 
 /* Very small phones */
 @media (max-width: 380px) {
+  .main {
+    padding: 8px 6px 20px; /* reduced from 10px 10px 24px */
+  }
+
   .grid {
     grid-template-columns: 1fr;
+    gap: 4px; /* reduced from 6px */
   }
   .hdr-r {
-    gap: 4px;
+    gap: 2px; /* reduced from 4px */
   }
   .ac span {
-    max-width: 40px;
+    max-width: 35px; /* reduced from 40px */
+  }
+
+  .metrics {
+    gap: 4px; /* reduced from 6px */
+  }
+  .metric {
+    padding: 8px 10px; /* reduced from 10px 12px */
   }
 }
 
 /* Landscape phones */
 @media (max-height: 600px) and (orientation: landscape) {
   .side {
-    padding-bottom: 10px;
+    padding-bottom: 6px; /* reduced from 10px */
   }
   .side-top {
-    padding: 12px 16px 10px;
+    padding: 8px 12px 6px; /* reduced from 12px 16px 10px */
   }
   .side-nav {
-    padding: 6px 8px;
-    gap: 1px;
+    padding: 4px 6px; /* reduced from 6px 8px */
+    gap: 0px; /* reduced from 1px */
   }
   .nav-i {
-    padding: 6px 10px;
-    min-height: 32px;
-    font-size: 12px;
+    padding: 4px 8px; /* reduced from 6px 10px */
+    min-height: 26px; /* reduced from 32px */
+    font-size: 11px; /* reduced from 12px */
   }
   .side-foot {
-    padding: 8px 12px 12px;
+    padding: 6px 10px 8px; /* reduced from 8px 12px 12px */
   }
   .main {
-    padding: 12px 16px 30px;
+    padding: 8px 12px 20px; /* reduced from 0px 16px 30px */
   }
   .metrics {
-    gap: 6px;
+    gap: 4px; /* reduced from 6px */
+    margin-bottom: 10px; /* reduced from 16px */
   }
   .metric {
-    padding: 10px 12px;
+    padding: 8px 10px; /* reduced from 10px 12px */
   }
   .metric-icon {
-    width: 30px;
-    height: 30px;
+    width: 26px; /* reduced from 30px */
+    height: 26px; /* reduced from 30px */
   }
   .metric-v {
-    font-size: 16px;
+    font-size: 14px; /* reduced from 16px */
+  }
+  .hdr {
+    padding: 8px 0 10px; /* tighter header for landscape */
+    margin-bottom: 8px; /* reduced from 12px */
+  }
+  .hdr-title {
+    font-size: 16px; /* reduced from 18px */
   }
 }
 
@@ -7450,6 +7488,11 @@ onUnmounted(() => {
     grid-template-columns: 1fr;
     gap: 0;
   }
+      .main{
+        padding: 0px 16px 40px;
+    }
+
+
 }
 @media (max-width: 420px) {
   .rep-cards {

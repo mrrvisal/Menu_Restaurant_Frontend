@@ -1,62 +1,97 @@
 /* frontend/src/assets/main.css */
-*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
 html {
   scroll-behavior: smooth;
 }
 
 :root {
-  --green-dark:   #1a4a1a;
-  --green-mid:    #2d7a2d;
-  --green-light:  #4caf50;
-  --green-pale:   #e8f5e9;
-  --green-soft:   #c8e6c9;
+  --green-dark: #1a4a1a;
+  --green-mid: #2d7a2d;
+  --green-light: #4caf50;
+  --green-pale: #e8f5e9;
+  --green-soft: #c8e6c9;
   --green-accent: #81c784;
-  --cream:        #fafdf6;
-  --text-dark:    #1b2e1b;
-  --text-mid:     #3a5a3a;
-  --text-light:   #6a8f6a;
-  --white:        #fff;
-  --shadow:       rgba(45, 122, 45, 0.18);
-  --orange:       #e65100;
-  --radius-card:  16px;
-  --radius-btn:   20px;
+  --cream: #fafdf6;
+  --text-dark: #1b2e1b;
+  --text-mid: #3a5a3a;
+  --text-light: #6a8f6a;
+  --white: #fff;
+  --shadow: rgba(45, 122, 45, 0.18);
+  --orange: #e65100;
+  --radius-card: 16px;
+  --radius-btn: 20px;
 }
 
 body {
-  font-family: 'Kantumruy Pro', sans-serif;
+  font-family: "Kantumruy Pro", sans-serif;
   background: var(--cream);
   color: var(--text-dark);
   min-height: 100vh;
 }
 
-button { font-family: inherit; cursor: pointer; }
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
 
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
   }
 
-  *, *::before, *::after {
-    animation-duration: .01ms !important;
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     scroll-behavior: auto !important;
-    transition-duration: .01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
 /* Scrollbar */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--green-pale); }
-::-webkit-scrollbar-thumb { background: var(--green-accent); border-radius: 10px; }
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: color-mix(in srgb, var(--primary) 20%, transparent);
+  border-radius: 10px;
+  opacity: 0.2;
+}
+::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--primary) 80%, transparent);
+  border-radius: 10px;
+}
 
 /* Fade transition */
-.fade-enter-active, .fade-leave-active { transition: opacity .2s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 
 /* Modal pop */
 @keyframes popIn {
-  from { transform: scale(.9); opacity: 0; }
-  to   { transform: scale(1);  opacity: 1; }
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
-.pop-in { animation: popIn .2s ease; }
+.pop-in {
+  animation: popIn 0.2s ease;
+}

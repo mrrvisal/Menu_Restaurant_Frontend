@@ -24,7 +24,10 @@
 
     <!-- Body -->
     <div class="food-card-body">
-      <div class="food-card-name">{{ food.name }}</div>
+      <div class="food-card-hard">
+        <div class="food-card-name">{{ food.name }}</div>
+        <div class="food-card-price-hide">{{ currencyStore.fmt(food.price) }}</div>
+      </div>
       <div class="food-card-footer">
         <span class="food-card-price">{{ currencyStore.fmt(food.price) }}</span>
 
@@ -150,13 +153,16 @@ function getCategoryEmoji(category) {
 @media (max-width: 480px) {
   .food-card-body { padding: 8px; gap: 4px; }
 }
+.food-card-hard { font-family: 'Hanuman', serif; display: flex; justify-content: space-between; }
 .food-card-name { font-family: 'Hanuman', serif; font-size: 14px; font-weight: 700; line-height: 1.3; }
 @media (max-width: 480px) {
   .food-card-name { font-size: 12px; }
 }
 .food-card-price { font-size: 14px; font-weight: 700; color: var(--primary-strong, var(--green-dark, #14532d)); }
+.food-card-price-hide { font-size: 14px; display: none; font-weight: 700; color: var(--primary-strong, var(--green-dark, #14532d)); }
 @media (max-width: 480px) {
-  .food-card-price { font-size: 12px; }
+  .food-card-price { font-size: 12px; display: none; }
+  .food-card-price-hide { font-size: 12px; display: block; }
   .add-cart-btn { padding: 4px 8px; font-size: 10px; }
   .status-toggle-btn { font-size: 9px; padding: 2px 6px; }
 }
@@ -165,7 +171,7 @@ function getCategoryEmoji(category) {
   align-items: center; margin-top: auto; gap: 4px; flex-wrap: wrap;
 }
 @media (max-width: 480px) {
-  .food-card-footer { flex-direction: column; align-items: stretch; gap: 6px; }
+  /* .food-card-footer { flex-direction: column; align-items: stretch; gap: 6px; } */
   .food-card-footer .add-cart-btn,
   .food-card-footer .status-toggle-btn { width: 100%; justify-content: center; }
 }
