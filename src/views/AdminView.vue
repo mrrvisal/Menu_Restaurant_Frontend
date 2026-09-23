@@ -35,6 +35,15 @@
         }}</span>
       </div>
       <button
+        class="mob-btn mob-install"
+        v-if="installAvailable"
+        :title="i18n.t.install_app"
+        aria-label="Install app"
+        @click="openInstall"
+      >
+        <AppIcon name="download" :size="18" />
+      </button>
+      <button
         class="mob-btn"
         @click="showMobile = !showMobile"
         aria-label="Menu"
@@ -365,6 +374,16 @@
                       <circle cx="12" cy="12" r="3" />
                     </svg>
                     <span>{{ i18n.t.owner_preview }}</span>
+                  </button>
+
+                  <!-- ── Install app (PWA download) ── hidden once installed -->
+                  <button
+                    v-if="installAvailable"
+                    class="pm-item"
+                    @click="runProfileAction(openInstall)"
+                  >
+                    <AppIcon name="download" :size="15" />
+                    <span>{{ i18n.t.install_app }}</span>
                   </button>
 
                   <div class="pm-sep"></div>
@@ -698,13 +717,39 @@
 
       <!-- ──────── ORDERS ──────── -->
       <template v-if="adminTab === 'orders'">
-        <div class="bar">
+        <div class="bar orders-bar">
           <div class="bar-acts">
-            <span class="bar-count"
-              >{{ orders.length }} {{ i18n.t.orders }}</span
+            <span class="ods-label">
+                <svg
+                  width="13"
+                  height="13"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                {{ i18n.t.orders_search_date }}:
+              </span>
+            <!-- Search by date: pick any date to see that day's orders -->
+            <label class="orders-date-search">
+              <AppDatePicker
+                v-model="searchDate"
+                :placeholder="i18n.t.report_today"
+              />
+            </label>
+            <!-- <button
+              v-if="searchActive"
+              class="ac ac-ghost ods-clear"
+              @click="clearDateSearch"
             >
+              <AppIcon name="x" :size="12" />
+              {{ i18n.t.cancel || "Clear" }}
+            </button> -->
             <button
-              class="ac ac-ghost"
+              class="ac ac-ghost bar-refresh"
               :disabled="ordersLoading"
               @click="fetchOrders"
             >
@@ -727,6 +772,107 @@
           <div class="spinner"></div>
           <p>{{ i18n.t.loading }}</p>
         </div>
+        <!-- ─── DATE SEARCH RESULTS ─── -->
+        <div v-else-if="searchActive" class="order-search">
+          <header class="search-head">
+            <span class="search-title">
+              <AppIcon name="calendar" :size="14" />
+              {{ dayLabel(searchDate) }}
+            </span>
+            <span class="search-count"
+              >{{ searchDateOrders.length }} {{ i18n.t.orders }}</span
+            >
+          </header>
+          <div v-if="searchDateOrders.length" class="order-grid">
+            <div v-for="order in searchDateOrders" :key="order.id" class="order-c">
+              <div class="order-h">
+                <div class="order-hl">
+                  <span class="order-id"
+                    ><AppIcon name="clipboard" :size="12" />#{{ order.id }}</span
+                  >
+                  <span class="order-t"
+                    ><svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="1.5"
+                    >
+                      <rect x="3" y="3" width="18" height="18" rx="2" />
+                      <line x1="3" y1="9" x2="21" y2="9" />
+                      <line x1="9" y1="3" x2="9" y2="9" />
+                    </svg>
+                    {{ i18n.t.table }} {{ order.table_no }}</span
+                  >
+                </div>
+                <div class="order-m">
+                  <span class="order-st" :class="order.status">
+                    <AppIcon :name="statusIcon(order.status)" :size="11" />
+                    {{ statusLabel(order.status) }}
+                  </span>
+                  <span class="order-time">{{
+                    formatDate(order.created_at)
+                  }}</span>
+                </div>
+              </div>
+              <div class="order-items">
+                <div
+                  v-for="(item, idx) in parseItems(order.items)"
+                  :key="idx"
+                  class="order-i"
+                >
+                  <span>{{ item.name }}</span>
+                  <span class="order-p"
+                    >{{ item.qty }} ×
+                    {{ currencyStore.fmt(item.price) }}</span
+                  >
+                </div>
+              </div>
+              <div v-if="order.note" class="order-n">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <path
+                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                  />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                </svg>
+                {{ order.note }}
+              </div>
+              <div class="order-total">
+                {{ i18n.t.total }}:
+                <strong>{{ currencyStore.fmt(order.total) }}</strong>
+              </div>
+              <div v-if="getStatusOptions(order.status).length" class="order-status-actions">
+                <span class="order-status-label">{{ i18n.t.change_status || "ប្តូរស្ថានភាព" }}:</span>
+                <div class="order-status-btns">
+                  <button
+                    v-for="s in getStatusOptions(order.status)"
+                    :key="s"
+                    class="order-status-btn"
+                    :class="'st-' + s"
+                    @click="updateOrderStatus(order.id, s)"
+                  >
+                    <AppIcon :name="statusIcon(s)" :size="11" />
+                    {{ statusLabel(s) }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <p v-else class="day-empty-note">
+            {{ i18n.t.no_orders_date }}
+          </p>
+        </div>
+        <!-- ─── NORMAL VIEW: today + date-grouped history ─── -->
         <div v-else-if="!orders.length" class="empty">
           <svg
             width="40"
@@ -742,17 +888,104 @@
             />
             <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
           </svg>
-          <p>{{ i18n.t.no_data }}</p>
+          <!-- No orders at all (e.g. fresh new day) — show the same
+               "no orders today" note used by the empty Today section -->
+          <p>{{ i18n.t.no_orders_today }}</p>
         </div>
-        <div v-else class="order-grid">
-          <div v-for="order in orders" :key="order.id" class="order-c">
-            <div class="order-h">
-              <div class="order-hl">
-                <span class="order-id"
-                  ><AppIcon name="clipboard" :size="12" />#{{ order.id }}</span
+        <div v-else class="order-days">
+          <div
+            v-for="sec in orderSections"
+            :key="sec.key"
+            class="day-section"
+            :class="{ 'day-today': sec.today }"
+          >
+            <!-- Section header: "Today" for the active list, the order's date
+                 for history groups. Previous days start collapsed — their
+                 orders were "cleared" out of the active view at midnight. -->
+            <header
+              class="day-head"
+              :class="{
+                clickable: sec.collapsible,
+                open: sec.collapsible && expandedDays[sec.key],
+              }"
+              @click="sec.collapsible && toggleDay(sec.key)"
+            >
+              <span class="day-title">
+                <AppIcon :name="sec.today ? 'sun' : 'orders'" :size="14" />
+                {{ sec.today ? i18n.t.report_today : dayLabel(sec.day) }}
+              </span>
+              <span class="day-meta">
+                <span class="day-count"
+                  >{{ sec.orders.length }} {{ i18n.t.orders }}</span
                 >
-                <span class="order-t"
-                  ><svg
+                <svg
+                  v-if="sec.collapsible"
+                  class="day-chev"
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </span>
+            </header>
+
+            <div
+              v-if="!sec.collapsible || expandedDays[sec.key]"
+              class="order-grid"
+            >
+              <div v-for="order in sec.orders" :key="order.id" class="order-c">
+                <div class="order-h">
+                  <div class="order-hl">
+                    <span class="order-id"
+                      ><AppIcon name="clipboard" :size="12" />#{{ order.id }}</span
+                    >
+                    <span class="order-t"
+                      ><svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="1.5"
+                      >
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <line x1="3" y1="9" x2="21" y2="9" />
+                        <line x1="9" y1="3" x2="9" y2="9" />
+                      </svg>
+                      {{ i18n.t.table }} {{ order.table_no }}</span
+                    >
+                  </div>
+                  <div class="order-m">
+                    <span class="order-st" :class="order.status">
+                      <AppIcon :name="statusIcon(order.status)" :size="11" />
+                      {{ statusLabel(order.status) }}
+                    </span>
+                    <span class="order-time">{{
+                      formatDate(order.created_at)
+                    }}</span>
+                  </div>
+                </div>
+                <div class="order-items">
+                  <div
+                    v-for="(item, idx) in parseItems(order.items)"
+                    :key="idx"
+                    class="order-i"
+                  >
+                    <span>{{ item.name }}</span>
+                    <span class="order-p"
+                      >{{ item.qty }} ×
+                      {{ currencyStore.fmt(item.price) }}</span
+                    >
+                  </div>
+                </div>
+                <div v-if="order.note" class="order-n">
+                  <svg
                     width="12"
                     height="12"
                     viewBox="0 0 24 24"
@@ -760,73 +993,39 @@
                     stroke="currentColor"
                     stroke-width="1.5"
                   >
-                    <rect x="3" y="3" width="18" height="18" rx="2" />
-                    <line x1="3" y1="9" x2="21" y2="9" />
-                    <line x1="9" y1="3" x2="9" y2="9" />
+                    <path
+                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
+                    />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="16" y1="13" x2="8" y2="13" />
+                    <line x1="16" y1="17" x2="8" y2="17" />
                   </svg>
-                  {{ i18n.t.table }} {{ order.table_no }}</span
-                >
-              </div>
-              <div class="order-m">
-                <span class="order-st" :class="order.status">
-                  <AppIcon :name="statusIcon(order.status)" :size="11" />
-                  {{ statusLabel(order.status) }}
-                </span>
-                <span class="order-time">{{
-                  formatDate(order.created_at)
-                }}</span>
-              </div>
-            </div>
-            <div class="order-items">
-              <div
-                v-for="(item, idx) in parseItems(order.items)"
-                :key="idx"
-                class="order-i"
-              >
-                <span>{{ item.name }}</span>
-                <span class="order-p"
-                  >{{ item.qty }} ×
-                  {{ currencyStore.fmt(item.price) }}</span
-                >
+                  {{ order.note }}
+                </div>
+                <div class="order-total">
+                  {{ i18n.t.total }}:
+                  <strong>{{ currencyStore.fmt(order.total) }}</strong>
+                </div>
+                <div v-if="getStatusOptions(order.status).length" class="order-status-actions">
+                  <span class="order-status-label">{{ i18n.t.change_status || "ប្តូរស្ថានភាព" }}:</span>
+                  <div class="order-status-btns">
+                    <button
+                      v-for="s in getStatusOptions(order.status)"
+                      :key="s"
+                      class="order-status-btn"
+                      :class="'st-' + s"
+                      @click="updateOrderStatus(order.id, s)"
+                    >
+                      <AppIcon :name="statusIcon(s)" :size="11" />
+                      {{ statusLabel(s) }}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-            <div v-if="order.note" class="order-n">
-              <svg
-                width="12"
-                height="12"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
-                <path
-                  d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-              </svg>
-              {{ order.note }}
-            </div>
-            <div class="order-total">
-              {{ i18n.t.total }}:
-              <strong>{{ currencyStore.fmt(order.total) }}</strong>
-            </div>
-            <div v-if="getStatusOptions(order.status).length" class="order-status-actions">
-              <span class="order-status-label">{{ i18n.t.change_status || "ប្តូរស្ថានភាព" }}:</span>
-              <div class="order-status-btns">
-                <button
-                  v-for="s in getStatusOptions(order.status)"
-                  :key="s"
-                  class="order-status-btn"
-                  :class="'st-' + s"
-                  @click="updateOrderStatus(order.id, s)"
-                >
-                  <AppIcon :name="statusIcon(s)" :size="11" />
-                  {{ statusLabel(s) }}
-                </button>
-              </div>
-            </div>
+            <p v-if="sec.today && !sec.orders.length" class="day-empty-note">
+              {{ i18n.t.no_orders_today }}
+            </p>
           </div>
         </div>
       </template>
@@ -2631,6 +2830,15 @@
                   autocomplete="current-password"
                   :placeholder="i18n.t.current_password || 'Current password'"
                 />
+                <!-- Google-created accounts have no password yet: the backend
+                     accepts a new password without the current one, so tell the
+                     owner they can leave this field empty. -->
+                <p v-if="auth.user?.hasPassword === false" class="fld-hint">
+                  {{
+                    i18n.t.google_no_password_hint ||
+                    "This account was created with Google — leave “Current password” empty to set your first password."
+                  }}
+                </p>
               </div>
               <div class="fld">
                 <label class="fld-l"
@@ -2661,12 +2869,133 @@
         </div>
       </Transition></Teleport
     >
+
+    <!-- ═══ INSTALL APP (PWA download for owners) ═══
+         Android / desktop: fires the native install dialog.
+         iOS Safari: shows Add-to-Home-Screen steps. -->
+    <Teleport to="body"
+      ><Transition name="fade">
+        <div
+          v-if="showInstallModal"
+          class="overlay"
+          @click.self="showInstallModal = false"
+        >
+          <div class="sheet">
+            <div class="sheet-h">
+              <span
+                ><AppIcon name="download" :size="16" />
+                {{ i18n.t.install_app }}</span
+              ><button
+                class="ic"
+                aria-label="Close"
+                @click="showInstallModal = false"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.5"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div class="sheet-b">
+              <p class="ins-desc">{{ i18n.t.install_desc }}</p>
+
+              <!-- installability requires HTTPS or localhost -->
+              <div v-if="insecureContext" class="msg msg-e">
+                <AppIcon name="alert-circle" :size="14" />
+                {{ i18n.t.install_needs_https }}
+              </div>
+
+              <!-- already running as an installed app -->
+              <div v-if="isStandalone" class="msg msg-s">
+                <AppIcon name="check-circle" :size="14" />
+                {{ i18n.t.install_done }}
+              </div>
+
+              <!-- iOS Safari — manual Add to Home Screen -->
+              <template v-else-if="isIos">
+                <div class="ins-steps">
+                  <div class="tg-step">
+                    <span class="step-n">1</span> {{ i18n.t.install_ios_1 }}
+                  </div>
+                  <div class="tg-step">
+                    <span class="step-n">2</span> {{ i18n.t.install_ios_2 }}
+                  </div>
+                  <div class="tg-step">
+                    <span class="step-n">3</span> {{ i18n.t.install_ios_3 }}
+                  </div>
+                </div>
+              </template>
+
+              <!-- Chrome suppressed the prompt after a previous dismissal —
+                   the manual menu steps are the reliable path -->
+              <template v-else-if="installDismissed">
+                <div class="msg msg-i">
+                  {{ i18n.t.install_dismissed }}
+                </div>
+                <div class="ins-steps">
+                  <div class="tg-step">
+                    <span class="step-n">1</span> {{ i18n.t.install_chrome_1 }}
+                  </div>
+                  <div class="tg-step">
+                    <span class="step-n">2</span> {{ i18n.t.install_chrome_2 }}
+                  </div>
+                </div>
+              </template>
+
+              <!-- Android / desktop Chrome — one-click install button.
+                   Until the browser fires beforeinstallprompt the button
+                   waits (spinner); a Refresh link is offered because a
+                   reload usually completes SW setup on the first visit. -->
+              <template v-else>
+                <button
+                  class="btn btn-primary btn-b"
+                  :disabled="!canNativeInstall"
+                  @click="installApp"
+                >
+                  <span
+                    v-if="!canNativeInstall"
+                    class="spinner ins-spin"
+                  ></span>
+                  <AppIcon v-else name="download" :size="15" />
+                  {{
+                    canNativeInstall
+                      ? i18n.t.install_now
+                      : i18n.t.install_wait
+                  }}
+                </button>
+                <div v-if="!canNativeInstall" class="ins-wait">
+                  <span>{{ i18n.t.install_wait_hint }}</span>
+                  <button class="btn btn-g btn-sm" @click="reloadPage">
+                    {{ i18n.t.refresh || "Refresh" }}
+                  </button>
+                </div>
+                <div class="ins-steps">
+                  <div class="tg-step">
+                    <span class="step-n">1</span> {{ i18n.t.install_chrome_1 }}
+                  </div>
+                  <div class="tg-step">
+                    <span class="step-n">2</span> {{ i18n.t.install_chrome_2 }}
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </Transition></Teleport
+    >
   </div>
 </template>
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
-import { useRouter } from "vue-router";
+import { useRouter, useRoute } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useFoodsStore } from "@/stores/foods";
 import { useI18nStore } from "@/stores/i18n";
@@ -2689,6 +3018,7 @@ import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 const router = useRouter();
+const route = useRoute();
 const auth = useAuthStore();
 const foods = useFoodsStore();
 const i18n = useI18nStore();
@@ -2696,7 +3026,19 @@ const theme = useThemeStore();
 const notifications = useNotificationsStore();
 const currencyStore = useCurrencyStore();
 
-const adminTab = ref("foods");
+// ─── ACTIVE TAB (persists across page refresh) ─────────────
+// The selected sidebar tab is mirrored into the URL as ?tab=… so a
+// refresh (F5 / pull-to-refresh) — or a shared link — lands back on the
+// exact same view instead of resetting to "Foods".
+const VALID_TABS = ["foods", "categories", "orders", "reports"];
+const adminTab = ref(
+  VALID_TABS.includes(route.query.tab) ? route.query.tab : "foods",
+);
+watch(adminTab, (tab) => {
+  router
+    .replace({ query: { ...route.query, tab } })
+    .catch(() => {}); // duplicate navigation is harmless
+});
 const curCat = ref("");
 const searchQ = ref("");
 const showForm = ref(false);
@@ -3305,6 +3647,12 @@ async function unlinkTelegram() {
 }
 
 async function fetchOrders() {
+  // An account without a restaurant has no orders — skip the call (the
+  // backend would answer 404 "No restaurant found for this account").
+  if (!auth.restaurantId) {
+    orders.value = [];
+    return;
+  }
   ordersLoading.value = true;
   try {
     // Scope the list to the restaurant selected in the dashboard. Without
@@ -3375,6 +3723,104 @@ async function updateOrderStatus(orderId, status) {
   } catch (err) {
     alert("មិនអាចប្តូរស្ថានភាពកម្មង់បានទេ");
   }
+}
+
+// ─── NEW-DAY ORDER GROUPING (frontend only — DB data is never touched) ───
+// Orders are grouped by their order date. While the day is running, ALL of
+// today's orders sit together in one active list. When the clock passes
+// midnight the reactive `todayKey` flips, so yesterday's orders MOVE out of
+// the active list into their own collapsible date sections (order history).
+// Nothing is deleted — reports / CSV export still see every order.
+function dayKeyOf(date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
+}
+const todayKey = ref(dayKeyOf(new Date()));
+const expandedDays = ref({});
+function toggleDay(day) {
+  expandedDays.value = { ...expandedDays.value, [day]: !expandedDays.value[day] };
+}
+const todayOrders = computed(() =>
+  orders.value.filter(
+    (o) => o.created_at && dayKeyOf(new Date(o.created_at)) === todayKey.value,
+  ),
+);
+const pastDayGroups = computed(() => {
+  const map = new Map();
+  for (const o of orders.value) {
+    if (!o.created_at) continue;
+    const k = dayKeyOf(new Date(o.created_at));
+    if (k === todayKey.value) continue;
+    if (!map.has(k)) map.set(k, []);
+    map.get(k).push(o);
+  }
+  return [...map.entries()]
+    .sort((a, b) => (a[0] < b[0] ? 1 : -1)) // newest day first
+    .map(([day, list]) => ({ day, list }));
+});
+// Sections rendered by the Orders tab: today first (always open), then one
+// collapsible section per previous day (collapsed by default).
+const orderSections = computed(() => {
+  const sections = [
+    { key: "today", today: true, orders: todayOrders.value, collapsible: false },
+  ];
+  for (const g of pastDayGroups.value) {
+    sections.push({
+      key: g.day,
+      today: false,
+      day: g.day,
+      orders: g.list,
+      collapsible: true,
+    });
+  }
+  return sections;
+});
+function dayLabel(dayStr) {
+  const [y, m, d] = dayStr.split("-").map(Number);
+  return new Date(y, m - 1, d).toLocaleDateString("km-KH", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+}
+// ─── DATE SEARCH (frontend only) ───────────────────────────
+// Lets the owner jump to any specific date and see that day's orders.
+// AppDatePicker uses "YYYY-MM-DD" — the exact same shape as dayKeyOf(),
+// so picking a date filters orders by simple string equality.
+const searchDate = ref(""); // "" = no date filter (normal today/history view)
+
+const searchActive = computed(() => !!searchDate.value);
+
+// All orders whose order date matches the picked date, newest first
+const searchDateOrders = computed(() => {
+  if (!searchActive.value) return [];
+  return orders.value
+    .filter((o) => o.created_at && dayKeyOf(new Date(o.created_at)) === searchDate.value)
+    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+});
+
+function clearDateSearch() {
+  searchDate.value = "";
+}
+
+// Midnight timer — flips todayKey just after midnight so yesterday's orders
+// are moved into history automatically, then re-arms (covers devices that
+// sleep through the exact tick).
+let newDayTimer = null;
+function scheduleNewDayCheck() {
+  clearTimeout(newDayTimer);
+  const now = new Date();
+  const nextMidnight = new Date(now);
+  nextMidnight.setHours(24, 0, 0, 0);
+  newDayTimer = setTimeout(() => {
+    if (todayKey.value !== dayKeyOf(new Date())) {
+      todayKey.value = dayKeyOf(new Date());
+      fetchOrders();
+    }
+    scheduleNewDayCheck();
+  }, Math.max(1000, nextMidnight - now) + 1000);
 }
 
 function openCatForm(cat = null) {
@@ -3953,8 +4399,19 @@ function confirmDel(food) {
 }
 async function doDelete() {
   if (!deletingFood.value) return;
-  await foods.deleteFood(deletingFood.value.id);
-  deletingFood.value = null;
+  try {
+    await foods.deleteFood(deletingFood.value.id);
+  } catch (err) {
+    // Ownership failures (e.g. a stale row from another account/restaurant)
+    // come back as 404 — surface it instead of an unhandled rejection, and
+    // keep the row until the list is refetched.
+    console.error(
+      "Delete food failed:",
+      err?.response?.data?.error || err.message,
+    );
+  } finally {
+    deletingFood.value = null;
+  }
 }
 function confirmLogout() {
   auth.logout();
@@ -3979,6 +4436,7 @@ function handleEscKey(e) {
   else if (showCatForm.value) showCatForm.value = false;
   else if (showProfile.value) showProfile.value = false;
   else if (showSettings.value) showSettings.value = false;
+  else if (showInstallModal.value) showInstallModal.value = false;
 }
 
 // ─── REAL-TIME NEW ORDER ALERT (TTS 🔊) ───
@@ -4189,6 +4647,13 @@ function scheduleStreamRetry(delayMs) {
 
 async function connectOrderStream() {
   if (!auth.token) return;
+  // An account without a restaurant can't have an order stream — the server
+  // would answer 404 and the retry loop would spam it every 60s. The stream
+  // is (re)connected from initForRestaurant() once a restaurant exists.
+  if (!auth.restaurantId) {
+    orderStreamError.value = "";
+    return;
+  }
   if (orderStream.value) return; // Already connected
   clearTimeout(streamRetryTimer);
   streamRetryTimer = null;
@@ -4351,6 +4816,7 @@ onMounted(async () => {
   fetchStats();
   window.addEventListener("keydown", handleEscKey);
   connectOrderStream();
+  scheduleNewDayCheck();
 
   // Publish the sticky header height (--hdr-h) and keep it in sync when the
   // Khmer font finishes loading or the header wraps on a narrow viewport.
@@ -4370,10 +4836,126 @@ onMounted(async () => {
   else mq.addListener(onDesktopBreakpoint);
   desktopBreakpointQuery = { mq, onDesktopBreakpoint };
 });
+// ─── PWA INSTALL ("download the web as an app") ────────────
+// Owners can install Digital Menu from the profile dropdown. Android /
+// desktop Chrome get the native `beforeinstallprompt` dialog; iOS Safari
+// has no install event, so we show Add-to-Home-Screen steps instead.
+// When the app already runs standalone (installed), the item hides itself.
+const deferredInstallEvent = ref(null);
+const showInstallModal = ref(false);
+const isStandalone = computed(() => {
+  if (typeof window === "undefined") return false;
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true
+  );
+});
+const canNativeInstall = computed(() => !!deferredInstallEvent.value);
+const isIos = computed(() => {
+  if (typeof window === "undefined") return false;
+  return (
+    /iphone|ipad|ipod/i.test(window.navigator.userAgent) ||
+    // iPadOS 13+ identifies as Mac with touch support
+    (window.navigator.platform === "MacIntel" && window.navigator.maxTouchPoints > 1)
+  );
+});
+// "Add to Home Screen" is offered to EVERY non-installed visitor —
+// the native dialog fires when available, otherwise the modal teaches
+// the manual steps (iOS: Share → Add to Home Screen; desktop: ⋮ menu).
+const installAvailable = computed(() => !isStandalone.value);
+// Chrome backs off firing beforeinstallprompt after the user dismisses its
+// dialog once. Track that so the UI skips the (never-enabling) waiting
+// button and teaches the always-working manual steps instead.
+const installDismissed = ref(false);
+try {
+  installDismissed.value = localStorage.getItem("dm_install_dismissed") === "1";
+} catch {}
+// Installability requires a secure context — plain HTTP / a LAN IP can
+// never trigger the install dialog. Surface that instead of a long wait.
+const insecureContext = computed(
+  () => typeof window !== "undefined" && !window.isSecureContext,
+);
+// One-time auto-reload: on the very first visit the SW becomes active only
+// AFTER this page load, and Chrome usually needs a fresh load to evaluate
+// installability. Reload once per session (flag guards against loops).
+const installReloadTried = (() => {
+  try {
+    return sessionStorage.getItem("dm_install_reload") === "1";
+  } catch {
+    return false;
+  }
+})();
+let installWaitTimer = null;
+watch(
+  [showInstallModal, canNativeInstall],
+  ([open, ready]) => {
+    clearTimeout(installWaitTimer);
+    if (!open || ready || isIos.value || isStandalone.value) return;
+    if (installReloadTried) return; // already tried once — keep manual steps
+    installWaitTimer = setTimeout(() => {
+      if (canNativeInstall.value) return; // event arrived while waiting
+      try {
+        sessionStorage.setItem("dm_install_reload", "1");
+      } catch {}
+      window.location.reload();
+    }, 4000);
+  },
+  { immediate: true },
+);
+
+function onBeforeInstallPrompt(e) {
+  // Prevent Chrome's own mini-infobar; we own the UX from the dropdown.
+  e.preventDefault();
+  deferredInstallEvent.value = e;
+  // A successful fire clears any earlier "dismissed" backoff marker
+  try {
+    localStorage.removeItem("dm_install_dismissed");
+  } catch {}
+  installDismissed.value = false;
+  console.log("✅ Install ready — browser fired beforeinstallprompt");
+}
+function onAppInstalled() {
+  deferredInstallEvent.value = null;
+  showInstallModal.value = false;
+}
+function openInstall() {
+  // Always open the modal first — the actual download only happens when
+  // the user clicks the "Install now" button inside (no auto-download).
+  showInstallModal.value = true;
+}
+// Fire the browser's native install dialog (requires the captured event —
+// prompt() must be called from a user gesture, hence the button).
+async function installApp() {
+  if (!deferredInstallEvent.value) return;
+  deferredInstallEvent.value.prompt();
+  const { outcome } = await deferredInstallEvent.value.userChoice;
+  if (outcome === "accepted") {
+    deferredInstallEvent.value = null;
+    showInstallModal.value = false;
+  } else {
+    // Dismissed → Chrome stops firing the event for a while. Remember it
+    // so future opens skip the waiting button and show manual steps.
+    installDismissed.value = true;
+    try {
+      localStorage.setItem("dm_install_dismissed", "1");
+    } catch {}
+  }
+}
+// Reload helper for the "browser not ready" state — a reload lets Chrome
+// finish service-worker setup, after which beforeinstallprompt fires.
+function reloadPage() {
+  window.location.reload();
+}
+window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+window.addEventListener("appinstalled", onAppInstalled);
+
 onUnmounted(() => {
   window.removeEventListener("keydown", handleEscKey);
   document.removeEventListener("click", onProfileMenuDocClick);
   disconnectOrderStream();
+  clearTimeout(newDayTimer);
+  window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+  window.removeEventListener("appinstalled", onAppInstalled);
   if (hdrResizeObserver) {
     hdrResizeObserver.disconnect();
     hdrResizeObserver = null;
@@ -5565,6 +6147,168 @@ onUnmounted(() => {
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   gap: 12px;
 }
+
+/* ── Order day sections — today's orders in one active list, previous days
+   grouped under their order date (collapsed history). Frontend only. ── */
+.order-days {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.day-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.day-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--primary);
+  box-sizing: border-box;
+}
+.day-section:not(.day-today) .day-head {
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  width: 100%;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+.day-section:not(.day-today) .day-head:hover {
+  border-color: var(--primary);
+  box-shadow: 0 2px 10px var(--primary-glow);
+}
+.day-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+.day-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  opacity: 0.75;
+  font-size: 12px;
+  font-weight: 700;
+}
+.day-chev {
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+.day-head.open .day-chev {
+  transform: rotate(180deg);
+}
+.day-empty-note {
+  margin: 0;
+  padding: 18px 14px;
+  text-align: center;
+  color: var(--text-dim, #6b7280);
+  font-size: 13px;
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+}
+
+/* ── Orders bar: date search + uniform control sizes ────────
+   All three controls (date picker, Clear, Refresh) share ONE size
+   token --ob-h so they are EXACTLY equal on every breakpoint and in
+   both languages. The picker lives inside the AppDatePicker child
+   component, so it can only be reached with :deep() (scoped CSS). */
+.orders-bar {
+  --ob-h: 36px;
+}
+.orders-bar .bar-acts {
+  width: 100%;
+}
+.orders-bar .bar-refresh {
+  margin-left: auto; /* Refresh pinned to the end (right side) */
+}
+.ods-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted, #6b7280);
+  white-space: nowrap;
+}
+.orders-date-search {
+  display: inline-flex;
+  align-items: center;
+}
+.orders-date-search .dp {
+  width: auto;
+  height: var(--ob-h);
+}
+.orders-date-search :deep(.dp-field) {
+  width: auto;
+  min-width: 160px;
+  height: var(--ob-h);
+  min-height: var(--ob-h);
+  box-sizing: border-box;
+}
+/* Clear + Refresh: identical boxes in both languages */
+.orders-bar .ac {
+  width: 120px;
+  height: var(--ob-h);
+  min-height: var(--ob-h);
+  min-width: 0;
+  box-sizing: border-box;
+  justify-content: center;
+}
+.ods-clear {
+  padding: 0 12px;
+}
+@media (max-width: 900px) {
+  .orders-bar {
+    --ob-h: 32px;
+  }
+  /* small screens: Refresh joins the group on the left
+     (margin-left:auto only makes sense on one desktop row) */
+  .orders-bar .bar-refresh {
+    margin-left: 0;
+  }
+}
+@media (max-width: 480px) {
+  .orders-bar {
+    --ob-h: 30px;
+  }
+  .ods-label {
+    width: 100%;
+  }
+}
+/* Search results panel — same header style as day sections */
+.order-search {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.search-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--surface);
+  border: 1px solid var(--primary);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--primary);
+  box-sizing: border-box;
+}
+.search-count {
+  opacity: 0.75;
+  font-size: 12px;
+  font-weight: 700;
+}
 .order-c {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -6299,6 +7043,12 @@ onUnmounted(() => {
 .fld-i.err {
   border-color: var(--red);
   background: #fff8f8;
+}
+.fld-hint {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 6px 0 0;
 }
 .fld-e {
   font-size: 10px;
@@ -7432,6 +8182,47 @@ onUnmounted(() => {
   .hdr-title {
     font-size: 16px; /* reduced from 18px */
   }
+}
+
+/* ─── PWA install (owners "download the web as an app") ─── */
+.mob-install {
+  color: var(--primary-strong, var(--primary));
+}
+.ins-desc {
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0;
+}
+.ins-steps {
+  background: var(--surface-green);
+  border: 1px solid var(--border-green);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+/* waiting state while the browser readies beforeinstallprompt */
+.ins-spin {
+  width: 14px;
+  height: 14px;
+  border-width: 2px;
+}
+.ins-wait {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+.ins-hint {
+  font-size: 11.5px;
+  color: var(--muted);
+  text-align: center;
+  padding: 8px 0 2px;
 }
 
 /* --- Settings > Push notifications (this device) --- */

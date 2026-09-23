@@ -11,6 +11,13 @@ self.addEventListener("activate", (event) => {
   event.waitUntil(self.clients.claim());
 });
 
+// ─── FETCH EVENT (installability) ───────────────────────────
+// Chrome requires a fetch listener for the web app to be installable
+// ("Install app" / beforeinstallprompt). It stays a no-op pass-through:
+// the browser's normal network stack handles every request, so nothing
+// here can serve stale content or break caching.
+self.addEventListener("fetch", () => {});
+
 // ─── PUSH EVENT ─────────────────────────────────────────────
 // Payload sent by the backend (services/webpush.js):
 //   { title, body, tag, url, icon }

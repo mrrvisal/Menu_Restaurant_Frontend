@@ -80,6 +80,14 @@ const routes = [
     component: () => import("@/views/SuperAdminView.vue"),
     meta: { requiresAuth: true, requiresSuperAdmin: true },
   },
+  {
+    // 404 — any path that doesn't match a route above lands here.
+    // The :pathMatch syntax keeps the full unknown path available as
+    // route.params.pathMatch (and route.fullPath) for display.
+    path: "/:pathMatch(.*)*",
+    name: "NotFound",
+    component: () => import("@/views/NotFoundView.vue"),
+  },
 ];
 
 const router = createRouter({

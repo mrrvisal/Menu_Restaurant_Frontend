@@ -1,6 +1,6 @@
 // frontend/src/stores/foods.js
 import { defineStore } from "pinia";
-import { ref } from "vue";
+import { ref, watch } from "vue";
 import axios from "axios";
 import { useAuthStore } from "./auth";
 
@@ -13,6 +13,21 @@ export const useFoodsStore = defineStore("foods", () => {
   const menus = ref([]);
   const loading = ref(false);
   const error = ref(null);
+
+  // Never keep another account's (or another restaurant's) data in memory.
+  // The dashboard is a SPA, so logging in as a different account (or
+  // switching restaurants) would otherwise keep showing the previous
+  // owner's foods/categories until a successful refetch — and actions on
+  // them would hit the API with wrong ids.
+  watch(
+    () => [auth.user?.id, auth.restaurantId],
+    () => {
+      foods.value = [];
+      categories.value = [];
+      menus.value = [];
+      error.value = null;
+    },
+  );
 
   // The currently active restaurant (for owner actions)
   function activeRestaurantId() {
@@ -57,6 +72,12 @@ export const useFoodsStore = defineStore("foods", () => {
 
   async function fetchCategories(params = {}, restaurantId = null) {
     const id = restaurantId || activeRestaurantId();
+    if (!id) {
+      // No restaurant selected → nothing to show (never fetch without one:
+      // the server no longer guesses, it answers 400).
+      categories.value = [];
+      return;
+    }
     const res = await axios.get(`${API_BASE_URL}/api/categories`, {
       params: { restaurant_id: id, ...params },
     });
@@ -76,10 +97,16 @@ export const useFoodsStore = defineStore("foods", () => {
   }
 
   async function fetchFoods(params = {}, restaurantId = null) {
+    const id = restaurantId || activeRestaurantId();
+    if (!id) {
+      // No restaurant selected → nothing to show (never fetch without one:
+      // the server no longer guesses, it answers 400).
+      foods.value = [];
+      return;
+    }
     loading.value = true;
     error.value = null;
     try {
-      const id = restaurantId || activeRestaurantId();
       const res = await axios.get(`${API_BASE_URL}/api/foods`, {
         params: { restaurant_id: id, ...params },
       });

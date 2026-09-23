@@ -44,9 +44,6 @@
           {{ submitting ? i18n.t.loading : i18n.t.reset_password }}
         </button>
       </form>
-      <div class="links">
-        <router-link to="/forgot-password">{{ i18n.t.forgot_password }}</router-link>
-      </div>
     </div>
   </div>
 </template>

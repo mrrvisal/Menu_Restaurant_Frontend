@@ -15,4 +15,15 @@ app.use(router);
 import { useThemeStore } from './stores/theme';
 useThemeStore().load();
 
+// ─── PWA: register the service worker at startup ───────────
+// Chrome only offers "Install app" / fires beforeinstallprompt when an
+// active service worker exists. Register IMMEDIATELY (not on window.load)
+// so installability is ready as early as possible.
+// sw.js does not intercept fetch() (safe: it never caches app requests).
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/sw.js').catch((err) => {
+    console.warn('Service worker registration failed:', err);
+  });
+}
+
 app.mount('#app');

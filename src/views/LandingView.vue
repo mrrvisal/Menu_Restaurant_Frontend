@@ -14,9 +14,9 @@
         </router-link>
 
         <div class="nav-links">
-          <a href="#features" class="nav-link">{{ i18n.t.features }}</a>
-          <a href="#how-it-works" class="nav-link">{{ i18n.t.how_it_works }}</a>
-          <a href="#demo-menu" class="nav-link">{{ i18n.t.menu }}</a>
+          <a href="#features" class="nav-link" :class="{ active: activeSection === 'features' }" @click="activeSection = 'features'">{{ i18n.t.features }}</a>
+          <a href="#how-it-works" class="nav-link" :class="{ active: activeSection === 'how-it-works' }" @click="activeSection = 'how-it-works'">{{ i18n.t.how_it_works }}</a>
+          <a href="#demo-menu" class="nav-link" :class="{ active: activeSection === 'demo-menu' }" @click="activeSection = 'demo-menu'">{{ i18n.t.menu }}</a>
           <button class="lang-btn" type="button" @click="i18n.toggleLocale" :title="i18n.locale === 'km' ? 'Switch to English' : 'ប្តូរទៅភាសាខ្មែរ'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="10"/>
@@ -36,11 +36,9 @@
       <!-- Mobile menu -->
       <Transition name="mobile-slide">
         <div v-if="mobileOpen" class="mobile-nav">
-          <a href="#features" class="mobile-link" @click="mobileOpen = false">{{ i18n.t.features }}</a>
-          <a href="#how-it-works" class="mobile-link" @click="mobileOpen = false">{{ i18n.t.how_it_works }}</a>
-          <a href="#demo-menu" class="mobile-link" @click="mobileOpen = false">{{ i18n.t.menu }}</a>
-          <router-link to="/demo" class="mobile-link demo-link-hot" @click="mobileOpen = false">{{ i18n.t.demo_menu }}</router-link>
-          <router-link to="/blog" class="mobile-link" @click="mobileOpen = false">{{ i18n.t.blog }}</router-link>
+          <a href="#features" class="mobile-link" :class="{ active: activeSection === 'features' }" @click="activeSection = 'features'; mobileOpen = false">{{ i18n.t.features }}</a>
+          <a href="#how-it-works" class="mobile-link" :class="{ active: activeSection === 'how-it-works' }" @click="activeSection = 'how-it-works'; mobileOpen = false">{{ i18n.t.how_it_works }}</a>
+          <a href="#demo-menu" class="mobile-link" :class="{ active: activeSection === 'demo-menu' }" @click="activeSection = 'demo-menu'; mobileOpen = false">{{ i18n.t.menu }}</a>
           <button class="mobile-lang" @click="i18n.toggleLocale">
             {{ i18n.locale === "km" ? "English" : "ភាសាខ្មែរ" }}
           </button>
@@ -250,6 +248,23 @@
         <p>&copy; {{ new Date().getFullYear() }} {{ i18n.t.app_name }}. {{ i18n.t.all_rights_reserved }}</p>
       </div>
     </footer>
+
+    <!-- SCROLL TO TOP — appears after scrolling down, one tap returns to the hero -->
+    <Transition name="to-top">
+      <button
+        v-if="showToTop"
+        class="to-top-btn"
+        type="button"
+        :title="i18n.t.back_to_top || 'Back to top'"
+        :aria-label="i18n.t.back_to_top || 'Back to top'"
+        @click="scrollToTop"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="19" x2="12" y2="5" />
+          <polyline points="5 12 12 5 19 12" />
+        </svg>
+      </button>
+    </Transition>
   </div>
 </template>
 
@@ -266,6 +281,45 @@ const i18n = useI18nStore();
 const router = useRouter();
 const mobileOpen = ref(false);
 const scrolled = ref(false);
+
+// ─── SCROLL-SPY: navbar "stands on" the section being viewed ──
+// Tracks which landing section (#features / #demo-menu / #how-it-works)
+// is currently in view and highlights its navbar link. The section is
+// also stored in the URL hash, so a page refresh (or a shared link)
+// restores the exact same position instead of jumping back to the hero.
+const SECTION_IDS = ["features", "demo-menu", "how-it-works"];
+const activeSection = ref("");
+
+function updateActiveSection() {
+  const offset = 140; // navbar height + breathing room
+  let current = "";
+  for (const id of SECTION_IDS) {
+    const el = document.getElementById(id);
+    if (el && el.getBoundingClientRect().top <= offset) current = id;
+  }
+  activeSection.value = current;
+}
+
+function scrollToHash(hash) {
+  if (!hash) return;
+  const el = document.querySelector(hash);
+  if (el) el.scrollIntoView(); // instant — feels like a real restore
+}
+
+// ─── SCROLL-TO-TOP BUTTON ──────────────────────────────────
+// Floating button that fades in once the visitor has scrolled past the
+// hero; one tap smoothly returns to the top and clears the section hash
+// (so a later refresh starts from the hero, not the old section).
+const showToTop = ref(false);
+const TO_TOP_AFTER = 500; // px of scroll before the button appears
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+  activeSection.value = "";
+  if (window.location.hash) {
+    history.replaceState(null, "", window.location.pathname + window.location.search);
+  }
+}
 
 const blogPosts = demoBlogPosts;
 
@@ -411,6 +465,8 @@ onMounted(() => {
   applyFade();
   scrollHandler = () => {
     scrolled.value = window.scrollY > 40; // navbar background (unchanged)
+    showToTop.value = window.scrollY > TO_TOP_AFTER; // floating top button
+    updateActiveSection(); // scroll-spy follows the viewed section
     requestFade();
   };
   window.addEventListener("scroll", scrollHandler, { passive: true });
@@ -420,6 +476,12 @@ onMounted(() => {
     applyFade();
   };
   window.addEventListener("resize", screenHandler, { passive: true });
+  // Refresh / shared link with a #section hash → restore that position
+  // (one frame later so the DOM + 3D hero have settled)
+  if (window.location.hash) {
+    requestAnimationFrame(() => scrollToHash(window.location.hash));
+  }
+  updateActiveSection();
 });
 
 onUnmounted(() => {
@@ -537,6 +599,12 @@ onUnmounted(() => {
   background: rgba(34, 197, 94, 0.08);
   color: #166534;
 }
+/* scroll-spy: the link of the section currently in view */
+.nav-link.active {
+  background: rgba(34, 197, 94, 0.12);
+  color: #15803d;
+  font-weight: 700;
+}
 .lang-btn {
   display: flex;
   align-items: center;
@@ -646,6 +714,11 @@ onUnmounted(() => {
 }
 .mobile-link:hover, .mobile-btn:hover {
   background: #f0fdf4;
+}
+.mobile-link.active {
+  background: #f0fdf4;
+  color: #15803d;
+  font-weight: 700;
 }
 .mobile-lang {
   padding: 10px 12px;
@@ -1962,6 +2035,67 @@ onUnmounted(() => {
 }
 
 /* ============================================================
+   SCROLL-TO-TOP — floating pill, fades in after the hero
+   ============================================================ */
+.to-top-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 90; /* below the navbar (100), above all page content */
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #166534, #22c55e);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(22, 101, 52, 0.35);
+  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+.to-top-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 32px rgba(22, 101, 52, 0.42);
+}
+.to-top-btn:active {
+  transform: translateY(-1px) scale(0.96);
+}
+.to-top-btn svg {
+  transition: transform 0.25s ease;
+}
+.to-top-btn:hover svg {
+  transform: translateY(-2px);
+}
+/* fade + rise in/out */
+.to-top-enter-active,
+.to-top-leave-active {
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.to-top-enter-from,
+.to-top-leave-to {
+  opacity: 0;
+  transform: translateY(14px) scale(0.9);
+}
+@media (max-width: 640px) {
+  .to-top-btn {
+    right: 16px;
+    bottom: 16px;
+    width: 44px;
+    height: 44px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .to-top-enter-active,
+  .to-top-leave-active,
+  .to-top-btn,
+  .to-top-btn svg {
+    transition: none;
+  }
+}
+
+/* ============================================================
    FOOTER — rounded inset card, centered brand, socials
    ============================================================ */
 .footer {
@@ -1990,7 +2124,6 @@ onUnmounted(() => {
 @media (max-width: 640px) {
   .footer {
     margin: 0 8px 8px;
-    padding: 44px 20px 16px;
     border-radius: 20px;
   }
   .footer-name {

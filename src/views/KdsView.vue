@@ -3,6 +3,9 @@
    A chrome-free wall board for the kitchen screen:
    · 4 status columns: New → Preparing → Ready → Done
    · Live updates over the same SSE stream as the dashboard
+   · New-day reset: only TODAY's orders are shown; at midnight the
+     board clears yesterday's history automatically (display only —
+     the database / reports are never touched)
    · Dark / light mode toggle (remembered per account)
    · One-tap status transitions + optional "Done" column
    · Chime + tab-title flash on every new order
@@ -193,6 +196,28 @@ const columns = computed(() => [
   { key: "done", label: i18n.t.kds_col_done },
 ]);
 
+// ─── NEW DAY RESET (frontend only — DB data is never touched) ──
+// The board only shows TODAY's orders. When the clock passes midnight the
+// reactive `todayKey` changes, every column re-evaluates and yesterday's
+// history simply disappears from the screen. Orders stay in the database
+// (reports / dashboard still see them); only this display is cleared.
+function dayKey(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+const todayKey = ref(dayKey(new Date()));
+
+function isToday(raw) {
+  if (!raw) return true; // missing timestamp → keep visible, never hide live orders
+  try {
+    return dayKey(new Date(raw)) === todayKey.value;
+  } catch {
+    return true;
+  }
+}
+
 function statusColumn(status) {
   switch (status) {
     case "pending":
@@ -208,6 +233,7 @@ function statusColumn(status) {
 
 function columnOrders(key) {
   return orders.value
+    .filter((o) => isToday(o.created_at)) // FRONTEND ONLY: hide previous days (data untouched)
     .filter((o) => statusColumn(o.status) === key)
     .sort((a, b) => new Date(a.created_at) - new Date(b.created_at)); // oldest first → cook first
 }
@@ -482,6 +508,28 @@ function toggleMode() {
   }
 }
 
+// ─── NEW-DAY TIMER ─────────────────────────────────────────
+// Fires just after midnight to flip todayKey → all columns instantly clear
+// yesterday's history (display only). Also refreshes from the server so any
+// overnight orders placed while the screen was open are picked up.
+let newDayTimer = null;
+
+function scheduleNewDayCheck() {
+  clearTimeout(newDayTimer);
+  const now = new Date();
+  const nextMidnight = new Date(now);
+  nextMidnight.setHours(24, 0, 0, 0);
+  // wake up 1s after midnight, then re-check every minute for safety
+  // (covers devices that sleep through the exact tick)
+  newDayTimer = setTimeout(() => {
+    if (todayKey.value !== dayKey(new Date())) {
+      todayKey.value = dayKey(new Date());
+      fetchOrders();
+    }
+    scheduleNewDayCheck();
+  }, Math.max(1000, nextMidnight - now) + 1000);
+}
+
 // ─── LIFECYCLE ─────────────────────────────────────────────
 watch(
   () => auth.restaurantId,
@@ -514,11 +562,13 @@ onMounted(async () => {
   document.addEventListener("fullscreenchange", onFullscreenChange);
   window.addEventListener("pointerdown", unlockAudio, { once: true });
   window.addEventListener("keydown", unlockAudio, { once: true });
+  scheduleNewDayCheck();
 });
 
 onUnmounted(() => {
   disconnect();
   stopTitleFlash();
+  clearTimeout(newDayTimer);
   document.removeEventListener("fullscreenchange", onFullscreenChange);
   window.removeEventListener("pointerdown", unlockAudio);
   window.removeEventListener("keydown", unlockAudio);

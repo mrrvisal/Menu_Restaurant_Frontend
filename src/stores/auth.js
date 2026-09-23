@@ -102,9 +102,23 @@ export const useAuthStore = defineStore("auth", () => {
       : data.restaurant
         ? [data.restaurant]
         : [];
-    if (!currentRestaurantId.value && restaurants.value.length) {
-      currentRestaurantId.value = restaurants.value[0].id;
+
+    // ⚠️ Session switch: `current_restaurant_id` / `current_menu_id` are
+    // persisted in localStorage, so they may still hold the PREVIOUS
+    // account's selection. Never carry it over — otherwise the dashboard
+    // shows and acts on a restaurant this account doesn't own. Select the
+    // new account's first restaurant (or none) instead.
+    const first = restaurants.value[0]?.id || null;
+    currentRestaurantId.value = first;
+    currentMenuId.value = null;
+    if (first) {
+      localStorage.setItem("current_restaurant_id", String(first));
+      localStorage.removeItem("current_menu_id");
+    } else {
+      localStorage.removeItem("current_restaurant_id");
+      localStorage.removeItem("current_menu_id");
     }
+
     saveToStorage();
     axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
     // Load this account's own theme color (defaults to brand teal)
@@ -168,6 +182,22 @@ export const useAuthStore = defineStore("auth", () => {
     restaurants.value = Array.isArray(res.data.restaurants)
       ? res.data.restaurants
       : [];
+    // Drop a stale selection this account doesn't own (e.g. one restored
+    // from localStorage before /auth/me answered, or left by a previous
+    // account on this browser) — otherwise the dashboard shows and acts on
+    // a restaurant that isn't ours.
+    if (
+      currentRestaurantId.value &&
+      !restaurants.value.some((r) => r.id === currentRestaurantId.value)
+    ) {
+      currentRestaurantId.value = restaurants.value[0]?.id || null;
+      if (currentRestaurantId.value)
+        localStorage.setItem(
+          "current_restaurant_id",
+          String(currentRestaurantId.value),
+        );
+      else localStorage.removeItem("current_restaurant_id");
+    }
     saveToStorage();
     useThemeStore().load();
     return res.data;

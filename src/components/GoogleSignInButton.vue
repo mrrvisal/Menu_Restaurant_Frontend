@@ -21,6 +21,19 @@
 //
 // NOTE: Google draws the button inside an <iframe>, so only the options above
 // (plus CSS on the wrapper) can be customised — the button's internals cannot.
+//
+// ABOUT THE "PERSONALIZED BUTTON" (avatar + name + email + account caret):
+// Google itself replaces the button content when BOTH are true:
+//   1. the browser has an active Google session, and
+//   2. that Google account has already signed in here with Google before
+//      ("approved session" — the account exists on our side via google_id).
+// Google calls this the personalized button:
+// https://developers.google.com/identity/gsi/web/guides/personalized-button
+// It is session-driven, rendered by Google inside the iframe, and there is NO
+// option (type/theme/text/…) that forces the plain "Continue with Google"
+// rendering — that rendering is what first-time visitors (no Google session, or
+// an account that never used the button) get. The name/photo shown come from the
+// user's Google Account profile, so they can be changed only on myaccount.google.com.
 import { ref, watch, onMounted } from "vue";
 import { useI18nStore } from "@/stores/i18n";
 

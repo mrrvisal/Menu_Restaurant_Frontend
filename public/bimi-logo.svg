@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny-ps" viewBox="0 0 48 48">
+  <title>Digital Menu</title>
+  <rect x="0" y="0" width="48" height="48" fill="#2D7A2D"/>
+  <circle cx="24" cy="24" r="10.5" fill="#FFF7ED"/>
+  <path d="M19.18 25.78C23.1 18.86 29.8 17.94 32.8 18.58C32.28 21.5 29.72 27.62 21.7 28.46C21.28 29.44 20.78 30.36 20.2 31.18L17.8 29.72C18.36 28.94 18.82 28.06 19.18 25.78Z" fill="#4CAF50"/>
+  <path d="M22.95 25.72C24.32 23.62 26.43 22.08 29.02 21.3" fill="none" stroke="#FFF7ED" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M10 11.2C10 10.537 10.537 10 11.2 10H15.7V12.6H12.6V15.7H10V11.2Z" fill="#E65100"/>
+  <path d="M38 11.2C38 10.537 37.463 10 36.8 10H32.3V12.6H35.4V15.7H38V11.2Z" fill="#E65100"/>
+  <path d="M10 36.8C10 37.463 10.537 38 11.2 38H15.7V35.4H12.6V32.3H10V36.8Z" fill="#E65100"/>
+  <path d="M38 36.8C38 37.463 37.463 38 36.8 38H32.3V35.4H35.4V32.3H38V36.8Z" fill="#E65100"/>
+</svg>
