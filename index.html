@@ -13,8 +13,12 @@
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="theme-color" content="#166534" />
 
-    <!-- PWA / Web Push -->
-    <link rel="manifest" href="/manifest.webmanifest" />
+    <!-- PWA / Web Push — `.json` (served as application/json) instead of
+         `.webmanifest`: Chrome ignores a manifest that is not served with a
+         JSON MIME type, and static hosts like Render send *.webmanifest as
+         binary/octet-stream. Without a readable manifest the app is not
+         installable and beforeinstallprompt never fires. -->
+    <link rel="manifest" href="/manifest.json" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
     <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-192.png" />

@@ -74,7 +74,7 @@
           :src="qrSrc"
           :alt="i18n.t.share_qr"
           class="sg-qr-img"
-          @error="qrFailed = true"
+          @error="onQrError"
         />
         <div v-else class="sg-qr-fallback">
           <AppIcon name="qr" :size="34" />
@@ -104,6 +104,9 @@ import {
 const props = defineProps({
   // The link that is pasted into chats (share card when available).
   url: { type: String, default: "" },
+  // What the QR should encode — normally the direct SPA menu link, so a camera
+  // scan opens the menu without the share-card bounce. Defaults to `url`.
+  qrUrl: { type: String, default: "" },
   // Message that goes with the link.
   text: { type: String, default: "" },
   // Image for Pinterest (absolute URL, optional).
@@ -133,9 +136,26 @@ const targets = computed(() =>
   }).filter((t) => (t.key === "native" ? canNativeShare() : true)),
 );
 
-const qrSrc = computed(() =>
-  props.url ? qrImageUrl(props.url, { size: 280 }) : "",
-);
+// QR sources, tried in order: `qrUrl` (the direct SPA menu link) and then
+// `url` (the share card). The API renders the PNG (/s/qr.png) only for hosts
+// it trusts, so when one of the two is rejected the other is used before the
+// panel gives up — no more empty QR box in production.
+const qrCandidates = computed(() => {
+  const list = [props.qrUrl, props.url].filter(Boolean);
+  return [...new Set(list)];
+});
+const qrIndex = ref(0);
+const qrSrc = computed(() => {
+  const target = qrCandidates.value[qrIndex.value];
+  return target ? qrImageUrl(target, { size: 280 }) : "";
+});
+
+// A rejected image (403/400 from the API, offline CDN, …) must not leave the
+// panel empty: step to the next candidate and only give up on the last one.
+function onQrError() {
+  if (qrIndex.value < qrCandidates.value.length - 1) qrIndex.value += 1;
+  else qrFailed.value = true;
+}
 
 function labelFor(target) {
   return i18n.t[`share_${target.key}`] || target.key;
@@ -162,6 +182,7 @@ async function copyLink() {
 function toggleQr() {
   showQr.value = !showQr.value;
   qrFailed.value = false;
+  qrIndex.value = 0;
   if (showQr.value) hint.value = "";
 }
 
@@ -176,6 +197,7 @@ async function pick(target) {
   if (result.status === "qr") {
     showQr.value = true;
     qrFailed.value = false;
+    qrIndex.value = 0;
     // The QR *is* the WeChat / cross-device path — explain it.
     hint.value = i18n.t[target.hint] || i18n.t.share_wechat_hint;
     return;
@@ -194,11 +216,12 @@ async function pick(target) {
 
 // A new URL (another restaurant / table) resets the panel state.
 watch(
-  () => props.url,
+  () => [props.url, props.qrUrl],
   () => {
     hint.value = "";
     showQr.value = false;
     qrFailed.value = false;
+    qrIndex.value = 0;
     copied.value = false;
   },
 );

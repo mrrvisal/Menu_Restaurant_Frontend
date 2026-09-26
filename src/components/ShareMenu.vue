@@ -49,6 +49,7 @@
             <ShareGrid
               :show-header="false"
               :url="url"
+              :qr-url="qrUrl"
               :text="text"
               :image="image"
               :accent="accent"
@@ -71,6 +72,9 @@ import { useI18nStore } from "@/stores/i18n";
 const props = defineProps({
   // Link that goes into the chat (share card when the API provides one).
   url: { type: String, default: "" },
+  // What the QR encodes — normally the direct SPA menu link so a scan opens
+  // the menu without the share-card bounce. Defaults to `url`.
+  qrUrl: { type: String, default: "" },
   // Message sent together with the link.
   text: { type: String, default: "" },
   image: { type: String, default: "" },

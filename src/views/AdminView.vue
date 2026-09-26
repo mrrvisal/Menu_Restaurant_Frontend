@@ -34,14 +34,17 @@
           auth.restaurant?.name || "ភោជនីយដ្ឋាន"
         }}</span>
       </div>
+      <!-- Install app — when the app is already installed the icon shows ✓ and
+           the tooltip says so, but the button stays ENABLED: the owner can
+           still install again (another browser/device, or after removing it). -->
       <button
         class="mob-btn mob-install"
         v-if="installAvailable"
-        :title="i18n.t.install_app"
-        aria-label="Install app"
+        :title="installEntryLabel"
+        :aria-label="installEntryLabel"
         @click="openInstall"
       >
-        <AppIcon name="download" :size="18" />
+        <AppIcon :name="isInstalled ? 'check-circle' : 'download'" :size="18" />
       </button>
       <button
         class="mob-btn"
@@ -382,14 +385,26 @@
                     <span>{{ i18n.t.share_title }}</span>
                   </button>
 
-                  <!-- ── Install app (PWA download) ── hidden once installed -->
+                  <!-- ── Install app (PWA download) ──
+                       Once the app is already installed this row still works:
+                       it says "Installed" and offers "Install again". -->
                   <button
                     v-if="installAvailable"
                     class="pm-item"
                     @click="runProfileAction(openInstall)"
                   >
-                    <AppIcon name="download" :size="15" />
-                    <span>{{ i18n.t.install_app }}</span>
+                    <AppIcon
+                      :name="isInstalled ? 'check-circle' : 'download'"
+                      :size="15"
+                    />
+                    <span class="pm-label">
+                      {{
+                        isInstalled ? i18n.t.install_again : i18n.t.install_app
+                      }}
+                      <em v-if="isInstalled" class="pm-note">{{
+                        i18n.t.install_installed
+                      }}</em>
+                    </span>
                   </button>
 
                   <div class="pm-sep"></div>
@@ -1782,6 +1797,7 @@
               <ShareGrid
                 :show-header="false"
                 :url="shareLinks.shareUrl"
+                :qr-url="shareLinks.spaUrl"
                 :text="shareText"
                 :image="shareImage"
                 :accent="theme.primary"
@@ -2950,79 +2966,97 @@
                 {{ i18n.t.install_needs_https }}
               </div>
 
-              <!-- already running as an installed app -->
-              <div v-if="isStandalone" class="msg msg-s">
-                <AppIcon name="check-circle" :size="14" />
-                {{ i18n.t.install_done }}
-              </div>
-
-              <!-- iOS Safari — manual Add to Home Screen -->
-              <template v-else-if="isIos">
-                <div class="ins-steps">
-                  <div class="tg-step">
-                    <span class="step-n">1</span> {{ i18n.t.install_ios_1 }}
-                  </div>
-                  <div class="tg-step">
-                    <span class="step-n">2</span> {{ i18n.t.install_ios_2 }}
-                  </div>
-                  <div class="tg-step">
-                    <span class="step-n">3</span> {{ i18n.t.install_ios_3 }}
-                  </div>
+              <!-- already installed on this device (running standalone, just
+                   installed, or remembered from a previous visit) — TELL the
+                   owner, and still let them install again: the one-tap dialog
+                   whenever the browser offers one, otherwise the steps below
+                   (Chromium only: Refresh re-arms the dialog). -->
+              <template v-if="isInstalled">
+                <div class="msg msg-s">
+                  <AppIcon name="check-circle" :size="14" />
+                  {{ i18n.t.install_done }}
                 </div>
-              </template>
+                <p class="ins-desc">{{ i18n.t.install_installed_hint }}</p>
 
-              <!-- Chrome suppressed the prompt after a previous dismissal —
-                   the manual menu steps are the reliable path -->
-              <template v-else-if="installDismissed">
-                <div class="msg msg-i">
-                  {{ i18n.t.install_dismissed }}
-                </div>
-                <div class="ins-steps">
-                  <div class="tg-step">
-                    <span class="step-n">1</span> {{ i18n.t.install_chrome_1 }}
-                  </div>
-                  <div class="tg-step">
-                    <span class="step-n">2</span> {{ i18n.t.install_chrome_2 }}
-                  </div>
-                </div>
-              </template>
-
-              <!-- Android / desktop Chrome — one-click install button.
-                   Until the browser fires beforeinstallprompt the button
-                   waits (spinner); a Refresh link is offered because a
-                   reload usually completes SW setup on the first visit. -->
-              <template v-else>
                 <button
+                  v-if="canNativeInstall"
                   class="btn btn-primary btn-b"
-                  :disabled="!canNativeInstall"
                   @click="installApp"
                 >
-                  <span
-                    v-if="!canNativeInstall"
-                    class="spinner ins-spin"
-                  ></span>
-                  <AppIcon v-else name="download" :size="15" />
-                  {{
-                    canNativeInstall
-                      ? i18n.t.install_now
-                      : i18n.t.install_wait
-                  }}
+                  <AppIcon name="download" :size="15" />
+                  {{ i18n.t.install_again }}
                 </button>
-                <div v-if="!canNativeInstall" class="ins-wait">
-                  <span>{{ i18n.t.install_wait_hint }}</span>
+                <div v-else-if="!needsManualInstall" class="ins-wait">
+                  <span>{{ i18n.t.install_retry_hint }}</span>
                   <button class="btn btn-g btn-sm" @click="reloadPage">
                     {{ i18n.t.refresh || "Refresh" }}
                   </button>
                 </div>
-                <div class="ins-steps">
-                  <div class="tg-step">
-                    <span class="step-n">1</span> {{ i18n.t.install_chrome_1 }}
-                  </div>
-                  <div class="tg-step">
-                    <span class="step-n">2</span> {{ i18n.t.install_chrome_2 }}
-                  </div>
+                <div v-else-if="manualInstallHint" class="msg msg-i">
+                  {{ manualInstallHint }}
                 </div>
               </template>
+
+              <!-- Browsers WITHOUT a one-tap install dialog at all: Safari
+                   (macOS “Add to Dock”, iOS Share sheet) and Firefox (cannot
+                   install web apps). They never fire beforeinstallprompt, so
+                   the right steps are shown at once — no waiting, no Refresh. -->
+              <template v-else-if="needsManualInstall">
+                <div v-if="manualInstallHint" class="msg msg-i">
+                  {{ manualInstallHint }}
+                </div>
+              </template>
+
+              <!-- Chromium / Edge: the browser is NOT offering the one-click
+                   dialog right now (never fired yet, or it is backing off
+                   after a dismissal) — the menu steps below always work and
+                   Refresh re-arms the dialog. -->
+              <template v-else-if="installDismissed || installWaitExpired">
+                <div class="msg msg-i">
+                  {{
+                    installDismissed
+                      ? i18n.t.install_dismissed
+                      : i18n.t.install_wait_hint
+                  }}
+                </div>
+                <div v-if="!installDismissed" class="ins-wait">
+                  <button class="btn btn-g btn-sm" @click="reloadPage">
+                    {{ i18n.t.refresh || "Refresh" }}
+                  </button>
+                </div>
+              </template>
+
+              <!-- Android / desktop Chrome — one-click install button.
+                   `canNativeInstall` is true only while the captured
+                   beforeinstallprompt event is still unused. -->
+              <template v-else-if="canNativeInstall">
+                <button class="btn btn-primary btn-b" @click="installApp">
+                  <AppIcon name="download" :size="15" />
+                  {{ i18n.t.install_now }}
+                </button>
+              </template>
+
+              <!-- Waiting for the browser — short grace period only (the
+                   service worker may still be activating on a first visit). -->
+              <template v-else>
+                <button class="btn btn-primary btn-b" disabled>
+                  <span class="spinner ins-spin"></span>
+                  {{ i18n.t.install_wait }}
+                </button>
+              </template>
+
+              <!-- The manual steps for THIS browser: macOS Safari → File ▸
+                   “Add to Dock…”, iOS → Share sheet, Chrome/Edge → ⋮ menu.
+                   Shown in every state except the brief Chromium wait. -->
+              <div v-if="showInstallSteps" class="ins-steps">
+                <div
+                  v-for="(step, index) in manualInstallSteps"
+                  :key="index"
+                  class="tg-step"
+                >
+                  <span class="step-n">{{ index + 1 }}</span> {{ step }}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -3054,6 +3088,7 @@ import {
   disablePush,
 } from "@/utils/pushNotifications";
 import { buildShareLinks } from "@/utils/share.mjs";
+import { usePwaInstall } from "@/utils/pwaInstall";
 import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -4907,121 +4942,140 @@ onMounted(async () => {
 // desktop Chrome get the native `beforeinstallprompt` dialog; iOS Safari
 // has no install event, so we show Add-to-Home-Screen steps instead.
 // When the app already runs standalone (installed), the item hides itself.
-const deferredInstallEvent = ref(null);
+//
+// The browser event itself is captured in @/utils/pwaInstall (attached from
+// main.js BEFORE the app mounts): Chrome fires `beforeinstallprompt` once per
+// page load, usually BEFORE this lazily-loaded view mounts — a listener
+// registered here would miss it and the "Preparing…" button would spin
+// forever with no way to recover.
+const {
+  canNativeInstall,
+  isStandalone,
+  isInstalled,
+  isIos,
+  isSafari,
+  isFirefox,
+  needsManualInstall,
+  insecureContext,
+  installDismissed,
+  installAvailable,
+  promptInstall,
+} = usePwaInstall();
+
 const showInstallModal = ref(false);
-const isStandalone = computed(() => {
-  if (typeof window === "undefined") return false;
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true
-  );
+// A successful install hides the entry point immediately (no page reload).
+watch(isInstalled, (done) => {
+  if (done) showInstallModal.value = false;
 });
-const canNativeInstall = computed(() => !!deferredInstallEvent.value);
-const isIos = computed(() => {
-  if (typeof window === "undefined") return false;
-  return (
-    /iphone|ipad|ipod/i.test(window.navigator.userAgent) ||
-    // iPadOS 13+ identifies as Mac with touch support
-    (window.navigator.platform === "MacIntel" && window.navigator.maxTouchPoints > 1)
-  );
-});
-// "Add to Home Screen" is offered to EVERY non-installed visitor —
-// the native dialog fires when available, otherwise the modal teaches
-// the manual steps (iOS: Share → Add to Home Screen; desktop: ⋮ menu).
-const installAvailable = computed(() => !isStandalone.value);
-// Chrome backs off firing beforeinstallprompt after the user dismisses its
-// dialog once. Track that so the UI skips the (never-enabling) waiting
-// button and teaches the always-working manual steps instead.
-const installDismissed = ref(false);
-try {
-  installDismissed.value = localStorage.getItem("dm_install_dismissed") === "1";
-} catch {}
-// Installability requires a secure context — plain HTTP / a LAN IP can
-// never trigger the install dialog. Surface that instead of a long wait.
-const insecureContext = computed(
-  () => typeof window !== "undefined" && !window.isSecureContext,
-);
-// One-time auto-reload: on the very first visit the SW becomes active only
-// AFTER this page load, and Chrome usually needs a fresh load to evaluate
-// installability. Reload once per session (flag guards against loops).
-const installReloadTried = (() => {
-  try {
-    return sessionStorage.getItem("dm_install_reload") === "1";
-  } catch {
-    return false;
-  }
-})();
+
+// The browser may need a moment before it fires the event — on a first visit
+// the service worker has only just been installed. Keep the spinner for this
+// short grace period only, then fall back to the manual menu steps, so the
+// button can never spin forever.
+const INSTALL_WAIT_MS = 2500;
+const installWaitExpired = ref(false);
 let installWaitTimer = null;
-watch(
-  [showInstallModal, canNativeInstall],
-  ([open, ready]) => {
-    clearTimeout(installWaitTimer);
-    if (!open || ready || isIos.value || isStandalone.value) return;
-    if (installReloadTried) return; // already tried once — keep manual steps
-    installWaitTimer = setTimeout(() => {
-      if (canNativeInstall.value) return; // event arrived while waiting
-      try {
-        sessionStorage.setItem("dm_install_reload", "1");
-      } catch {}
-      window.location.reload();
-    }, 4000);
-  },
-  { immediate: true },
+watch(showInstallModal, (open) => {
+  clearTimeout(installWaitTimer);
+  installWaitTimer = null;
+  if (!open) return;
+  installWaitExpired.value = false;
+  // Nothing to wait for: the app is installed, the browser has no install
+  // event at all (Safari / iOS / Firefox), or the page runs as the app itself.
+  if (
+    canNativeInstall.value ||
+    isInstalled.value ||
+    needsManualInstall.value ||
+    isStandalone.value
+  )
+    return;
+  installWaitTimer = setTimeout(() => {
+    if (!canNativeInstall.value) installWaitExpired.value = true;
+  }, INSTALL_WAIT_MS);
+});
+// The event can still arrive while the modal is open → drop the fallback
+watch(canNativeInstall, (ready) => {
+  if (ready) installWaitExpired.value = false;
+});
+
+// Label/tooltip for the install entry points: plain "Install app" normally,
+// and "already installed · install again" once the app is on this device — the
+// entry STAYS clickable because the owner may want to install it again.
+const installEntryLabel = computed(() =>
+  isInstalled.value
+    ? `${i18n.t.install_installed} · ${i18n.t.install_again}`
+    : i18n.t.install_app,
 );
 
-function onBeforeInstallPrompt(e) {
-  // Prevent Chrome's own mini-infobar; we own the UX from the dropdown.
-  e.preventDefault();
-  deferredInstallEvent.value = e;
-  // A successful fire clears any earlier "dismissed" backoff marker
-  try {
-    localStorage.removeItem("dm_install_dismissed");
-  } catch {}
-  installDismissed.value = false;
-  console.log("✅ Install ready — browser fired beforeinstallprompt");
-}
-function onAppInstalled() {
-  deferredInstallEvent.value = null;
-  showInstallModal.value = false;
-}
+// ─── MANUAL INSTALL STEPS (per browser) ────────────────────
+// Only Chromium browsers fire beforeinstallprompt. macOS Safari installs via
+// File ▸ “Add to Dock…”, iOS via the Share sheet, Chrome/Edge via the ⋮ menu —
+// and Firefox cannot install web apps at all (hint only, no steps).
+const manualInstallSteps = computed(() => {
+  if (isIos.value)
+    return [i18n.t.install_ios_1, i18n.t.install_ios_2, i18n.t.install_ios_3];
+  if (isSafari.value)
+    return [
+      i18n.t.install_safari_1,
+      i18n.t.install_safari_2,
+      i18n.t.install_safari_3,
+    ];
+  if (isFirefox.value) return [];
+  return [i18n.t.install_chrome_1, i18n.t.install_chrome_2];
+});
+
+// Short line above those steps (empty when the steps explain themselves).
+// NOTE: iOS is checked first — the iOS UA also contains “Mac OS X”, so it
+// would otherwise match the desktop-Safari hint (which mentions macOS).
+const manualInstallHint = computed(() => {
+  if (isIos.value) return "";
+  if (isSafari.value) return i18n.t.install_safari_hint;
+  if (isFirefox.value) return i18n.t.install_firefox_hint;
+  return "";
+});
+
+// Chromium, still waiting for beforeinstallprompt — the only state that should
+// not show the manual steps yet (the one-tap dialog may still arrive).
+const installWaiting = computed(
+  () =>
+    !canNativeInstall.value &&
+    !isInstalled.value &&
+    !needsManualInstall.value &&
+    !installDismissed.value &&
+    !installWaitExpired.value,
+);
+const showInstallSteps = computed(
+  () => manualInstallSteps.value.length > 0 && !installWaiting.value,
+);
+
 function openInstall() {
-  // Always open the modal first — the actual download only happens when
-  // the user clicks the "Install now" button inside (no auto-download).
+  // Always open the modal first — the actual download only happens when the
+  // user clicks the install button inside (no auto-download). The modal also
+  // opens when the app is already installed: it tells the owner, and offers
+  // "Install again" (another browser/device, or after removing the app).
   showInstallModal.value = true;
 }
-// Fire the browser's native install dialog (requires the captured event —
-// prompt() must be called from a user gesture, hence the button).
+// Fire the browser's native install dialog (needs the captured event and a
+// user gesture, hence the button). promptInstall() drops the event right
+// away — a BeforeInstallPromptEvent can only be used once, so reusing it
+// after a dismissal would just throw InvalidStateError.
 async function installApp() {
-  if (!deferredInstallEvent.value) return;
-  deferredInstallEvent.value.prompt();
-  const { outcome } = await deferredInstallEvent.value.userChoice;
-  if (outcome === "accepted") {
-    deferredInstallEvent.value = null;
-    showInstallModal.value = false;
-  } else {
-    // Dismissed → Chrome stops firing the event for a while. Remember it
-    // so future opens skip the waiting button and show manual steps.
-    installDismissed.value = true;
-    try {
-      localStorage.setItem("dm_install_dismissed", "1");
-    } catch {}
-  }
+  const res = await promptInstall();
+  if (res.ok && res.outcome === "accepted") showInstallModal.value = false;
 }
 // Reload helper for the "browser not ready" state — a reload lets Chrome
 // finish service-worker setup, after which beforeinstallprompt fires.
 function reloadPage() {
   window.location.reload();
 }
-window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-window.addEventListener("appinstalled", onAppInstalled);
-
 onUnmounted(() => {
   window.removeEventListener("keydown", handleEscKey);
   document.removeEventListener("click", onProfileMenuDocClick);
   disconnectOrderStream();
   clearTimeout(newDayTimer);
-  window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-  window.removeEventListener("appinstalled", onAppInstalled);
+  clearTimeout(installWaitTimer);
+  // The beforeinstallprompt / appinstalled listeners stay attached for the
+  // whole app lifetime (attached once from main.js) — nothing to remove here.
   if (hdrResizeObserver) {
     hdrResizeObserver.disconnect();
     hdrResizeObserver = null;
@@ -5752,6 +5806,23 @@ onUnmounted(() => {
 .pm-item:hover {
   background: var(--surface-green);
   color: var(--primary-strong, var(--primary));
+}
+/* "Install app" row once the app is installed: the label stays fully clickable
+   ("Install again") with a small "already installed" note underneath */
+.pm-label {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.pm-note {
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 500;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .pm-item svg {
   flex-shrink: 0;
@@ -7041,6 +7112,16 @@ onUnmounted(() => {
 .btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+/* Disabled buttons (e.g. "Installed" in the install-app modal) — clearly not
+   clickable, identical treatment to the .ac buttons */
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+.btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
 }
 .btn-g {
   background: var(--surface-green);

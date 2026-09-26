@@ -12,6 +12,14 @@
   "background_color": "#ffffff",
   "theme_color": "#166534",
   "categories": ["food", "business", "productivity"],
+  "related_applications": [
+    {
+      "platform": "webapp",
+      "url": "/manifest.json",
+      "id": "/"
+    }
+  ],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon-192.png",
