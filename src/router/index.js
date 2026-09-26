@@ -41,6 +41,14 @@ const routes = [
     component: () => import("@/views/VerifyEmailView.vue"),
   },
   {
+    // Google OAuth landing pad — receives the ID token from Google and
+    // forwards it to the opener window (or parks it for the redirect
+    // fallback). Never shows real UI.
+    path: "/auth/google/callback",
+    name: "GoogleAuthCallback",
+    component: () => import("@/views/GoogleAuthCallback.vue"),
+  },
+  {
     path: "/menu",
     name: "MenuPublic",
     component: () => import("@/views/MenuView.vue"),

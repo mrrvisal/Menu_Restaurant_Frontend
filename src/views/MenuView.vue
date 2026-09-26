@@ -25,6 +25,20 @@
           </h1>
         </div>
       </div>
+
+      <!-- ─── SHARE: Facebook · Messenger · Telegram · WhatsApp · Instagram ·
+           WeChat · LINE · Viber · LinkedIn · X · Email · SMS · QR ─── -->
+      <ShareMenu
+        v-if="shareable"
+        trigger-class="header-share"
+        :url="shareLinks.shareUrl"
+        :text="shareText"
+        :image="shareImage"
+        :title="i18n.t.share_title"
+        :label="i18n.t.share"
+        :icon-size="16"
+        :accent="menuAccent"
+      />
     </div>
 
     <!-- STICKY CONTROL BAR (tabs + search) -->
@@ -238,6 +252,10 @@ import { useAuthStore } from "@/stores/auth";
 import FoodCard from "@/components/FoodCard.vue";
 import CartModal from "@/components/CartModal.vue";
 import AppIcon from "@/components/AppIcon.vue";
+import ShareMenu from "@/components/ShareMenu.vue";
+import { useI18nStore } from "@/stores/i18n";
+import { buildShareLinks } from "@/utils/share.mjs";
+import { setSocialMeta, resetSocialMeta } from "@/utils/socialMeta.mjs";
 import {
   normalizeHex,
   lighten,
@@ -254,6 +272,7 @@ const foods = useFoodsStore();
 const cart = useCartStore();
 const currencyStore = useCurrencyStore();
 const auth = useAuthStore();
+const i18n = useI18nStore();
 const isLoggedIn = computed(() => auth.isLoggedIn);
 
 const curCat = ref(null);
@@ -337,6 +356,8 @@ watch(
 onUnmounted(() => {
   const root = document.documentElement.style;
   THEME_VARS.forEach((name) => root.removeProperty(name));
+  // Hand the social metadata back to the app defaults from index.html
+  resetSocialMeta();
   // Restore the --primary* values that were set before this page took over
   if (rootPrimarySnapshot) {
     PRIMARY_ROOT_VARS.forEach((name) => {
@@ -395,6 +416,59 @@ const tableFromQR = computed(() => {
   const t = route.query.table;
   return t && !isNaN(t) ? parseInt(t) : null;
 });
+
+// ─── SHARING (every platform) ──────────────────────────────
+// The share button appears as soon as we know WHICH restaurant this page
+// shows — sharing /menu without a restaurant would send people to an empty
+// menu. `shareLinks.shareUrl` is the crawler-friendly preview card, so chats
+// show the restaurant logo + name; it falls back to the plain menu URL.
+const DEFAULT_LOGO =
+  "https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png";
+
+const shareable = computed(
+  () =>
+    !!(route.query.rid || route.query.restaurant_id || restaurantInfo.value),
+);
+const shareLinks = computed(() =>
+  buildShareLinks({
+    rid: route.query.rid || null,
+    restaurantId: restaurantId.value,
+    table: tableFromQR.value,
+  }),
+);
+const shareImage = computed(
+  () =>
+    restaurantInfo.value?.logoUrl ||
+    restaurantInfo.value?.logo_url ||
+    DEFAULT_LOGO,
+);
+const shareText = computed(() =>
+  String(i18n.t.share_menu_message || "{name}").replace(
+    "{name}",
+    restaurantInfo.value?.name || i18n.t.app_name,
+  ),
+);
+const menuAccent = computed(
+  () =>
+    restaurantInfo.value?.themeColor || restaurantInfo.value?.theme_color || "",
+);
+
+// Keep the page's own social metadata in step with the restaurant being shown
+// (browsers, Google and every "share this page" dialog read these).
+watch(
+  restaurantInfo,
+  (info) => {
+    if (!info) return;
+    setSocialMeta({
+      title: `${info.name} — ${i18n.t.app_name}`,
+      description: shareText.value,
+      image: shareImage.value,
+      url: shareLinks.value.spaUrl,
+      siteName: info.name,
+    });
+  },
+  { immediate: true },
+);
 
 async function loadRestaurant() {
   let merged = null;
@@ -774,6 +848,46 @@ function goAdmin() {
 @media (max-width: 480px) {
   .header-title {
     font-size: 19px;
+  }
+}
+
+/* ── Share button (top-right of the header) ────────────────
+   The class is handed to <ShareMenu> via trigger-class, so this
+   rule styles the component's root button.                    */
+.header-share {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 4;
+  height: 38px;
+  padding: 0 15px;
+  border-radius: 999px;
+  color: var(--header-fg, #fff);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 12.5px;
+  font-weight: 700;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.header-share:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
+}
+.header-share:active {
+  transform: translateY(0) scale(0.97);
+}
+@media (max-width: 560px) {
+  .header-share {
+    top: 12px;
+    right: 12px;
+    height: 34px;
+    padding: 0 12px;
   }
 }
 

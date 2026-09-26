@@ -117,7 +117,6 @@ import { ref, reactive } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useI18nStore } from "@/stores/i18n";
-import GoogleSignInButton from "@/components/GoogleSignInButton.vue";
 
 const router = useRouter();
 const auth = useAuthStore();

@@ -19,17 +19,114 @@ export const useAuthStore = defineStore("auth", () => {
   // Set when the backend answers 401 device_revoked (the owner removed
   // this device from the account) — forces a clean local logout.
   const sessionRevoked = ref(false);
+  // Set when the session could NOT be renewed (legacy login without a refresh
+  // token, revoked device, deleted account…). Persisted to localStorage so it
+  // survives the redirect/reload — the Login page shows a friendly notice
+  // instead of leaving the user staring at a broken dashboard.
+  const sessionExpired = ref(localStorage.getItem("admin_session_expired") === "1");
+
+  function markSessionExpired() {
+    sessionExpired.value = true;
+    localStorage.setItem("admin_session_expired", "1");
+  }
+  function clearSessionExpired() {
+    sessionExpired.value = false;
+    localStorage.removeItem("admin_session_expired");
+  }
+
+  // The long-lived token exchanged at POST /api/auth/refresh for a fresh
+  // access + refresh pair. Kept in localStorage (not just memory) so a page
+  // reload mid-session can still renew silently.
+  const refreshToken = ref(localStorage.getItem("admin_refresh_token") || null);
+
+  // Single-flight: parallel dashboard requests that all come back 401 must
+  // trigger exactly ONE refresh, whose result every caller awaits.
+  let refreshPromise = null;
+  function refreshSession() {
+    if (!refreshPromise) {
+      refreshPromise = doRefresh().finally(() => {
+        refreshPromise = null;
+      });
+    }
+    return refreshPromise;
+  }
+
+  async function doRefresh() {
+    // Prefer localStorage: another tab may already have rotated the pair.
+    const rt = localStorage.getItem("admin_refresh_token") || refreshToken.value;
+    if (!rt) {
+      // Legacy session from before the refresh flow existed — renewing is
+      // impossible, so surface the same shape as a server rejection.
+      const err = new Error("no refresh token");
+      err.noRefreshToken = true;
+      throw err;
+    }
+    const res = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {
+      refreshToken: rt,
+    });
+    token.value = res.data.token;
+    refreshToken.value = res.data.refreshToken || rt;
+    if (res.data.user) user.value = res.data.user;
+    axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
+    saveToStorage();
+    return res.data;
+  }
+
+  // The access token can't be renewed anymore — sign out cleanly and let the
+  // Login page explain why (session_expired banner).
+  function endExpiredSession() {
+    if (!token.value && !refreshToken.value) return;
+    markSessionExpired();
+    logout();
+    if (!window.location.pathname.startsWith("/login")) {
+      window.location.href = "/login";
+    }
+  }
+
   axios.interceptors.response.use(
     (res) => res,
-    (err) => {
-      if (
-        err?.response?.status === 401 &&
-        err?.response?.data?.code === "device_revoked" &&
-        token.value
-      ) {
+    async (err) => {
+      const original = err.config;
+      const status = err?.response?.status;
+      const code = err?.response?.data?.code;
+
+      if (status === 401 && code === "device_revoked" && token.value) {
         sessionRevoked.value = true;
         logout();
         window.location.href = "/login";
+        return Promise.reject(err);
+      }
+
+      // Access token expired → renew the pair and replay the failed request.
+      // `_retry` guarantees each request attempts this at most once (no loops).
+      if (
+        status === 401 &&
+        code === "token_expired" &&
+        original &&
+        !original._retry
+      ) {
+        original._retry = true;
+        try {
+          await refreshSession();
+          original.headers = {
+            ...original.headers,
+            Authorization: `Bearer ${token.value}`,
+          };
+          return axios(original);
+        } catch (e) {
+          // Only a server ANSWER (invalid/revoked/expired refresh, or a
+          // legacy session with no refresh token) may end the session.
+          // A network blip must NOT sign the user out — fail this one
+          // request instead; the next one will try to refresh again.
+          if (e?.response || e?.noRefreshToken) endExpiredSession();
+          return Promise.reject(err);
+        }
+      }
+
+      // Token rejected for a reason refreshing can't fix (e.g. the server's
+      // JWT_SECRET changed) — end the session instead of a half-dead page.
+      if (status === 401 && code === "token_invalid" && token.value) {
+        endExpiredSession();
       }
       return Promise.reject(err);
     },
@@ -95,6 +192,9 @@ export const useAuthStore = defineStore("auth", () => {
   // Shared post-login state sync (token, user, restaurants, theme).
   function applySession(data) {
     token.value = data.token;
+    if (data.refreshToken) refreshToken.value = data.refreshToken;
+    // A successful login always supersedes any earlier "session expired".
+    clearSessionExpired();
     user.value = data.user;
     // Backend returns a `restaurants` array; keep old `restaurant` fallback
     restaurants.value = Array.isArray(data.restaurants)
@@ -150,6 +250,7 @@ export const useAuthStore = defineStore("auth", () => {
     // Don't auto-login after registration — user must verify email first
     if (res.data.token) {
       token.value = res.data.token;
+      if (res.data.refreshToken) refreshToken.value = res.data.refreshToken;
       user.value = res.data.user;
       restaurants.value = Array.isArray(res.data.restaurants)
         ? res.data.restaurants
@@ -209,6 +310,7 @@ export const useAuthStore = defineStore("auth", () => {
     const res = await axios.patch(`${API_BASE_URL}/api/auth/account`, payload);
     if (res.data.token) {
       token.value = res.data.token;
+      if (res.data.refreshToken) refreshToken.value = res.data.refreshToken;
       axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
     }
     if (res.data.user) user.value = res.data.user;
@@ -227,12 +329,16 @@ export const useAuthStore = defineStore("auth", () => {
 
   function saveToStorage() {
     localStorage.setItem("admin_token", token.value);
+    if (refreshToken.value)
+      localStorage.setItem("admin_refresh_token", refreshToken.value);
+    else localStorage.removeItem("admin_refresh_token");
     localStorage.setItem("admin_user", JSON.stringify(user.value));
     localStorage.setItem("admin_restaurants", JSON.stringify(restaurants.value));
   }
 
   function logout() {
     token.value = null;
+    refreshToken.value = null;
     user.value = null;
     restaurants.value = [];
     currentRestaurantId.value = null;
@@ -240,6 +346,7 @@ export const useAuthStore = defineStore("auth", () => {
     // choice (persist=false) — so the next account on this device starts clean
     useThemeStore().reset({ persist: false });
     localStorage.removeItem("admin_token");
+    localStorage.removeItem("admin_refresh_token");
     localStorage.removeItem("admin_user");
     localStorage.removeItem("admin_restaurants");
     localStorage.removeItem("current_restaurant_id");
@@ -262,13 +369,44 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  // Decode a JWT payload WITHOUT verifying it (the server is the only
+  // authority — this purely decides whether renewal is needed before opening
+  // a connection that can't carry new headers, e.g. EventSource/SSE).
+  function tokenExpiresAt(jwt) {
+    try {
+      const payload = JSON.parse(
+        atob(jwt.split(".")[1].replace(/-/g, "+").replace(/_/g, "/")),
+      );
+      return payload.exp ? payload.exp * 1000 : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Keep `token` valid for at least the next skewMs, silently renewing it
+  // when it's close to expiring. Call before building SSE URLs — once
+  // EventSource is connected the token is baked into its URL.
+  async function ensureFreshToken(skewMs = 5 * 60 * 1000) {
+    if (!token.value) return;
+    const exp = tokenExpiresAt(token.value);
+    if (exp && exp - Date.now() > skewMs) return; // fresh enough
+    try {
+      await refreshSession();
+    } catch (e) {
+      // Only a server rejection ends the session; a network error leaves the
+      // token as-is so the caller (and its retry loop) can try again later.
+      if (e?.response || e?.noRefreshToken) endExpiredSession();
+    }
+  }
+
   return {
     token, user, restaurant, restaurants, currentRestaurantId,
     isLoggedIn, isEmailVerified, isOwner, isSuperAdmin, sessionRevoked,
+    sessionExpired, clearSessionExpired,
     restaurantId, restaurantSlug,
     linkCode, telegramChatId, isTelegramLinked, defaultLanguage,
     login, superAdminLogin, register, loginWithGoogle, fetchMe, updateAccount, logout,
-    restoreToken, saveToStorage,
+    restoreToken, saveToStorage, ensureFreshToken,
     setCurrentRestaurant, updateCurrentRestaurant, setCurrentMenu, currentMenuId,
   };
 });

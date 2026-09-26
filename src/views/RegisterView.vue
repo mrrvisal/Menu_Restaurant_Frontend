@@ -57,7 +57,7 @@
 
       <div class="or-divider"><span>{{ i18n.t.or }}</span></div>
 
-      <GoogleSignInButton text="signup_with" @credential="onGoogleCredential" />
+      <GoogleSignInButton @credential="onGoogleCredential" />
 
       <div class="links">{{ i18n.t.have_account }} <router-link to="/login">{{ i18n.t.login }}</router-link></div>
       <button class="lang-toggle" @click="i18n.toggleLocale">{{ i18n.locale === 'km' ? 'English' : 'ភាសាខ្មែរ' }}</button>
@@ -66,11 +66,12 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed } from "vue";
+import { ref, reactive, computed, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useI18nStore } from "@/stores/i18n";
 import GoogleSignInButton from "@/components/GoogleSignInButton.vue";
+import { takePendingGoogleCredential } from "@/utils/googleAuth";
 
 const router = useRouter();
 const auth = useAuthStore();
@@ -142,6 +143,13 @@ async function submit() {
     submitting.value = false;
   }
 }
+
+// Popup-blocked fallback: /auth/google/callback couldn't reach the opener,
+// so it parked the ID token in sessionStorage and redirected back here.
+onMounted(() => {
+  const pending = takePendingGoogleCredential();
+  if (pending) onGoogleCredential(pending);
+});
 
 async function onGoogleCredential(credential) {
   errorMsg.value = "";

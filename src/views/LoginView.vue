@@ -20,6 +20,22 @@
 
       <form @submit.prevent="submit">
         <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
+        <div v-else-if="auth.sessionExpired" class="expired-banner">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span>{{ i18n.t.session_expired }}</span>
+        </div>
         <div v-if="superAdminHint" class="super-admin-hint">
           <svg
             width="18"
@@ -187,12 +203,13 @@
 </template>
 
 <script setup>
-import { ref, reactive } from "vue";
+import { ref, reactive, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
 import { useAuthStore } from "@/stores/auth";
 import { useI18nStore } from "@/stores/i18n";
 import GoogleSignInButton from "@/components/GoogleSignInButton.vue";
+import { takePendingGoogleCredential } from "@/utils/googleAuth";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 
@@ -250,6 +267,13 @@ async function onGoogleCredential(credential) {
     submitting.value = false;
   }
 }
+
+// Popup-blocked fallback: /auth/google/callback couldn't reach the opener,
+// so it parked the ID token in sessionStorage and redirected back here.
+onMounted(() => {
+  const pending = takePendingGoogleCredential();
+  if (pending) onGoogleCredential(pending);
+});
 
 function openMailApp() {
   window.open("https://mail.google.com/mail/u/0/#inbox", "_blank");
@@ -577,5 +601,21 @@ async function resendVerification() {
 .btn-verify:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.expired-banner {
+  background: #eff6ff;
+  border: 1.5px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: #1d4ed8;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+}
+.expired-banner svg {
+  flex-shrink: 0;
 }
 </style>

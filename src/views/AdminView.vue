@@ -375,6 +375,12 @@
                     </svg>
                     <span>{{ i18n.t.owner_preview }}</span>
                   </button>
+                  <!-- Share the menu to every platform (Facebook, Messenger,
+                       Telegram, WhatsApp, Instagram, WeChat, LinkedIn, X…) -->
+                  <button class="pm-item" @click="runProfileAction(openShare)">
+                    <AppIcon name="share" :size="15" />
+                    <span>{{ i18n.t.share_title }}</span>
+                  </button>
 
                   <!-- ── Install app (PWA download) ── hidden once installed -->
                   <button
@@ -1755,6 +1761,38 @@
       </Transition></Teleport
     >
 
+    <!-- ─── SHARE MENU · Facebook, Messenger, Telegram, WhatsApp, Instagram,
+         WeChat, LINE, Viber, LinkedIn, X, Reddit, Pinterest, Email, SMS ─── -->
+    <Teleport to="body"
+      ><Transition name="fade">
+        <div v-if="showShare" class="overlay" @click.self="showShare = false">
+          <div class="sheet">
+            <div class="sheet-h">
+              <span
+                ><AppIcon name="share" :size="16" />{{ i18n.t.share_title }}</span
+              ><button
+                class="ic"
+                :aria-label="i18n.t.close"
+                @click="showShare = false"
+              >
+                <AppIcon name="x" :size="16" />
+              </button>
+            </div>
+            <div class="sheet-b">
+              <ShareGrid
+                :show-header="false"
+                :url="shareLinks.shareUrl"
+                :text="shareText"
+                :image="shareImage"
+                :accent="theme.primary"
+                @shared="showShare = false"
+              />
+            </div>
+          </div>
+        </div>
+      </Transition></Teleport
+    >
+
     <!-- Delete QR -->
     <Teleport to="body"
       ><Transition name="fade">
@@ -3006,6 +3044,7 @@ import AppDatePicker from "@/components/AppDatePicker.vue";
 import AppIcon from "@/components/AppIcon.vue";
 import SalesChart from "@/components/SalesChart.vue";
 import NotificationBell from "@/components/NotificationBell.vue";
+import ShareGrid from "@/components/ShareGrid.vue";
 import { useThemeStore } from "@/stores/theme";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useCurrencyStore } from "@/stores/currency";
@@ -3014,6 +3053,7 @@ import {
   enablePush,
   disablePush,
 } from "@/utils/pushNotifications";
+import { buildShareLinks } from "@/utils/share.mjs";
 import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -3122,6 +3162,22 @@ watch(
     logoLoadError.value = false;
   }
 );
+
+// ─── SHARING (every platform) ─────────────────────────────
+// `shareLinks.shareUrl` is the crawler-friendly preview card: Facebook,
+// Messenger, Telegram, WhatsApp, Instagram, WeChat, LinkedIn … all show the
+// restaurant name + logo instead of the generic app card.
+const showShare = ref(false);
+const shareLinks = computed(() =>
+  buildShareLinks({ restaurantId: auth.restaurantId }),
+);
+const shareText = computed(() =>
+  String(i18n.t.share_menu_message || "{name}").replace(
+    "{name}",
+    auth.restaurant?.name || profileName.value || i18n.t.app_name,
+  ),
+);
+const shareImage = computed(() => restaurantLogo.value || "");
 
 const orders = ref([]);
 const ordersLoading = ref(false);
@@ -4267,6 +4323,10 @@ function openPreview() {
   if (previewMenuUrl.value === "#") return;
   window.open(previewMenuUrl.value, "_blank");
 }
+// Share sheet: the public menu link (preview card) to any platform
+function openShare() {
+  showShare.value = true;
+}
 
 // KDS runs on its own screen/tab — never inside the dashboard SPA
 function openKds() {
@@ -4428,6 +4488,7 @@ function handleEscKey(e) {
   } else if (deletingFood.value) deletingFood.value = null;
   else if (deletingCat.value) deletingCat.value = null;
   else if (deletingQr.value) deletingQr.value = null;
+  else if (showShare.value) showShare.value = false;
   else if (showQR.value) showQR.value = false;
   else if (deletingDevice.value) deletingDevice.value = null;
   else if (showDevices.value) showDevices.value = false;
@@ -4657,6 +4718,11 @@ async function connectOrderStream() {
   if (orderStream.value) return; // Already connected
   clearTimeout(streamRetryTimer);
   streamRetryTimer = null;
+
+  // Renew the access token first when it's close to expiring — EventSource
+  // bakes the token into its URL and can't swap it without a reconnect.
+  await auth.ensureFreshToken();
+  if (!auth.token) return; // session ended while renewing
 
   const params = new URLSearchParams({ token: auth.token });
   // Stream the restaurant the owner selected in the dashboard; when omitted,
@@ -6607,7 +6673,7 @@ onUnmounted(() => {
   color: #fff;
 }
 .rep-groups .chip.active {
-  background: #1f2937;
+  background: var(--primary);
   border-color: transparent;
   color: #fff;
 }

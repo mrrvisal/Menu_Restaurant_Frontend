@@ -335,9 +335,13 @@ function onSwitchRestaurant(value) {
 }
 
 // ─── LIVE STREAM (same SSE endpoint as the dashboard) ──────
-function connect() {
+async function connect() {
   if (!auth.token || !auth.restaurantId) return;
   if (es) return;
+  // Renew the access token first when it's close to expiring — EventSource
+  // bakes the token into its URL and can't swap it without a reconnect.
+  await auth.ensureFreshToken();
+  if (!auth.token || es) return; // session ended (or reconnected) while waiting
   const params = new URLSearchParams({
     token: auth.token,
     restaurant_id: String(auth.restaurantId),

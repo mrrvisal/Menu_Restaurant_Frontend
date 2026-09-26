@@ -48,6 +48,8 @@ const translations = {
     have_account: "មានគណនីរួចហើយ?",
     or: "ឬ",
     google_signin: "បន្តដោយ Google",
+    google_unavailable:
+      "ការចូលដោយ Google មិនអាចប្រើបានបណ្ដោះអាសន្ន។ សូមចូលដោយអ៊ីមែល និងពាក្យសម្ងាត់ជំនួស។",
     pw_weak: "ខ្សោយ",
     pw_fair: "មធ្យម",
     pw_good: "ល្អ",
@@ -228,6 +230,42 @@ const translations = {
     no_note: "គ្មានកំណត់ហ្គាត់",
     copy_link: "ចម្លងតំណ",
     link_copied: "ចម្លងតំណរួចរាល់",
+    // ─── ចែករំលែក (Share) — គ្រប់បណ្តាញ ───
+    share: "ចែករំលែក",
+    share_title: "ចែករំលែកមីនុយ",
+    share_subtitle:
+      "ផ្ញើតំណមីនុយទៅគ្រប់កម្មវិធី — Facebook, Telegram, WhatsApp, WeChat, LinkedIn និងច្រើនទៀត",
+    share_native: "កម្មវិធីផ្សេងទៀត",
+    share_facebook: "Facebook",
+    share_messenger: "Messenger",
+    share_telegram: "Telegram",
+    share_whatsapp: "WhatsApp",
+    share_instagram: "Instagram",
+    share_wechat: "WeChat",
+    share_line: "LINE",
+    share_viber: "Viber",
+    share_linkedin: "LinkedIn",
+    share_x: "X (Twitter)",
+    share_reddit: "Reddit",
+    share_pinterest: "Pinterest",
+    share_email: "អ៊ីមែល",
+    share_sms: "SMS",
+    share_qr: "QRកូដ",
+    share_qr_hint:
+      "ស្កេន QR នេះដោយទូរស័ព្ទមួយផ្សេងទៀត ដើម្បីបើកមីនុយ",
+    share_wechat_hint:
+      "WeChat មិនមានប៊ូតុងចែករំលែកតាមតំណទេ — ស្កេន QR ខាងលើ ឬចម្លងតំណទៅបិទភ្ជាប់ក្នុងការសន្ទនា",
+    share_instagram_hint:
+      "តំណត្រូវបានចម្លងរួច — បើក Instagram រួចបិទភ្ជាប់វាក្នុង DM ឬ Story",
+    share_messenger_hint:
+      "តំណត្រូវបានចម្លងរួច — បិទភ្ជាប់វាក្នុងការសន្ទនា Messenger",
+    share_viber_hint:
+      "តំណត្រូវបានចម្លងរួច — បិទភ្ជាប់វាក្នុង Viber ប្រសិនបើកម្មវិធីមិនបើក",
+    share_qr_failed:
+      "កូដ QR មិនអាចបង្កើតបាន — សូមចម្លងតំណដោយដៃ ឬបើកវាដោយផ្ទាល់ពីសហគមន៍",
+    share_copy_failed: "មិនអាចចម្លងតំណទេ — សូមចម្លងដោយដៃ",
+    share_menu_message:
+      "មីនុយ {name} 📋 ស្កេន ឬចុចតំណនេះដើម្បីមើលមីនុយ និងកម្មង់",
     all_users: "អ្នកប្រើទាំងអស់",
     owners: "ម្ចាស់",
     admins: "អ្នកគ្រប់គ្រង",
@@ -338,6 +376,22 @@ const translations = {
     setup_menu_desc: "បន្ថែមម្ហូប ប្រភេទ រូបភាព និងតម្លៃ",
     receive_orders_title: "ទទួលការបញ្ជាទិញ",
     receive_orders_desc: "អតិថិជនបញ្ជាទិញតាម QR អ្នកទទួលតាម Telegram",
+    /* ── FAQ (public) ─────────────────────────────────────── */
+    faq: "FAQ",
+    faq_title: "សំណួរញឹកសួររបស់អតិថិជន",
+    faq_desc: "ចម្លើយសម្រាប់សំណួរដែលម្ចាស់ហាងសួរញឹកបំផុត",
+    faq_1_q: "តើខ្ញុំអាចដាក់មីនុយក្នុងហាងដោយរបៀបណា?",
+    faq_1_a:
+      "គ្រាន់តែចុះឈ្មោះ បន្ថែមម្ហូប រូបភាព និងតម្លៃ រួចបោះពុម្ព QR សម្រាប់តុនីមួយៗ — អតិថិជនស្កេនភ្លាមឃើញមីនុយ។",
+    faq_2_q: "តើការបញ្ជាទិញដំណើរការដូចម្តេច?",
+    faq_2_a:
+      "អតិថិជនស្កេន QR តាមតុ រើសម្ហូប ហើយចុចបញ្ជាទិញ។ ប្រព័ន្ធផ្ញើសារទៅ Telegram ភ្លាមៗក្នុងរយៈពេលពីរបីវិនាទី ជាមួយលេខតុ មុខម្ហូប និងតម្លៃសរុប។",
+    faq_3_q: "តើត្រូវការបង់ប្រាក់ទេ?",
+    faq_3_a:
+      "មានផែនការឥតគិតថ្លៃសម្រាប់ចាប់ផ្តើម។ សម្រាប់មុខងារបន្ថែម ឬភោជនីយដ្ឋានច្រើន យើងមានផែនការបង់ប្រាក់ ($) ដែលអ្នកអាចធ្វើបច្ចុប្បន្នភាព ឬបញ្ឈប់បានគ្រប់ពេល។",
+    faq_4_q: "តើត្រូវការកម្មវិធីពិសេសទេ?",
+    faq_4_a:
+      "មិនចាំបាច់ទេ។ អតិថិជនបើកតំណ QR ក្នុងកម្មវិធីរុករកទូរស័ព្ទ ហើយមើលមីនុយបានភ្លាមៗ។",
     cta_title: "ចាប់ផ្តើមធ្វើឱ្យហាងអ្នកងាយគ្រប់គ្រងជាងមុន",
     cta_subtitle:
       "បង្កើតគណនី ហើយរៀបចំមីនុយដំបូងរបស់អ្នក។ អ្នកអាចបោះពុម្ព QR សម្រាប់តុ និងចាប់ផ្តើមទទួលការបញ្ជាទិញបានឆាប់ៗ។",
@@ -408,6 +462,8 @@ const translations = {
     step_done: "ចាប់ផ្តើមបង្កើតមីនុយរបស់អ្នក",
     verify_success: "ផ្ទៀងផ្ទាត់អ៊ីមែលបានជោគជ័យ! អ្នកអាចចូលប្រើបានហើយ។",
     verify_error: "តំណភ្ជាប់មិនត្រឹមត្រូវ ឬផុតកំណត់",
+    session_expired:
+      "សម័យការរបស់អ្នកបានផុតកំណត់។ សូមចូលគណនីម្តងទៀត។",
     please_verify: "សូមផ្ទៀងផ្ទាត់អ៊ីមែលរបស់អ្នកជាមុន",
     please_verify_desc:
       "អ្នកត្រូវផ្ទៀងផ្ទាត់អ៊ីមែលរបស់អ្នក មុនពេលចូលប្រើប្រព័ន្ធ។ សូមពិនិត្យអ៊ីមែលរបស់អ្នក។",
@@ -616,6 +672,8 @@ const translations = {
     have_account: "Already have an account?",
     or: "or",
     google_signin: "Continue with Google",
+    google_unavailable:
+      "Google sign-in is temporarily unavailable. Please sign in with your email and password.",
     pw_weak: "Weak",
     pw_fair: "Fair",
     pw_good: "Good",
@@ -789,6 +847,42 @@ const translations = {
     no_note: "No note",
     copy_link: "Copy link",
     link_copied: "Link copied",
+    // ─── Share — every platform ───
+    share: "Share",
+    share_title: "Share the menu",
+    share_subtitle:
+      "Send the menu link to any app — Facebook, Telegram, WhatsApp, WeChat, LinkedIn and more",
+    share_native: "More apps",
+    share_facebook: "Facebook",
+    share_messenger: "Messenger",
+    share_telegram: "Telegram",
+    share_whatsapp: "WhatsApp",
+    share_instagram: "Instagram",
+    share_wechat: "WeChat",
+    share_line: "LINE",
+    share_viber: "Viber",
+    share_linkedin: "LinkedIn",
+    share_x: "X (Twitter)",
+    share_reddit: "Reddit",
+    share_pinterest: "Pinterest",
+    share_email: "Email",
+    share_sms: "SMS",
+    share_qr: "QR code",
+    share_qr_hint:
+      "Scan this QR code with another phone to open the menu",
+    share_wechat_hint:
+      "WeChat has no web share button — scan the QR code above, or copy the link and paste it into a chat",
+    share_instagram_hint:
+      "Link copied — open Instagram and paste it in a DM or Story",
+    share_messenger_hint:
+      "Link copied — paste it into your Messenger chat",
+    share_viber_hint:
+      "Link copied — paste it in Viber if the app did not open",
+    share_qr_failed:
+      "QR code could not be generated — please copy the link manually, or open it directly from the community",
+    share_copy_failed: "Could not copy the link — please copy it manually",
+    share_menu_message:
+      "{name} menu 📋 Tap the link to browse the menu and order",
     all_users: "All users",
     owners: "Owners",
     admins: "Admins",
@@ -894,6 +988,22 @@ const translations = {
     qr_generate_desc: "Create QR codes for tables",
     receive_orders_title: "Receive Orders",
     receive_orders_desc: "Customers order via QR, you receive via Telegram",
+    /* ── FAQ (public) ─────────────────────────────────────── */
+    faq: "FAQ",
+    faq_title: "Frequently Asked Questions",
+    faq_desc: "Quick answers to the questions restaurant owners ask most",
+    faq_1_q: "How do I set up the menu for my shop?",
+    faq_1_a:
+      "Just sign up, add your foods, photos and prices, then print a QR code for each table — customers scan and see your menu instantly.",
+    faq_2_q: "How does ordering work?",
+    faq_2_a:
+      "Customers scan the table QR, pick their dishes and place an order. You get an instant Telegram notification within seconds with the table number, items and total.",
+    faq_3_q: "Do I need to pay?",
+    faq_3_a:
+      "There is a free plan to get started. For extra features or multiple restaurants, paid plans ($) are available and you can upgrade or cancel anytime.",
+    faq_4_q: "Do customers need to install an app?",
+    faq_4_a:
+      "No. They simply open the QR link in their phone browser and the menu loads instantly.",
     cta_title: "Make your restaurant easier to run",
     cta_subtitle:
       "Create your account, add your first menu, print table QR codes, and start receiving clearer orders.",
@@ -975,6 +1085,7 @@ const translations = {
     step_done: "Start building your menu",
     verify_success: "Email verified successfully! You can now log in.",
     verify_error: "Invalid or expired link",
+    session_expired: "Your session has expired. Please sign in again.",
     please_verify: "Please verify your email first",
     please_verify_desc:
       "You need to verify your email before logging in. Please check your inbox.",

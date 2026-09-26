@@ -10,17 +10,20 @@
       name="description"
       content="Digital Menu lets restaurant, cafe and food-shop owners manage their menu and prices online. Customers scan a table QR code, browse the bilingual (Khmer/English) menu, and order directly — orders arrive on Telegram instantly."
     />
+    <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="theme-color" content="#166534" />
 
     <!-- PWA / Web Push -->
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/icons/icon-192.png" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-192.png" />
 
     <link rel="shortcut icon" href="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png">
 
-    <!-- Open Graph -->
+    <!-- Open Graph — Facebook, Messenger, WhatsApp, Instagram, WeChat, Viber, Telegram -->
     <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://menu-restaurant-ddm2.onrender.com/" />
+    <meta property="og:url" content="https://digital-menu-irhp.onrender.com" />
     <meta property="og:site_name" content="Digital Menu" />
     <meta property="og:title" content="Digital Menu — QR Restaurant Menu & Ordering" />
     <meta
@@ -33,9 +36,19 @@
       property="og:image"
       content="https://res.cloudinary.com/daji2ml3y/image/upload/w_600,q_auto,f_auto/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png"
     />
+    <meta
+      property="og:image:url"
+      content="https://res.cloudinary.com/daji2ml3y/image/upload/w_600,q_auto,f_auto/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png"
+    />
+    <meta
+      property="og:image:secure_url"
+      content="https://res.cloudinary.com/daji2ml3y/image/upload/w_600,q_auto,f_auto/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png"
+    />
     <meta property="og:image:alt" content="Digital Menu logo" />
+    <meta property="og:image:type" content="image/png" />
     <meta property="og:image:width" content="600" />
     <meta property="og:image:height" content="600" />
+    <link rel="canonical" href="https://digital-menu-irhp.onrender.com" />
 
     <!-- Twitter / X Card -->
     <meta name="twitter:card" content="summary" />
@@ -48,11 +61,41 @@
       name="twitter:image"
       content="https://res.cloudinary.com/daji2ml3y/image/upload/w_600,q_auto,f_auto/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png"
     />
+    <meta name="twitter:image:alt" content="Digital Menu logo" />
+    <meta name="twitter:image:width" content="600" />
+    <meta name="twitter:image:height" content="600" />
+
+    <!-- WeChat / older scrapers: they read the title + description + first image -->
+    <meta itemprop="name" content="Digital Menu — QR Restaurant Menu & Ordering" />
+    <meta itemprop="image" content="https://res.cloudinary.com/daji2ml3y/image/upload/w_600,q_auto,f_auto/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://res.cloudinary.com" />
 
     <link
       href="https://fonts.googleapis.com/css2?family=Hanuman:wght@400;700&family=Kantumruy+Pro:wght@400;500;600&display=swap"
       rel="stylesheet"
     />
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Digital Menu",
+      "url": "https://digital-menu-irhp.onrender.com",
+      "image": "https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "inLanguage": ["km-KH", "en-US"],
+      "description": "QR restaurant menu & ordering system with bilingual Khmer/English support and instant Telegram order delivery.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      }
+    }
+    </script>
   </head>
   <body>
     <div id="app"></div>

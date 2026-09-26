@@ -219,6 +219,10 @@
     <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/>
     <path d="M9 14l2 2 4-4"/>
   </svg>
+  <svg v-else-if="name === 'copy'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+  </svg>
   <svg v-else-if="name === 'user-check'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
     <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
     <circle cx="8.5" cy="7" r="4"/>
@@ -335,9 +339,66 @@
     <rect x="2" y="4" width="20" height="16" rx="2"/>
     <path d="m22 6-10 7L2 6"/>
   </svg>
-  <svg v-else-if="name === 'copy'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
-    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+  <svg v-else-if="name === 'share'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <circle cx="18" cy="5" r="3"/>
+    <circle cx="6" cy="12" r="3"/>
+    <circle cx="18" cy="19" r="3"/>
+    <line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/>
+    <line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/>
+  </svg>
+  <svg v-else-if="name === 'brand-facebook'" viewBox="0 0 24 24" fill="currentColor" class="app-icon" :width="size" :height="size">
+    <path d="M15.12 5.32H17V2.14A26.11 26.11 0 0 0 14.26 2C11.54 2 9.68 3.66 9.68 6.7v2.62H6.61v3.56h3.07V22h3.68v-9.12h3.06l.46-3.56h-3.52V7.05c0-1.03.28-1.73 1.76-1.73Z"/>
+  </svg>
+  <svg v-else-if="name === 'brand-messenger'" viewBox="0 0 24 24" fill="currentColor" class="app-icon" :width="size" :height="size">
+    <path d="M12 0C5.37 0 0 4.97 0 11.11c0 3.5 1.74 6.62 4.47 8.66V24l4.09-2.24c1.09.3 2.24.46 3.44.46 6.63 0 12-4.97 12-11.11S18.63 0 12 0Zm1.19 14.96-3.05-3.26-5.96 3.26 6.56-6.96 3.13 3.26 5.88-3.26-6.56 6.96Z"/>
+  </svg>
+  <svg v-else-if="name === 'brand-telegram'" viewBox="0 0 24 24" fill="currentColor" class="app-icon" :width="size" :height="size">
+    <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0Zm5.89 8.22-1.97 9.28c-.14.66-.54.82-1.08.51l-3-2.21-1.45 1.4c-.16.16-.3.29-.6.29l.21-3.05 5.56-5.03c.24-.21-.06-.33-.37-.12l-6.87 4.33-2.96-.93c-.64-.2-.66-.64.14-.95l11.57-4.46c.54-.2 1.01.13.83.94Z"/>
+  </svg>
+  <svg v-else-if="name === 'brand-whatsapp'" viewBox="0 0 24 24" fill="currentColor" class="app-icon" :width="size" :height="size">
+    <path d="M17.47 14.38c-.3-.15-1.76-.87-2.03-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.16-.17.2-.35.22-.64.08-.3-.15-1.26-.47-2.39-1.48-.89-.79-1.48-1.76-1.66-2.06-.17-.3-.02-.46.13-.6.13-.14.3-.35.45-.53.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.61-.92-2.21-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.48 0 1.46 1.07 2.88 1.22 3.07.14.2 2.09 3.2 5.07 4.49.71.3 1.27.49 1.7.62.71.23 1.36.2 1.87.12.57-.09 1.76-.72 2-1.41.25-.7.25-1.29.18-1.42-.08-.12-.28-.2-.57-.34m-5.42 7.4h-.01a9.87 9.87 0 0 1-5.03-1.38l-.36-.21-3.74.98 1-3.65-.24-.37a9.86 9.86 0 0 1-1.51-5.26C2.16 6.44 6.6 2 12.05 2c2.64 0 5.12 1.03 6.99 2.9a9.83 9.83 0 0 1 2.89 6.99c0 5.45-4.44 9.88-9.88 9.88m8.41-18.3A11.82 11.82 0 0 0 12.05 0C5.5 0 .16 5.34.16 11.89c0 2.1.55 4.14 1.59 5.95L.06 24l6.3-1.65a11.88 11.88 0 0 0 5.69 1.45c6.55 0 11.89-5.34 11.89-11.9 0-3.17-1.23-6.15-3.47-8.4Z"/>
+  </svg>
+  <svg v-else-if="name === 'brand-instagram'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <rect x="2.6" y="2.6" width="18.8" height="18.8" rx="5.4"/>
+    <circle cx="12" cy="12" r="4.1"/>
+    <circle cx="17.3" cy="6.7" r="1.15" fill="currentColor" stroke="none"/>
+  </svg>
+  <svg v-else-if="name === 'brand-wechat'" viewBox="0 0 24 24" fill="currentColor" class="app-icon" :width="size" :height="size">
+    <path d="M9.1 3C5 3 1.8 5.7 1.8 9c0 1.9 1 3.5 2.7 4.7l-.7 2.1 2.4-1.2c.9.3 1.8.4 2.8.4h.4a5.4 5.4 0 0 1-.2-1.5c0-3.1 3-5.6 6.7-5.6h.5C15.7 5.1 12.7 3 9.1 3Zm-2.5 3.7a1 1 0 1 1 0 2 1 1 0 0 1 0-2Zm5 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"/>
+    <path d="M22.2 13.5c0-2.7-2.7-4.9-5.9-4.9s-5.9 2.2-5.9 4.9 2.7 4.9 5.9 4.9c.8 0 1.5-.1 2.2-.4l1.8.9-.5-1.6c1.5-.9 2.4-2.2 2.4-3.8Zm-7.9-1.3a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8Zm4.1 0a.9.9 0 1 1 0-1.8.9.9 0 0 1 0 1.8Z"/>
+  </svg>
+  <svg v-else-if="name === 'brand-line'" viewBox="0 0 24 24" fill="currentColor" class="app-icon" :width="size" :height="size">
+    <path d="M12 2C6.4 2 2 5.5 2 9.8c0 3.8 3.4 7 8 7.6.3 0 .7.2.8.5.1.2.1.5 0 .8l-.1.7c0 .2-.1.5.1.6.2.1.4 0 .6-.1.3-.2 3.7-2.2 5.2-3.1 1.9-1.2 3.4-2.9 3.4-4.9C22 5.5 17.6 2 12 2Zm-4.2 5.1c.4 0 .7.3.7.7v2.7h1.4c.4 0 .7.3.7.7s-.3.7-.7.7H7.1c-.4 0-.7-.3-.7-.7V7.8c0-.4.3-.7.7-.7Zm3.7 0c.4 0 .7.3.7.7v4.1c0 .4-.3.7-.7.7s-.7-.3-.7-.7V7.8c0-.4.3-.7.7-.7Zm6.9 0c.4 0 .7.3.7.7 0 .2-.1.3-.2.5l-1.7 2.2 1.8 1.6c.3.2.3.6.1.9-.2.3-.6.3-.9.1l-1.3-1.1v1c0 .4-.3.7-.7.7s-.7-.3-.7-.7V7.8c0-.4.3-.7.7-.7s.7.3.7.7v1.1l1.2-1.6c.1-.1.2-.2.3-.2Zm-9.3 8.6h.01Z"/>
+  </svg>
+  <svg v-else-if="name === 'brand-viber'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M20.4 4.1a13 13 0 0 0-7.9-1.6 1.1 1.1 0 0 0 .3 2.2 10.8 10.8 0 0 1 6.5 1.2 1.1 1.1 0 0 0 1.1-1.8Z"/>
+    <path d="M18.6 7.2a8.5 8.5 0 0 0-4.4-1 1.05 1.05 0 0 0 .2 2.1 6.3 6.3 0 0 1 3.3.7 1.05 1.05 0 0 0 1-1.8Z"/>
+    <path d="M14.8 20.4c-.9 0-4.7-2-6.6-3.9-1.9-1.9-4-5.7-4-6.6 0-1.7 1.3-2.6 2-2.8.3-.1.7 0 .9.3l1.3 2c.2.3.1.6-.1.8l-.9.9c-.2.2-.2.5 0 .8.4.6 1.5 1.9 2.2 2.5.5.4 1.3 1 1.9 1.3.3.1.6.1.8-.1l.9-.9c.2-.2.6-.3.8-.1l2 1.3c.3.2.4.6.3.9-.2.7-1.1 2-2.8 2.1Z"/>
+  </svg>
+  <svg v-else-if="name === 'brand-linkedin'" viewBox="0 0 24 24" fill="currentColor" class="app-icon" :width="size" :height="size">
+    <path d="M4.98 3.5a2.5 2.5 0 1 1 0 5 2.5 2.5 0 0 1 0-5ZM3 9h4v12H3V9Zm6 0h3.8v1.7h.1c.5-1 1.8-2 3.7-2 4 0 4.7 2.6 4.7 6V21h-4v-5.3c0-1.3 0-3-1.8-3s-2.1 1.4-2.1 2.9V21H9V9Z"/>
+  </svg>
+  <svg v-else-if="name === 'brand-x'" viewBox="0 0 24 24" fill="currentColor" class="app-icon" :width="size" :height="size">
+    <path d="M18.9 2h3.3l-7.3 8.3L23.4 22h-6.6l-5.2-6.8L5.6 22H2.3l7.7-8.8L2 2h6.8l4.7 6.2L18.9 2Zm-1.2 18h1.8L7.5 3.9H5.5L17.7 20Z"/>
+  </svg>
+  <svg v-else-if="name === 'brand-reddit'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <circle cx="12" cy="13.6" r="7.5"/>
+    <circle cx="9.4" cy="12.7" r="1.1" fill="currentColor" stroke="none"/>
+    <circle cx="14.6" cy="12.7" r="1.1" fill="currentColor" stroke="none"/>
+    <path d="M9.4 16.3c1.4 1.1 3.8 1.1 5.2 0"/>
+    <path d="M12 6.1V3.7l3.1.8"/>
+    <circle cx="16.1" cy="4.5" r="1.1"/>
+  </svg>
+  <svg v-else-if="name === 'brand-pinterest'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <circle cx="12" cy="12" r="9.2"/>
+    <path d="M13.5 7.3c-2.6-.6-4.6 1.1-5 3.2-.3 1.6.7 2.9 2.1 2.9.8 0 1.4-.5 1.6-1.2"/>
+    <path d="M11.8 12.6 10.1 20"/>
+  </svg>
+  <svg v-else-if="name === 'brand-sms'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M21 11.6c0 4.4-4 8-9 8-.9 0-1.8-.1-2.6-.3L4 21.4l1.1-3.6C3.8 16.5 3 14.2 3 11.6c0-4.4 4-8 9-8s9 3.6 9 8Z"/>
+    <line x1="8.6" y1="11.6" x2="8.61" y2="11.6"/>
+    <line x1="12" y1="11.6" x2="12.01" y2="11.6"/>
+    <line x1="15.4" y1="11.6" x2="15.41" y2="11.6"/>
   </svg>
 </template>
 
