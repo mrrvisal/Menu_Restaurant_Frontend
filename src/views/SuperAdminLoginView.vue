@@ -2,32 +2,16 @@
   <div class="page">
     <div class="card pop-in">
       <div class="badge">
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           <path d="M9 12l2 2 4-4" />
         </svg>
         {{ i18n.t.restricted_area }}
       </div>
       <div class="icon">
-        <svg
-          width="32"
-          height="32"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           <path d="M9 12l2 2 4-4" />
         </svg>
@@ -39,60 +23,24 @@
 
         <div class="form-group">
           <label>{{ i18n.t.email }}</label>
-          <input
-            v-model="form.email"
-            type="email"
-            class="input"
-            placeholder="admin@menu.com"
-            autocomplete="username"
-            required
-          />
+          <input v-model="form.email" type="email" class="input" placeholder="admin@menu.com" autocomplete="username"
+            required />
         </div>
 
         <div class="form-group">
           <label>{{ i18n.t.password }}</label>
           <div class="password-wrap">
-            <input
-              v-model="form.password"
-              :type="showPassword ? 'text' : 'password'"
-              class="input"
-              :placeholder="i18n.t.password"
-              autocomplete="current-password"
-              required
-            />
-            <button
-              type="button"
-              class="toggle-password"
-              @click="showPassword = !showPassword"
-              tabindex="-1"
-            >
-              <svg
-                v-if="showPassword"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
+            <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input"
+              :placeholder="i18n.t.password" autocomplete="current-password" required />
+            <button type="button" class="toggle-password" @click="showPassword = !showPassword" tabindex="-1">
+              <svg v-if="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path
-                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                />
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
                 <line x1="1" y1="1" x2="23" y2="23" />
               </svg>
-              <svg
-                v-else
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
+              <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                 <circle cx="12" cy="12" r="3" />
               </svg>
@@ -165,6 +113,7 @@ async function onGoogleCredential(credential) {
   justify-content: center;
   padding: 20px;
 }
+
 .card {
   background: white;
   border-radius: 22px;
@@ -174,11 +123,13 @@ async function onGoogleCredential(credential) {
   text-align: center;
   box-shadow: 0 24px 60px rgba(255, 132, 1, 0.45);
 }
+
 @media (max-width: 480px) {
   .card {
     padding: 28px 20px;
   }
 }
+
 .badge {
   display: inline-flex;
   align-items: center;
@@ -194,6 +145,7 @@ async function onGoogleCredential(credential) {
   padding: 6px 14px;
   margin-bottom: 16px;
 }
+
 .icon {
   width: 64px;
   height: 64px;
@@ -206,22 +158,26 @@ async function onGoogleCredential(credential) {
   justify-content: center;
   box-shadow: 0 8px 22px rgba(245, 158, 11, 0.35);
 }
+
 .title {
   font-size: 20px;
   font-weight: 800;
   color: #1c1917;
   margin-bottom: 4px;
 }
+
 .subtitle {
   font-size: 13px;
   color: #78716c;
   margin: 0 0 18px;
   line-height: 1.5;
 }
+
 .form-group {
   margin-bottom: 14px;
   text-align: left;
 }
+
 .form-group label {
   display: block;
   font-size: 13px;
@@ -229,6 +185,7 @@ async function onGoogleCredential(credential) {
   color: #44403c;
   margin-bottom: 6px;
 }
+
 .input {
   width: 100%;
   padding: 12px 14px;
@@ -240,15 +197,19 @@ async function onGoogleCredential(credential) {
   transition: border-color 0.2s ease;
   box-sizing: border-box;
 }
+
 .input:focus {
   border-color: #f59e0b;
 }
+
 .password-wrap {
   position: relative;
 }
+
 .password-wrap .input {
   padding-right: 40px;
 }
+
 .toggle-password {
   position: absolute;
   right: 10px;
@@ -262,9 +223,11 @@ async function onGoogleCredential(credential) {
   display: flex;
   align-items: center;
 }
+
 .toggle-password:hover {
   color: #374151;
 }
+
 .btn {
   width: 100%;
   padding: 13px;
@@ -278,20 +241,24 @@ async function onGoogleCredential(credential) {
   margin-top: 8px;
   box-shadow: 0 6px 18px rgba(245, 158, 11, 0.3);
 }
+
 .btn:hover {
   filter: brightness(1.05);
 }
+
 @media (max-width: 480px) {
   .btn {
     padding: 11px;
     font-size: 14px;
   }
 }
+
 .btn:disabled {
   background: #9e9e9e;
   cursor: not-allowed;
   box-shadow: none;
 }
+
 .error-msg {
   background: #fbe9e7;
   border: 1.5px solid #ffccbc;
@@ -302,6 +269,7 @@ async function onGoogleCredential(credential) {
   margin-bottom: 12px;
   text-align: left;
 }
+
 .or-divider {
   display: flex;
   align-items: center;
@@ -310,6 +278,7 @@ async function onGoogleCredential(credential) {
   color: #9ca3af;
   font-size: 12px;
 }
+
 .or-divider::before,
 .or-divider::after {
   content: "";
@@ -317,11 +286,13 @@ async function onGoogleCredential(credential) {
   height: 1px;
   background: #e5e7eb;
 }
+
 .links-register {
   margin-top: 16px;
   font-size: 13px;
   color: #6b7280;
 }
+
 .owner-link {
   display: inline-flex;
   align-items: center;
@@ -330,9 +301,11 @@ async function onGoogleCredential(credential) {
   font-weight: 600;
   text-decoration: none;
 }
+
 .owner-link:hover {
   text-decoration: underline;
 }
+
 .lang-toggle {
   margin-top: 14px;
   background: none;
@@ -344,14 +317,17 @@ async function onGoogleCredential(credential) {
   color: #92400e;
   cursor: pointer;
 }
+
 .pop-in {
   animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 @keyframes popIn {
   from {
     transform: scale(0.85);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;

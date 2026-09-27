@@ -1,13 +1,4 @@
-<!-- frontend/src/components/ShareGrid.vue -->
-<!-- ───────────────────────────────────────────────────────────
-   ShareGrid — the platform picker used by every share surface
-   (customer menu sheet, owner dashboard, …).
-
-   Platforms: Web Share (any installed app) · Facebook · Messenger ·
-   Telegram · WhatsApp · Instagram · WeChat · LINE · Viber · LinkedIn ·
-   X · Reddit · Pinterest · Email · SMS, plus copy-link and a QR panel
-   (scan from another phone — the WeChat route on desktop).
-   ─────────────────────────────────────────────────────────── -->
+<!-- ShareGrid: platform picker and QR view for sharing surfaces -->
 <template>
   <div class="sg" :style="accent ? { '--sg-accent': accent } : null">
     <div v-if="showHeader" class="sg-head">
@@ -16,15 +7,8 @@
     </div>
 
     <div class="sg-tiles">
-      <button
-        v-for="target in targets"
-        :key="target.key"
-        type="button"
-        class="sg-tile"
-        :style="{ '--tone': target.tone || 'var(--sg-accent)' }"
-        :title="labelFor(target)"
-        @click="pick(target)"
-      >
+      <button v-for="target in targets" :key="target.key" type="button" class="sg-tile"
+        :style="{ '--tone': target.tone || 'var(--sg-accent)' }" :title="labelFor(target)" @click="pick(target)">
         <span class="sg-ic">
           <AppIcon :name="target.icon" :size="20" />
         </span>
@@ -32,30 +16,22 @@
       </button>
 
       <!-- Copy link -->
-      <button
-        type="button"
-        class="sg-tile sg-tile-act"
-        :class="{ done: copied }"
-        :title="i18n.t.copy_link"
-        @click="copyLink"
-      >
+      <button type="button" class="sg-tile sg-tile-act" :class="{ done: copied }" :title="i18n.t.copy_link"
+        @click="copyLink">
         <span class="sg-ic">
           <AppIcon :name="copied ? 'clipboard-check' : 'copy'" :size="20" />
         </span>
         <span class="sg-label">{{
           copied ? i18n.t.link_copied : i18n.t.copy_link
-        }}</span>
+          }}</span>
       </button>
 
       <!-- QR -->
-      <button
-        type="button"
-        class="sg-tile sg-tile-act"
-        :class="{ done: showQr }"
-        :title="i18n.t.share_qr"
-        @click="toggleQr"
-      >
-        <span class="sg-ic"><AppIcon name="qr" :size="20" /></span>
+      <button type="button" class="sg-tile sg-tile-act" :class="{ done: showQr }" :title="i18n.t.share_qr"
+        @click="toggleQr">
+        <span class="sg-ic">
+          <AppIcon name="qr" :size="20" />
+        </span>
         <span class="sg-label">{{ i18n.t.share_qr }}</span>
       </button>
     </div>
@@ -69,13 +45,7 @@
     <!-- ─── QR PANEL (scan with another phone / WeChat) ─── -->
     <div v-if="showQr" class="sg-qr">
       <div class="sg-qr-box">
-        <img
-          v-if="qrSrc && !qrFailed"
-          :src="qrSrc"
-          :alt="i18n.t.share_qr"
-          class="sg-qr-img"
-          @error="onQrError"
-        />
+        <img v-if="qrSrc && !qrFailed" :src="qrSrc" :alt="i18n.t.share_qr" class="sg-qr-img" @error="onQrError" />
         <div v-else class="sg-qr-fallback">
           <AppIcon name="qr" :size="34" />
         </div>
@@ -234,16 +204,19 @@ watch(
   flex-direction: column;
   gap: 14px;
 }
+
 .sg-head {
   display: flex;
   flex-direction: column;
   gap: 3px;
 }
+
 .sg-title {
   font-size: 15px;
   font-weight: 700;
   color: var(--ink, #111827);
 }
+
 .sg-sub {
   font-size: 12px;
   line-height: 1.5;
@@ -256,6 +229,7 @@ watch(
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px 6px;
 }
+
 .sg-tile {
   display: flex;
   flex-direction: column;
@@ -270,13 +244,16 @@ watch(
     background 0.16s ease,
     transform 0.16s ease;
 }
+
 .sg-tile:hover {
   background: color-mix(in srgb, var(--tone) 8%, transparent);
   transform: translateY(-1px);
 }
+
 .sg-tile:active {
   transform: scale(0.96);
 }
+
 .sg-ic {
   width: 42px;
   height: 42px;
@@ -287,13 +264,16 @@ watch(
   background: color-mix(in srgb, var(--tone) 13%, #fff);
   border: 1px solid color-mix(in srgb, var(--tone) 22%, transparent);
 }
+
 .sg-tile.done .sg-ic {
   background: color-mix(in srgb, var(--sg-accent) 20%, #fff);
   border-color: color-mix(in srgb, var(--sg-accent) 40%, transparent);
 }
+
 .sg-tile-act {
   --tone: var(--sg-accent);
 }
+
 .sg-label {
   font-size: 10.5px;
   font-weight: 600;
@@ -328,6 +308,7 @@ watch(
   background: #fff;
   border: 1px dashed color-mix(in srgb, var(--sg-accent) 32%, transparent);
 }
+
 .sg-qr-box {
   width: 150px;
   height: 150px;
@@ -335,12 +316,14 @@ watch(
   align-items: center;
   justify-content: center;
 }
+
 .sg-qr-img {
   width: 150px;
   height: 150px;
   display: block;
   border-radius: 8px;
 }
+
 .sg-qr-fallback {
   width: 100%;
   height: 100%;
@@ -351,6 +334,7 @@ watch(
   color: var(--sg-accent);
   background: color-mix(in srgb, var(--sg-accent) 8%, #fff);
 }
+
 .sg-qr-hint {
   margin: 0;
   font-size: 11.5px;
@@ -358,6 +342,7 @@ watch(
   text-align: center;
   color: var(--muted, #6b7280);
 }
+
 .sg-qr-copy {
   display: inline-flex;
   align-items: center;
@@ -370,6 +355,7 @@ watch(
   background: transparent;
   border: 1px solid color-mix(in srgb, var(--sg-accent) 30%, transparent);
 }
+
 .sg-qr-copy:hover {
   background: color-mix(in srgb, var(--sg-accent) 8%, transparent);
 }
@@ -379,9 +365,9 @@ watch(
     width: 38px;
     height: 38px;
   }
+
   .sg-label {
     font-size: 9.5px;
   }
 }
 </style>
-

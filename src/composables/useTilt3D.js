@@ -1,26 +1,5 @@
-// src/composables/useTilt3D.js
-// ----------------------------------------------------------------------------
-// v-tilt — a pointer-driven 3D tilt directive for Vue 3.
-//
-// On pointermove it writes CSS custom properties onto the element:
-//   --rx  degrees to rotate around X
-//   --ry  degrees to rotate around Y
-//   --px, --py normalized pointer position (-0.5 .. 0.5)
-//   --tx, --ty small translation so the card follows the cursor slightly
-//   --mx, --my glare highlight center (percentages)
-// and toggles an `.is-tilt` class while the pointer is over the element.
-//
-// Your CSS is responsible for turning those variables into a transform, e.g.
-//   .card {
-//     transform: perspective(900px) rotateX(var(--rx, 0deg))
-//                rotateY(var(--ry, 0deg)) translate3d(var(--tx, 0px), var(--ty, 0px), 0);
-//     transition: transform 0.4s cubic-bezier(0.2, 0.7, 0.2, 1);
-//   }
-//   .card.is-tilt { transition-duration: 80ms; }
-//
-// Usage in <script setup>:  import { vTilt } from "@/composables/useTilt3D";
-// Then in the template:     <div v-tilt="{ max: 12, translate: 14 }">
-// ----------------------------------------------------------------------------
+// Pointer-driven 3D tilt directive for Vue 3 (v-tilt)
+// Sets CSS custom properties (--rx, --ry, --px, --py, --tx, --ty, --mx, --my) on pointermove
 
 const cleanups = new WeakMap();
 
@@ -81,7 +60,7 @@ function applyTilt(el, opts) {
 export const vTilt = {
   mounted: (el, binding) => applyTilt(el, binding.value || {}),
   updated: (el, binding) => {
-    // Re-apply when the directive binding value changes.
+    // Re-apply when the directive binding value changes
     const cleanup = cleanups.get(el);
     if (cleanup) {
       cleanup();

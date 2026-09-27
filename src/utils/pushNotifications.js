@@ -1,13 +1,10 @@
-// frontend/src/utils/pushNotifications.js
-// Web Push (VAPID) helper — registers the service worker, asks for the
-// browser notification permission, subscribes to push messages and syncs
-// the subscription with the backend (/api/push/*).
+// Web Push (VAPID) helper — registers service worker, manages notifications, and syncs push subscriptions
 import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 const SW_PATH = "/sw.js";
 
-/** Feature detection — push needs SW + PushManager + Notification. */
+// Feature detection: requires Service Worker, PushManager, and Notification
 export function pushSupported() {
   return (
     typeof window !== "undefined" &&
@@ -17,7 +14,7 @@ export function pushSupported() {
   );
 }
 
-/** Standard VAPID base64 → Uint8Array conversion for subscribe(). */
+// Convert VAPID base64 string to Uint8Array for PushManager subscribe()
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
   const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
@@ -43,11 +40,7 @@ async function getExistingSubscription() {
   return reg ? reg.pushManager.getSubscription() : null;
 }
 
-/**
- * Current state of push on this device/browser:
- *   enabled | disabled | blocked | unsupported | not_configured
- * `not_configured` = the backend has no VAPID keys set.
- */
+// Current push status: enabled | disabled | blocked | unsupported | not_configured
 export async function getPushState(token) {
   if (!pushSupported()) return { state: "unsupported" };
   if (Notification.permission === "denied") return { state: "blocked" };
@@ -70,18 +63,11 @@ export async function getPushState(token) {
   return { state: "disabled" };
 }
 
-/**
- * Enable push on this device:
- * 1. fetch VAPID public key from the backend
- * 2. request the browser notification permission
- * 3. register /sw.js and create a push subscription
- * 4. POST the subscription to the backend
- * Returns { ok: true } or { ok: false, reason }.
- */
+// Request permission, subscribe with VAPID key, and sync to backend
 export async function enablePush(token) {
   if (!pushSupported()) return { ok: false, reason: "unsupported" };
 
-  // 1. VAPID public key
+  // 1. Fetch VAPID public key
   let key = null;
   try {
     const res = await axios.get(`${API_BASE}/api/push/public-key`, {
@@ -93,7 +79,7 @@ export async function enablePush(token) {
   }
   if (!key) return { ok: false, reason: "not_configured" };
 
-  // 2. Notification permission (must come from a user gesture)
+  // 2. Request notification permission
   let permission = Notification.permission;
   if (permission === "default") {
     try {
@@ -104,7 +90,7 @@ export async function enablePush(token) {
   }
   if (permission !== "granted") return { ok: false, reason: "denied" };
 
-  // 3. Service worker + push subscription (reuse the existing one if any)
+  // 3. Register service worker and subscribe
   let subscription;
   try {
     const reg = await navigator.serviceWorker.register(SW_PATH);
@@ -120,7 +106,7 @@ export async function enablePush(token) {
     return { ok: false, reason: "subscribe_failed" };
   }
 
-  // 4. Sync the subscription to the backend
+  // 4. Send subscription to backend
   try {
     await axios.post(
       `${API_BASE}/api/push/subscribe`,
@@ -135,16 +121,18 @@ export async function enablePush(token) {
   return { ok: true };
 }
 
-/** Disable push on this device (browser unsubscribe + backend removal). */
+// Unsubscribe locally and remove subscription from backend
 export async function disablePush(token) {
   try {
     const sub = await getExistingSubscription();
     if (sub) {
-      await axios.post(
-        `${API_BASE}/api/push/unsubscribe`,
-        { endpoint: sub.endpoint },
-        { headers: authHeaders(token) },
-      ).catch(() => {/* best effort */});
+      await axios
+        .post(
+          `${API_BASE}/api/push/unsubscribe`,
+          { endpoint: sub.endpoint },
+          { headers: authHeaders(token) },
+        )
+        .catch(() => {});
       await sub.unsubscribe();
     }
     return { ok: true };

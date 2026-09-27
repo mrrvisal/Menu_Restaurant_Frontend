@@ -2,16 +2,8 @@
   <div class="page">
     <div class="card pop-in">
       <div class="icon">
-        <svg
-          width="32"
-          height="32"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
@@ -21,33 +13,16 @@
       <form @submit.prevent="submit">
         <div v-if="errorMsg" class="error-msg">{{ errorMsg }}</div>
         <div v-else-if="auth.sessionExpired" class="expired-banner">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
           <span>{{ i18n.t.session_expired }}</span>
         </div>
         <div v-if="superAdminHint" class="super-admin-hint">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="hint-shield"
-          >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" class="hint-shield">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
             <path d="M9 12l2 2 4-4" />
           </svg>
@@ -60,14 +35,7 @@
           </router-link>
         </div>
         <div v-if="verifyRequired" class="verify-banner">
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
             <polyline points="22 4 12 14.01 9 11.01" />
           </svg>
@@ -77,32 +45,14 @@
           </div>
           <div class="verify-banner-actions">
             <button class="btn-verify" @click="openMailApp">
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <rect x="2" y="4" width="20" height="16" rx="2" />
                 <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
               </svg>
               {{ i18n.t.open_email }}
             </button>
-            <button
-              class="btn-verify"
-              :disabled="resending"
-              @click="resendVerification"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-              >
+            <button class="btn-verify" :disabled="resending" @click="resendVerification">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <polyline points="1 4 1 10 7 10" />
                 <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
               </svg>
@@ -113,14 +63,8 @@
 
         <div class="form-group">
           <label>{{ i18n.t.email }}</label>
-          <input
-            v-model="form.email"
-            type="email"
-            class="input"
-            placeholder="your@email.com"
-            autocomplete="username"
-            required
-          />
+          <input v-model="form.email" type="email" class="input" placeholder="your@email.com" autocomplete="username"
+            required />
         </div>
 
         <div class="form-group">
@@ -128,50 +72,20 @@
             <label>{{ i18n.t.password }}</label>
             <router-link to="/forgot-password">{{
               i18n.t.forgot_password
-            }}</router-link>
+              }}</router-link>
           </div>
           <div class="password-wrap">
-            <input
-              v-model="form.password"
-              :type="showPassword ? 'text' : 'password'"
-              class="input"
-              :placeholder="i18n.t.password"
-              autocomplete="current-password"
-              required
-            />
-            <button
-              type="button"
-              class="toggle-password"
-              @click="showPassword = !showPassword"
-              tabindex="-1"
-            >
-              <svg
-                v-if="showPassword"
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
+            <input v-model="form.password" :type="showPassword ? 'text' : 'password'" class="input"
+              :placeholder="i18n.t.password" autocomplete="current-password" required />
+            <button type="button" class="toggle-password" @click="showPassword = !showPassword" tabindex="-1">
+              <svg v-if="showPassword" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <path
-                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
-                />
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24" />
                 <line x1="1" y1="1" x2="23" y2="23" />
               </svg>
-              <svg
-                v-else
-                width="18"
-                height="18"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
+              <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
                 <circle cx="12" cy="12" r="3" />
               </svg>
@@ -305,6 +219,7 @@ async function resendVerification() {
   justify-content: center;
   padding: 20px;
 }
+
 .card {
   background: white;
   border-radius: 22px;
@@ -314,11 +229,13 @@ async function resendVerification() {
   text-align: center;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
 }
+
 @media (max-width: 480px) {
   .card {
     padding: 28px 20px;
   }
 }
+
 .icon {
   width: 68px;
   height: 68px;
@@ -331,9 +248,11 @@ async function resendVerification() {
   color: white;
   box-shadow: 0 8px 20px rgba(15, 118, 110, 0.28);
 }
+
 .icon svg {
   display: block;
 }
+
 .title {
   font-family: "Hanuman", serif;
   font-size: 20px;
@@ -341,15 +260,18 @@ async function resendVerification() {
   color: #14532d;
   margin-bottom: 20px;
 }
+
 @media (max-width: 480px) {
   .title {
     font-size: 17px;
   }
 }
+
 .form-group {
   margin-bottom: 14px;
   text-align: left;
 }
+
 .form-group label {
   font-size: 12px;
   font-weight: 600;
@@ -357,6 +279,7 @@ async function resendVerification() {
   margin-bottom: 5px;
   display: block;
 }
+
 .input {
   width: 100%;
   padding: 10px 12px;
@@ -367,15 +290,19 @@ async function resendVerification() {
   outline: none;
   box-sizing: border-box;
 }
+
 .input:focus {
   border-color: #4ade80;
 }
+
 .password-wrap {
   position: relative;
 }
+
 .password-wrap .input {
   padding-right: 40px;
 }
+
 .toggle-password {
   position: absolute;
   right: 10px;
@@ -389,9 +316,11 @@ async function resendVerification() {
   display: flex;
   align-items: center;
 }
+
 .toggle-password:hover {
   color: #374151;
 }
+
 .btn {
   width: 100%;
   padding: 13px;
@@ -404,16 +333,19 @@ async function resendVerification() {
   cursor: pointer;
   margin-top: 8px;
 }
+
 @media (max-width: 480px) {
   .btn {
     padding: 11px;
     font-size: 14px;
   }
 }
+
 .btn:disabled {
   background: #9e9e9e;
   cursor: not-allowed;
 }
+
 .error-msg {
   background: #fbe9e7;
   border: 1.5px solid #ffccbc;
@@ -423,6 +355,7 @@ async function resendVerification() {
   color: #c62828;
   margin-bottom: 12px;
 }
+
 .super-admin-hint {
   display: flex;
   align-items: flex-start;
@@ -434,26 +367,31 @@ async function resendVerification() {
   margin-bottom: 12px;
   text-align: left;
 }
+
 .super-admin-hint .hint-shield {
   flex-shrink: 0;
   color: #b45309;
   margin-top: 2px;
 }
+
 .super-admin-hint .hint-text {
   flex: 1;
   min-width: 0;
 }
+
 .super-admin-hint .hint-text strong {
   display: block;
   font-size: 13px;
   color: #92400e;
 }
+
 .super-admin-hint .hint-text p {
   font-size: 12px;
   color: #92400e;
   margin: 4px 0 0;
   line-height: 1.5;
 }
+
 .super-admin-hint .hint-link {
   flex-shrink: 0;
   display: inline-flex;
@@ -469,9 +407,11 @@ async function resendVerification() {
   text-decoration: none;
   white-space: nowrap;
 }
+
 .super-admin-hint .hint-link:hover {
   background: #92400e;
 }
+
 .or-divider {
   display: flex;
   align-items: center;
@@ -480,6 +420,7 @@ async function resendVerification() {
   color: #9ca3af;
   font-size: 12px;
 }
+
 .or-divider::before,
 .or-divider::after {
   content: "";
@@ -487,6 +428,7 @@ async function resendVerification() {
   height: 1px;
   background: #e5e7eb;
 }
+
 .links {
   margin-top: 12px;
   font-size: 13px;
@@ -501,17 +443,23 @@ async function resendVerification() {
   font-size: 13px;
   color: #6b7280;
 }
-.links a, .links-register a {
+
+.links a,
+.links-register a {
   color: #16a34a;
   font-weight: 600;
   text-decoration: none;
 }
-.links a:hover, .links-register a:hover {
+
+.links a:hover,
+.links-register a:hover {
   text-decoration: underline;
 }
+
 .sa-entry {
   margin-top: 6px;
 }
+
 .sa-entry-link {
   display: inline-flex;
   align-items: center;
@@ -519,9 +467,11 @@ async function resendVerification() {
   color: #b45309 !important;
   font-size: 12px;
 }
+
 .sa-entry-link svg {
   flex-shrink: 0;
 }
+
 .lang-toggle {
   margin-top: 14px;
   background: none;
@@ -533,19 +483,23 @@ async function resendVerification() {
   color: #16a34a;
   cursor: pointer;
 }
+
 .pop-in {
   animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
+
 @keyframes popIn {
   from {
     transform: scale(0.85);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
   }
 }
+
 .verify-banner {
   background: #fefce8;
   border: 1.5px solid #fde68a;
@@ -557,27 +511,32 @@ async function resendVerification() {
   flex-direction: column;
   gap: 8px;
 }
+
 .verify-banner svg {
   flex-shrink: 0;
   color: #92400e;
 }
+
 .verify-banner-text strong {
   font-size: 13px;
   color: #92400e;
   display: block;
 }
+
 .verify-banner-text p {
   font-size: 12px;
   color: #92400e;
   margin: 4px 0 0;
   line-height: 1.5;
 }
+
 .verify-banner-actions {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   margin-top: 4px;
 }
+
 .btn-verify {
   display: inline-flex;
   align-items: center;
@@ -594,14 +553,17 @@ async function resendVerification() {
   color: #92400e;
   text-decoration: none;
 }
+
 .btn-verify:hover {
   background: #fef3c7;
   transform: translateY(-1px);
 }
+
 .btn-verify:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 .expired-banner {
   background: #eff6ff;
   border: 1.5px solid #bfdbfe;
@@ -615,6 +577,7 @@ async function resendVerification() {
   gap: 8px;
   text-align: left;
 }
+
 .expired-banner svg {
   flex-shrink: 0;
 }

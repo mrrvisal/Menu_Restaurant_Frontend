@@ -1,16 +1,4 @@
-<!-- ═══════════════════════════════════════════════════════════
-   KdsView — Kitchen Display System (KDS)
-   A chrome-free wall board for the kitchen screen:
-   · 4 status columns: New → Preparing → Ready → Done
-   · Live updates over the same SSE stream as the dashboard
-   · New-day reset: only TODAY's orders are shown; at midnight the
-     board clears yesterday's history automatically (display only —
-     the database / reports are never touched)
-   · Dark / light mode toggle (remembered per account)
-   · One-tap status transitions + optional "Done" column
-   · Chime + tab-title flash on every new order
-   Route: /kds (requiresAuth) — link lives in the admin sidebar.
-   ═══════════════════════════════════════════════════════════ -->
+<!-- Kitchen Display System (KDS) board for kitchen screens -->
 <template>
   <div class="kds" :class="{ light: lightMode }">
     <!-- ─── LOADING STATE ─── -->
@@ -34,41 +22,24 @@
         <AppIcon name="chef" :size="22" />
         <strong class="kds-name">{{
           auth.restaurant?.name || i18n.t.kds_title
-        }}</strong>
+          }}</strong>
         <span class="kds-live" :class="{ off: !connected }">
           <i></i>{{ connected ? i18n.t.kds_live : i18n.t.kds_offline }}
         </span>
       </div>
       <div class="kds-acts">
-        <button
-          class="kds-btn kds-icon-btn"
-          :title="lightMode ? 'Dark mode' : 'Light mode'"
-          :aria-label="lightMode ? 'Dark mode' : 'Light mode'"
-          @click="toggleMode"
-        >
+        <button class="kds-btn kds-icon-btn" :title="lightMode ? 'Dark mode' : 'Light mode'"
+          :aria-label="lightMode ? 'Dark mode' : 'Light mode'" @click="toggleMode">
           <AppIcon :name="lightMode ? 'moon' : 'sun'" :size="16" />
         </button>
         <!-- KH / EN switcher — the kitchen board speaks both languages -->
-        <button
-          class="kds-btn kds-lang"
-          :title="i18n.locale === 'km' ? 'English' : 'ភាសាខ្មែរ'"
-          @click="i18n.toggleLocale"
-        >
+        <button class="kds-btn kds-lang" :title="i18n.locale === 'km' ? 'English' : 'ភាសាខ្មែរ'"
+          @click="i18n.toggleLocale">
           {{ i18n.locale === "km" ? "EN" : "ខ្មែរ" }}
         </button>
-        <AppSelect
-          v-if="auth.restaurants.length > 1"
-          class="kds-rest"
-          size="md"
-          tone="plain"
-          variant="teal"
-          radius="10px"
-          :model-value="auth.restaurantId"
-          :options="auth.restaurants"
-          option-value="id"
-          option-label="name"
-          @update:model-value="onSwitchRestaurant"
-        />
+        <AppSelect v-if="auth.restaurants.length > 1" class="kds-rest" size="md" tone="plain" variant="teal"
+          radius="10px" :model-value="auth.restaurantId" :options="auth.restaurants" option-value="id"
+          option-label="name" @update:model-value="onSwitchRestaurant" />
         <button class="kds-btn" @click="showDone = !showDone">
           {{ showDone ? i18n.t.kds_hide_done : i18n.t.kds_show_done }}
         </button>
@@ -92,12 +63,7 @@
     </div>
     <!-- ─── BOARD ─── -->
     <div v-else class="kds-board">
-      <section
-        v-for="col in columns"
-        :key="col.key"
-        class="kds-col"
-        :class="'col-' + col.key"
-      >
+      <section v-for="col in columns" :key="col.key" class="kds-col" :class="'col-' + col.key">
         <header class="col-head">
           <span class="col-title">{{ col.label }}</span>
           <span class="col-count">{{ visibleOrders(col.key).length }}</span>
@@ -105,12 +71,7 @@
 
         <div class="col-body">
           <TransitionGroup name="card" tag="div" class="col-cards">
-            <article
-              v-for="o in visibleOrders(col.key)"
-              :key="o.id"
-              class="kds-card"
-              :class="'st-' + o.status"
-            >
+            <article v-for="o in visibleOrders(col.key)" :key="o.id" class="kds-card" :class="'st-' + o.status">
               <div class="card-head">
                 <span class="card-table">
                   {{ i18n.t.table }} {{ o.table_no }}
@@ -135,14 +96,8 @@
                   {{ currencyStore.fmt(o.total) }}
                 </span>
                 <div v-if="actionsFor(o).length" class="card-acts">
-                  <button
-                    v-for="a in actionsFor(o)"
-                    :key="a.to"
-                    class="act"
-                    :class="'act-' + a.to"
-                    :disabled="busyId === o.id"
-                    @click="setStatus(o, a.to)"
-                  >
+                  <button v-for="a in actionsFor(o)" :key="a.to" class="act" :class="'act-' + a.to"
+                    :disabled="busyId === o.id" @click="setStatus(o, a.to)">
                     <AppIcon :name="a.icon" :size="13" />
                     {{ a.label }}
                   </button>
@@ -299,7 +254,7 @@ async function setStatus(order, status) {
     // Optimistic update; the SSE order-status event confirms it too
     const idx = orders.value.findIndex((o) => o.id === order.id);
     if (idx !== -1) orders.value[idx].status = status;
-    
+
     // Refresh the order from server to get latest data (total, etc.)
     // This ensures currency formatting is correct after status change
     try {
@@ -366,7 +321,7 @@ async function connect() {
       const idx = orders.value.findIndex((o) => o.id === data.orderId);
       if (idx !== -1 && data.status) {
         orders.value[idx].status = data.status;
-        
+
         // Refresh full order data from server to ensure money/total is correct
         try {
           const res = await axios.get(`${API_BASE}/api/orders/${data.orderId}`, {
@@ -467,8 +422,8 @@ function onFullscreenChange() {
   isFullscreen.value = !!document.fullscreenElement;
 }
 function toggleFullscreen() {
-  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
-  else document.documentElement.requestFullscreen().catch(() => {});
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => { });
+  else document.documentElement.requestFullscreen().catch(() => { });
 }
 
 // ─── THEME ─────────────────────────────────────────────────
@@ -550,15 +505,15 @@ onMounted(async () => {
   } catch (err) {
     console.error("KDS: Failed to fetch auth data:", err);
   }
-  
+
   // Initialize currency and theme from restaurant data (now available)
   currencyStore.setFrom(auth.restaurant);
   syncTheme();
-  
+
   // Show orders and connect to live stream
   await fetchOrders();
   connect();
-  
+
   // Mark as ready once all initialization is complete
   ready.value = true;
   loading.value = false;
@@ -602,6 +557,7 @@ onUnmounted(() => {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, sans-serif;
 }
+
 .kds.light {
   --bg: #eef2f7;
   --bg-soft: #ffffff;
@@ -626,6 +582,7 @@ onUnmounted(() => {
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
 }
+
 .kds-brand {
   display: flex;
   align-items: center;
@@ -633,6 +590,7 @@ onUnmounted(() => {
   min-width: 0;
   color: var(--primary-light, #5eead4);
 }
+
 .kds-name {
   font-size: 16px;
   color: var(--text-strong);
@@ -640,6 +598,7 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .kds-live {
   display: inline-flex;
   align-items: center;
@@ -653,6 +612,7 @@ onUnmounted(() => {
   background: rgba(34, 197, 94, 0.15);
   color: #4ade80;
 }
+
 .kds-live i {
   width: 8px;
   height: 8px;
@@ -660,28 +620,35 @@ onUnmounted(() => {
   background: #4ade80;
   animation: kds-blink 1.5s ease-in-out infinite;
 }
+
 .kds-live.off {
   background: rgba(239, 68, 68, 0.15);
   color: #f87171;
 }
+
 .kds-live.off i {
   background: #f87171;
 }
+
 @keyframes kds-blink {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.3;
   }
 }
+
 .kds-acts {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
+
 /* Restaurant switcher (AppSelect) — dark-board tokens.
    The closed control reads --surface/--border/--text from here; the
    teleported option menu keeps AppSelect's white popup (readable on
@@ -693,6 +660,7 @@ onUnmounted(() => {
   max-width: 200px;
   max-width: 60vw;
 }
+
 .kds-btn {
   display: inline-flex;
   align-items: center;
@@ -711,19 +679,23 @@ onUnmounted(() => {
   transition: all 0.15s ease;
   white-space: nowrap;
 }
+
 .kds-btn:hover {
   border-color: var(--primary-light, #5eead4);
   color: var(--primary-light, #5eead4);
 }
+
 .kds-back {
   background: var(--primary, #0f766e);
   border-color: var(--primary, #0f766e);
   color: var(--on-primary, #fff);
 }
+
 .kds-back:hover {
   background: var(--primary-dark, #0d5e57);
   color: var(--on-primary, #fff);
 }
+
 /* ── Top-bar controls: uniform size ──────────────────────────
    Fixed height + centered flex so every control (sun/moon,
    KH/EN, restaurant select, Hide done, Fullscreen, Back) is
@@ -736,10 +708,12 @@ onUnmounted(() => {
   padding: 0 14px;
   border-radius: 10px;
 }
+
 /* Icon-only button (dark/light toggle) — narrower, same height */
 .kds-acts .kds-icon-btn {
   padding: 0 12px;
 }
+
 /* Language pill — KH/EN */
 .kds-acts .kds-lang {
   min-width: 54px;
@@ -747,6 +721,7 @@ onUnmounted(() => {
   font-weight: 800;
   letter-spacing: 0.3px;
 }
+
 /* Restaurant select — same 38px height as the other top-bar controls */
 .kds-acts .kds-rest :deep(.as-control) {
   height: 38px;
@@ -758,6 +733,7 @@ onUnmounted(() => {
   margin: 0;
   font-size: 15px;
 }
+
 .kds-blank {
   flex: 1;
   display: flex;
@@ -767,6 +743,7 @@ onUnmounted(() => {
   gap: 14px;
   color: var(--text-dim);
 }
+
 .kds-blank p {
   margin: 0;
   font-size: 15px;
@@ -781,6 +758,7 @@ onUnmounted(() => {
   padding: 12px;
   min-height: 0;
 }
+
 .kds-col {
   display: flex;
   flex-direction: column;
@@ -790,6 +768,7 @@ onUnmounted(() => {
   overflow: hidden;
   min-height: 0;
 }
+
 .col-head {
   display: flex;
   align-items: center;
@@ -801,26 +780,31 @@ onUnmounted(() => {
   text-transform: uppercase;
   border-bottom: 3px solid transparent;
 }
+
 .col-new .col-head {
   color: #fbbf24;
   border-bottom-color: #f59e0b;
   background: rgba(245, 158, 11, 0.08);
 }
+
 .col-preparing .col-head {
   color: #60a5fa;
   border-bottom-color: #3b82f6;
   background: rgba(59, 130, 246, 0.08);
 }
+
 .col-ready .col-head {
   color: #4ade80;
   border-bottom-color: #22c55e;
   background: rgba(34, 197, 94, 0.08);
 }
+
 .col-done .col-head {
   color: #94a3b8;
   border-bottom-color: #64748b;
   background: rgba(100, 116, 139, 0.08);
 }
+
 .col-count {
   min-width: 26px;
   text-align: center;
@@ -829,17 +813,20 @@ onUnmounted(() => {
   background: rgba(255, 255, 255, 0.1);
   font-size: 12px;
 }
+
 .col-body {
   flex: 1;
   overflow-y: auto;
   padding: 10px;
   min-height: 0;
 }
+
 .col-cards {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+
 .col-empty {
   text-align: center;
   padding: 26px 8px;
@@ -860,6 +847,7 @@ onUnmounted(() => {
   color: var(--text-dim);
   font-size: 14px;
 }
+
 .spinner {
   width: 32px;
   height: 32px;
@@ -868,8 +856,11 @@ onUnmounted(() => {
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 /* ─── Cards ─── */
@@ -880,22 +871,28 @@ onUnmounted(() => {
   padding: 10px 12px;
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
+
 .kds-card.st-pending {
   border-left: 4px solid #f59e0b;
 }
+
 .kds-card.st-preparing {
   border-left: 4px solid #3b82f6;
 }
+
 .kds-card.st-ready {
   border-left: 4px solid #22c55e;
 }
+
 .kds-card.st-served,
 .kds-card.st-cancelled {
   opacity: 0.55;
 }
+
 .kds-card.st-cancelled .card-table {
   text-decoration: line-through;
 }
+
 .card-head {
   display: flex;
   align-items: center;
@@ -903,11 +900,13 @@ onUnmounted(() => {
   gap: 8px;
   margin-bottom: 8px;
 }
+
 .card-table {
   font-size: 17px;
   font-weight: 800;
   color: var(--text-strong);
 }
+
 .card-items {
   list-style: none;
   margin: 0;
@@ -916,6 +915,7 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 3px;
 }
+
 .card-items li {
   display: flex;
   align-items: baseline;
@@ -923,12 +923,14 @@ onUnmounted(() => {
   font-size: 14px;
   color: var(--text);
 }
+
 .card-items .qty {
   color: var(--primary-light, #5eead4);
   min-width: 30px;
   text-align: right;
   font-size: 15px;
 }
+
 .card-note {
   margin-top: 7px;
   font-size: 12px;
@@ -941,6 +943,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
 }
+
 .card-foot {
   margin-top: 9px;
   padding-top: 9px;
@@ -951,16 +954,19 @@ onUnmounted(() => {
   gap: 8px;
   flex-wrap: wrap;
 }
+
 .card-total {
   font-size: 12px;
   font-weight: 700;
   color: var(--text-dim);
 }
+
 .card-acts {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
+
 .act {
   display: inline-flex;
   align-items: center;
@@ -976,23 +982,29 @@ onUnmounted(() => {
   transition: all 0.15s ease;
   color: #fff;
 }
+
 .act:hover {
   transform: translateY(-1px);
   filter: brightness(1.12);
 }
+
 .act:disabled {
   opacity: 0.5;
   cursor: wait;
 }
+
 .act-preparing {
   background: #3b82f6;
 }
+
 .act-ready {
   background: #22c55e;
 }
+
 .act-served {
   background: #16a34a;
 }
+
 .act-cancelled {
   background: transparent;
   border: 1px solid #ef4444;
@@ -1003,10 +1015,12 @@ onUnmounted(() => {
 .card-enter-active {
   transition: all 0.25s ease;
 }
+
 .card-enter-from {
   opacity: 0;
   transform: translateY(-8px) scale(0.98);
 }
+
 .card-leave-active {
   transition: all 0.15s ease;
   opacity: 0;
@@ -1017,30 +1031,39 @@ onUnmounted(() => {
 .kds.light .kds-brand {
   color: var(--primary, #0f766e);
 }
+
 .kds.light .kds-live {
   color: #16a34a;
 }
+
 .kds.light .kds-live.off {
   color: #dc2626;
 }
+
 .kds.light .col-new .col-head {
   color: #b45309;
 }
+
 .kds.light .col-preparing .col-head {
   color: #1d4ed8;
 }
+
 .kds.light .col-ready .col-head {
   color: #15803d;
 }
+
 .kds.light .col-done .col-head {
   color: #475569;
 }
+
 .kds.light .card-items .qty {
   color: var(--primary, #0f766e);
 }
+
 .kds.light .card-note {
   color: #92400e;
 }
+
 .kds.light .act-cancelled {
   color: #dc2626;
 }
@@ -1051,10 +1074,12 @@ onUnmounted(() => {
     grid-template-columns: repeat(2, 1fr);
   }
 }
+
 @media (max-width: 640px) {
   .kds-board {
     grid-template-columns: 1fr;
   }
+
   .card-table {
     font-size: 16px;
   }
@@ -1068,4 +1093,3 @@ onUnmounted(() => {
   }
 }
 </style>
-

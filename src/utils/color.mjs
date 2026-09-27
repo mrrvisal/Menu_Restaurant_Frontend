@@ -1,6 +1,4 @@
-// frontend/src/utils/color.mjs
-// Pure color helpers used by the dynamic theme (stores/theme.js).
-// .mjs so they can also be unit-tested directly with Node.
+// Color transformation and contrast utilities for dynamic theming
 
 export function hexToRgb(hex) {
   const h = normalizeHex(hex);
@@ -36,7 +34,7 @@ export function isValidHex(hex) {
   return typeof hex === "string" && /^#[0-9a-f]{6}$/.test(hex);
 }
 
-// Blend two colors. t = 0 → hexA, t = 1 → hexB
+// Blend two hex colors: t = 0 → hexA, t = 1 → hexB
 export function mix(hexA, hexB, t = 0.5) {
   const a = hexToRgb(hexA);
   const b = hexToRgb(hexB);
@@ -59,7 +57,7 @@ export function darken(hex, t) {
   return mix(hex, "#000000", t);
 }
 
-// WCAG-relative luminance of a hex color (0 = black … 1 = white)
+// WCAG relative luminance (0 = black ... 1 = white)
 export function relativeLuminance(hex) {
   const { r, g, b } = hexToRgb(hex);
   const toLin = (v) => {
@@ -69,20 +67,18 @@ export function relativeLuminance(hex) {
   return 0.2126 * toLin(r) + 0.7152 * toLin(g) + 0.0722 * toLin(b);
 }
 
-// True when a color is light enough that white text on it would be unreadable
+// True when white text on this background would be unreadable
 export function isLightColor(hex) {
   return relativeLuminance(hex) > 0.6;
 }
 
-// Foreground color to place ON a primary-colored background.
-// Dark primaries → white text; light/white primaries → dark text.
+// Contrasting text color (white for dark backgrounds, dark for light backgrounds)
 export function onColor(hex) {
   if (!isValidHex(normalizeHex(hex))) return "#ffffff";
   return isLightColor(hex) ? darken(hex, 0.8) : "#ffffff";
 }
 
-// An accent/border/icon variant that is always visible on white surfaces.
-// Light primaries get darkened just enough to read; dark primaries pass through.
+// Accessible accent/border variant visible on white surfaces
 export function strongColor(hex) {
   if (!isValidHex(normalizeHex(hex))) return hex;
   return isLightColor(hex) ? darken(hex, 0.55) : hex;

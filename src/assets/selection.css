@@ -46,10 +46,12 @@
   color: var(--sel-color);
   text-shadow: var(--sel-text-shadow);
 }
+
 ::-moz-selection {
   background: var(--sel-bg);
   color: var(--sel-color);
 }
+
 /* Safari keeps a blue glow behind ::selection — neutralise it */
 ::-webkit-selection {
   background: var(--sel-bg);
@@ -68,18 +70,22 @@ textarea {
   --sel-bg: #166534;
   --sel-color: #d1fae5;
 }
+
 .sel-light {
   --sel-bg: #d1fae5;
   --sel-color: #14532d;
 }
+
 .sel-teal {
   --sel-bg: #0f766e;
   --sel-color: #ccfbf1;
 }
+
 .sel-amber {
   --sel-bg: #f59e0b;
   --sel-color: #431407;
 }
+
 .sel-none {
   --sel-bg: transparent;
   --sel-color: #0f172a;

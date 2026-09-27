@@ -5,12 +5,7 @@
 </template>
 
 <script setup>
-// ----------------------------------------------------------------------------
-// Hero3D — a full-viewport Three.js background for the landing page.
-// Floating theme: a rotating QR-code cube wrapped in orbit rings, glassy
-// geometric shapes, food-emoji sprites and a soft green particle field.
-// Fully cleaned up on unmount and paused when the tab is hidden.
-// ----------------------------------------------------------------------------
+// Interactive Three.js background for landing page with animated QR cube, orbit rings, and particles
 import { ref, onMounted, onBeforeUnmount } from "vue";
 import * as THREE from "three";
 
@@ -34,7 +29,7 @@ const mouse = { x: 0, y: 0 };
 const PALETTE = [0x22c55e, 0x16a34a, 0x34d399, 0x059669, 0x10b981, 0xf59e0b];
 const FOOD_EMOJIS = ["🍜", "🍛", "🍗", "🐟", "🥘", "🦐", "🍲", "🥗"];
 
-// ------------------------- texture helpers -------------------------------
+// Texture helpers
 
 function makeQrTexture() {
   const size = 512;
@@ -362,7 +357,6 @@ onBeforeUnmount(() => {
   });
 
   renderer?.dispose();
-  renderer?.forceContextLoss?.();
   renderer = null;
   scene = null;
   camera = null;
@@ -379,6 +373,7 @@ onBeforeUnmount(() => {
   z-index: 0;
   pointer-events: none;
 }
+
 .hero3d canvas {
   display: block;
   width: 100%;

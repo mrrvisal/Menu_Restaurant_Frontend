@@ -8,17 +8,7 @@
 </template>
 
 <script setup>
-// GoogleAuthCallback.vue — the OAuth redirect target (/auth/google/callback).
-//
-// It never renders real UI for long. Two cases:
-//  1. Opened as a POPUP by GoogleSignInButton → postMessage the ID token to
-//     the opener window (same origin) and close this window.
-//  2. Full-page redirect (popup was blocked) → park the token in
-//     sessionStorage and go back to `state`, where the login/register view
-//     picks it up on mount.
-//
-// The token itself is verified by the backend (POST /api/auth/google) —
-// never trusted on the client.
+// OAuth redirect target (/auth/google/callback) for popups and redirects
 import { ref, onMounted } from "vue";
 import {
   parkPendingGoogleCredential,
@@ -96,6 +86,7 @@ onMounted(() => {
   background: #f0fdf4;
   font-family: system-ui, -apple-system, sans-serif;
 }
+
 .box {
   display: flex;
   flex-direction: column;
@@ -105,6 +96,7 @@ onMounted(() => {
   text-align: center;
   padding: 20px;
 }
+
 .spinner {
   width: 34px;
   height: 34px;
@@ -113,10 +105,12 @@ onMounted(() => {
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
+
 p {
   margin: 0;
   font-size: 15px;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);

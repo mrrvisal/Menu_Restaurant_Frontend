@@ -61,11 +61,13 @@ button {
   width: 6px;
   height: 6px;
 }
+
 ::-webkit-scrollbar-track {
   background: color-mix(in srgb, var(--primary) 20%, transparent);
   border-radius: 10px;
   opacity: 0.2;
 }
+
 ::-webkit-scrollbar-thumb {
   background: color-mix(in srgb, var(--primary) 80%, transparent);
   border-radius: 10px;
@@ -76,6 +78,7 @@ button {
 .fade-leave-active {
   transition: opacity 0.2s ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
@@ -87,11 +90,13 @@ button {
     transform: scale(0.9);
     opacity: 0;
   }
+
   to {
     transform: scale(1);
     opacity: 1;
   }
 }
+
 .pop-in {
   animation: popIn 0.2s ease;
 }

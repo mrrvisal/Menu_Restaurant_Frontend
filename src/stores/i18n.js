@@ -1,4 +1,3 @@
-// frontend/src/stores/i18n.js
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 
@@ -180,7 +179,8 @@ const translations = {
     push_blocked: "បានបិទដោយកម្មវិធីរុករក",
     push_unsupported: "មិនគាំទ្រនៅលើកម្មវិធីរុករកនេះ",
     push_not_configured: "មិនទាន់កំណត់នៅខាងបណ្តាញម៉ាស៊ីនបម្រើ",
-    push_denied: "បដិសេធសិទ្ធិ — សូមអនុញ្ញាតការជូនដំណឹងនៅក្នុងការកំណត់កម្មវិធីរុករក",
+    push_denied:
+      "បដិសេធសិទ្ធិ — សូមអនុញ្ញាតការជូនដំណឹងនៅក្នុងការកំណត់កម្មវិធីរុករក",
     push_enable_failed: "មិនអាចបើកការជូនដំណឹងបានទេ",
     // Duplicate restaurant guard
     dup_restaurant: "អ្នកមានភោជនីយដ្ឋានឈ្មោះនេះរួចហើយ",
@@ -251,8 +251,7 @@ const translations = {
     share_email: "អ៊ីមែល",
     share_sms: "SMS",
     share_qr: "QRកូដ",
-    share_qr_hint:
-      "ស្កេន QR នេះដោយទូរស័ព្ទមួយផ្សេងទៀត ដើម្បីបើកមីនុយ",
+    share_qr_hint: "ស្កេន QR នេះដោយទូរស័ព្ទមួយផ្សេងទៀត ដើម្បីបើកមីនុយ",
     share_wechat_hint:
       "WeChat មិនមានប៊ូតុងចែករំលែកតាមតំណទេ — ស្កេន QR ខាងលើ ឬចម្លងតំណទៅបិទភ្ជាប់ក្នុងការសន្ទនា",
     share_instagram_hint:
@@ -411,8 +410,7 @@ const translations = {
     demo_banner_title: "នេះជាមីនុយសាកល្បង",
     demo_banner_desc:
       "អ្នកអាចរកមើល ស្វែងរក និងបញ្ជាទិញដោយសេរី — មិនចាំបាច់ចុះឈ្មោះទេ។ ពេលពេញចិត្ត សូមចុះឈ្មោះដើម្បីបង្កើតមីនុយផ្ទាល់ខ្លួន។",
-    demo_restaurant_tagline:
-      "ភោជនីយដ្ឋានសាកល្បង — តម្លៃជារៀល",
+    demo_restaurant_tagline: "ភោជនីយដ្ឋានសាកល្បង — តម្លៃជារៀល",
     demo_search_placeholder: "ស្វែងរកម្ហូប...",
     demo_empty: "រកមិនឃើញម្ហូបទេ",
     demo_view_cart: "មើលកញ្ចប់",
@@ -437,10 +435,8 @@ const translations = {
     blog_articles: "អត្ថបទ",
     read_more: "អានបន្ត",
     blog_cta_title: "ត្រៀមបង្កើតមីនុយផ្ទាល់ខ្លួនហើយឬនៅ?",
-    blog_cta_desc:
-      "សាកល្បងមីនុយសាកល្បង ឬចុះឈ្មោះឥតគិតថ្លៃថ្ងៃនេះ",
-    blog_footer_note:
-      "អត្ថបទ និងគន្លឹះថ្មីៗ បានធ្វើបច្ចុប្បន្នភាពជាប្រចាំ",
+    blog_cta_desc: "សាកល្បងមីនុយសាកល្បង ឬចុះឈ្មោះឥតគិតថ្លៃថ្ងៃនេះ",
+    blog_footer_note: "អត្ថបទ និងគន្លឹះថ្មីៗ បានធ្វើបច្ចុប្បន្នភាពជាប្រចាំ",
     back_to_blog: "ត្រឡប់ទៅប្លុក",
     related_posts: "អត្ថបទពាក់ព័ន្ធ",
     post_not_found: "រកមិនឃើញអត្ថបទនេះទេ",
@@ -462,8 +458,7 @@ const translations = {
     step_done: "ចាប់ផ្តើមបង្កើតមីនុយរបស់អ្នក",
     verify_success: "ផ្ទៀងផ្ទាត់អ៊ីមែលបានជោគជ័យ! អ្នកអាចចូលប្រើបានហើយ។",
     verify_error: "តំណភ្ជាប់មិនត្រឹមត្រូវ ឬផុតកំណត់",
-    session_expired:
-      "សម័យការរបស់អ្នកបានផុតកំណត់។ សូមចូលគណនីម្តងទៀត។",
+    session_expired: "សម័យការរបស់អ្នកបានផុតកំណត់។ សូមចូលគណនីម្តងទៀត។",
     please_verify: "សូមផ្ទៀងផ្ទាត់អ៊ីមែលរបស់អ្នកជាមុន",
     please_verify_desc:
       "អ្នកត្រូវផ្ទៀងផ្ទាត់អ៊ីមែលរបស់អ្នក មុនពេលចូលប្រើប្រព័ន្ធ។ សូមពិនិត្យអ៊ីមែលរបស់អ្នក។",
@@ -582,32 +577,41 @@ const translations = {
     orders_search_date: "ស្វែងរកតាមកាលបរិច្ឆេទ",
     no_orders_date: "មិនមានការបញ្ជាទិញក្នុងថ្ងៃដែលបានជ្រើសរើស",
     nf_title: "ទំព័ររកមិនឃើញ",
-    nf_desc: "Sorry, the page you are looking for does not exist or has been moved.",
+    nf_desc:
+      "Sorry, the page you are looking for does not exist or has been moved.",
     nf_gohome: "ទៅទំព័រដើម",
     nf_login: "ចូលគណនី",
     back_to_top: "ត្រឡប់ទៅខាងលើ",
     install_app: "ដំឡើងកម្មវិធី",
-    install_desc: "ដំឡើង Digital Menu ជាកម្មវិធីលើឧបករណ៍របស់អ្នក — បើកលឿន ដូចកម្មវិធីធម្មតា។",
+    install_desc:
+      "ដំឡើង Digital Menu ជាកម្មវិធីលើឧបករណ៍របស់អ្នក — បើកលឿន ដូចកម្មវិធីធម្មតា។",
     install_now: "ដំឡើងឥឡូវនេះ",
     install_done: "កម្មវិធីត្រូវបានដំឡើងរួចរាល់ហើយ!",
     install_installed: "បានដំឡើងរួចហើយ",
-    install_installed_hint: "អ្នកបានដំឡើងកម្មវិធីនេះរួចហើយ — អាចបើកវាពីអេក្រង់ Home ឬចុច «ដំឡើងម្តងទៀត» ខាងក្រោម។",
+    install_installed_hint:
+      "អ្នកបានដំឡើងកម្មវិធីនេះរួចហើយ — អាចបើកវាពីអេក្រង់ Home ឬចុច «ដំឡើងម្តងទៀត» ខាងក្រោម។",
     install_again: "ដំឡើងម្តងទៀត",
-    install_retry_hint: "មិនមានប្រអប់ដំឡើងភ្លាមៗទេ — សូមប្រើម៉ឺនុយ ⋮ ខាងក្រោម ឬចុច Refresh ដើម្បីដំឡើងជាថ្មី។",
+    install_retry_hint:
+      "មិនមានប្រអប់ដំឡើងភ្លាមៗទេ — សូមប្រើម៉ឺនុយ ⋮ ខាងក្រោម ឬចុច Refresh ដើម្បីដំឡើងជាថ្មី។",
     install_ios_1: "ចុចប៊ូតុង Share នៅខាងក្រោយកម្មវិធី Safari",
     install_ios_2: "រំកិលរក ហើយចុច «Add to Home Screen»",
     install_ios_3: "ចុច Add ដើម្បីដំឡើង",
     install_chrome_1: "ចុចម៉ឺនុយ ⋮ នៅជ្រុងខាងស្តាំខាងលើកម្មវិធីរុករក",
     install_chrome_2: "ជ្រើសរើស «ដំឡើងកម្មវិធី» (Install app)",
-    install_safari_hint: "Safari មិនមានប៊ូតុងដំឡើងស្វ័យប្រវត្តិទេ — សូមធ្វើតាមជំហានខាងក្រោម",
-    install_safari_1: "បើកម៉ឺនុយ File នៅរបារម៉ឺនុយ Safari (ឬចុចប៊ូតុង Share នៅរបារខាងលើ)",
+    install_safari_hint:
+      "Safari មិនមានប៊ូតុងដំឡើងស្វ័យប្រវត្តិទេ — សូមធ្វើតាមជំហានខាងក្រោម",
+    install_safari_1:
+      "បើកម៉ឺនុយ File នៅរបារម៉ឺនុយ Safari (ឬចុចប៊ូតុង Share នៅរបារខាងលើ)",
     install_safari_2: "ជ្រើសរើស «Add to Dock…»",
     install_safari_3: "ចុច Add — កម្មវិធីនឹងបង្ហាញក្នុង Dock និង Launchpad",
-    install_firefox_hint: "Firefox មិនអាចដំឡើងកម្មវិធីគេហទំព័របានទេ — សូមបើកតំណនេះដោយ Chrome, Edge ឬ Safari។",
+    install_firefox_hint:
+      "Firefox មិនអាចដំឡើងកម្មវិធីគេហទំព័របានទេ — សូមបើកតំណនេះដោយ Chrome, Edge ឬ Safari។",
     install_wait: "កំពុងរង់ចាំ...",
     install_wait_hint: "កម្មវិធីរុករកកំពុងរៀបចំ — សូមចុច Refresh បើ វាយូរពេក។",
-    install_dismissed: "អ្នកបានបោះបង់ការដំឡើងពេលមុន — សូមដំឡើងដោយប្រើម៉ឺនុយខាងក្រោម។",
-    install_needs_https: "ការដំឡើងត្រូវការ HTTPS ឬ localhost — ឥឡូវទំព័រមិនមែន secure context ទេ។",
+    install_dismissed:
+      "អ្នកបានបោះបង់ការដំឡើងពេលមុន — សូមដំឡើងដោយប្រើម៉ឺនុយខាងក្រោម។",
+    install_needs_https:
+      "ការដំឡើងត្រូវការ HTTPS ឬ localhost — ឥឡូវទំព័រមិនមែន secure context ទេ។",
     report_7d: "៧ ថ្ងៃ",
     report_30d: "៣០ ថ្ងៃ",
     report_this_month: "ខែនេះ",
@@ -877,16 +881,13 @@ const translations = {
     share_email: "Email",
     share_sms: "SMS",
     share_qr: "QR code",
-    share_qr_hint:
-      "Scan this QR code with another phone to open the menu",
+    share_qr_hint: "Scan this QR code with another phone to open the menu",
     share_wechat_hint:
       "WeChat has no web share button — scan the QR code above, or copy the link and paste it into a chat",
     share_instagram_hint:
       "Link copied — open Instagram and paste it in a DM or Story",
-    share_messenger_hint:
-      "Link copied — paste it into your Messenger chat",
-    share_viber_hint:
-      "Link copied — paste it in Viber if the app did not open",
+    share_messenger_hint: "Link copied — paste it into your Messenger chat",
+    share_viber_hint: "Link copied — paste it in Viber if the app did not open",
     share_qr_failed:
       "QR code could not be generated — please copy the link manually, or open it directly from the community",
     share_copy_failed: "Could not copy the link — please copy it manually",
@@ -1047,8 +1048,7 @@ const translations = {
       "This was just a simulation. In the real system the owner receives an instant Telegram message with the table number and the full order.",
     demo_order_code: "Order No.",
     demo_new_order: "New Order",
-    demo_footer_note:
-      "Free to try — create an account to build your own menu",
+    demo_footer_note: "Free to try — create an account to build your own menu",
     blog_hero_title: "From our blog",
     blog_hero_subtitle:
       "Tips and stories for restaurant owners to make their business faster and clearer",
@@ -1226,27 +1226,36 @@ const translations = {
     nf_login: "Log in",
     back_to_top: "Back to top",
     install_app: "Install app",
-    install_desc: "Install Digital Menu as an app on your device — it opens fast and works like a native app.",
+    install_desc:
+      "Install Digital Menu as an app on your device — it opens fast and works like a native app.",
     install_now: "Install now",
     install_done: "The app is already installed!",
     install_installed: "Installed",
-    install_installed_hint: "You have already installed this app — open it from your home screen, or tap “Install again” below.",
+    install_installed_hint:
+      "You have already installed this app — open it from your home screen, or tap “Install again” below.",
     install_again: "Install again",
-    install_retry_hint: "No one-tap install dialog is available right now — use the browser menu (⋮) below, or tap Refresh, to install again.",
+    install_retry_hint:
+      "No one-tap install dialog is available right now — use the browser menu (⋮) below, or tap Refresh, to install again.",
     install_ios_1: "Tap the Share button at the bottom of Safari",
     install_ios_2: "Scroll down and tap “Add to Home Screen”",
     install_ios_3: "Tap Add to install the app",
     install_chrome_1: "Open the browser menu (⋮) at the top right",
     install_chrome_2: "Choose “Install app” / “Add to Home screen”",
-    install_safari_hint: "Safari has no one-tap install button — follow the steps below",
-    install_safari_1: "Open Safari's File menu in the menu bar (or click the Share button)",
+    install_safari_hint:
+      "Safari has no one-tap install button — follow the steps below",
+    install_safari_1:
+      "Open Safari's File menu in the menu bar (or click the Share button)",
     install_safari_2: "Choose “Add to Dock…”",
     install_safari_3: "Click Add — the app appears in your Dock and Launchpad",
-    install_firefox_hint: "Firefox cannot install web apps — please open this site in Chrome, Edge or Safari.",
+    install_firefox_hint:
+      "Firefox cannot install web apps — please open this site in Chrome, Edge or Safari.",
     install_wait: "Preparing…",
-    install_wait_hint: "Your browser is getting ready — tap Refresh if this takes too long.",
-    install_dismissed: "You dismissed the install dialog earlier — please install using the browser menu below.",
-    install_needs_https: "Installing requires HTTPS or localhost — this page is not a secure context.",
+    install_wait_hint:
+      "Your browser is getting ready — tap Refresh if this takes too long.",
+    install_dismissed:
+      "You dismissed the install dialog earlier — please install using the browser menu below.",
+    install_needs_https:
+      "Installing requires HTTPS or localhost — this page is not a secure context.",
     report_7d: "7 days",
     report_30d: "30 days",
     report_this_month: "This month",
@@ -1282,10 +1291,7 @@ const translations = {
 export const useI18nStore = defineStore("i18n", () => {
   const locale = ref(localStorage.getItem("locale") || "km");
 
-  // `t` is a computed over the current locale's translations. Unlike a
-  // reactive snapshot + Object.assign merge, this ALWAYS reflects the
-  // translations defined in this module (new keys appear immediately,
-  // nothing stale lingers after switching locales).
+  // Reactive translation map for current locale
   const t = computed(() => translations[locale.value]);
 
   function setLocale(lang) {

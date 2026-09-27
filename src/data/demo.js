@@ -1,8 +1,4 @@
-// frontend/src/data/demo.js
-// ─────────────────────────────────────────────────────────────
-// Shared demo data used by the public demo menu + blog pages so
-// visitors can try the product experience WITHOUT an account.
-// ─────────────────────────────────────────────────────────────
+// Shared demo data for public demo menu and landing page
 
 export const DEMO_LOGO_URL =
   "https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png";
@@ -13,10 +9,9 @@ export const demoCategories = [
   { id: 3, label_km: "បង្អែម", label_en: "Desserts", icon: "candy" },
 ];
 
-// `img` can be null — the UI then falls back to `icon`, an AppIcon name
-// (SVG) rendered by <AppIcon>, so a demo item never shows a broken image.
+// Demo food list (falls back to SVG AppIcon if img is null)
 export const demoFoods = [
-  // ── Main dishes ─────────────────────────────────────────────
+  // Main dishes
   {
     id: 101,
     category: 1,
@@ -62,7 +57,7 @@ export const demoFoods = [
     img: "https://res.cloudinary.com/daji2ml3y/image/upload/v1783249572/79600669_1434979050004558_994592641955921920_n_nbkm2a.jpg",
     icon: "fish",
   },
-  // ── Drinks ──────────────────────────────────────────────────
+  // Drinks
   {
     id: 201,
     category: 2,
@@ -99,7 +94,7 @@ export const demoFoods = [
     img: null,
     icon: "beer",
   },
-  // ── Desserts ────────────────────────────────────────────────
+  // Desserts
   {
     id: 301,
     category: 3,
@@ -129,10 +124,7 @@ export const demoFoods = [
   },
 ];
 
-// ─────────────────────────────────────────────────────────────
-// Blog posts (demo content, bilingual)
-// content: array of blocks — { t: "p"|"h"|"ul", x?: string, xs?: string[] }
-// ─────────────────────────────────────────────────────────────
+// Demo blog posts
 export const demoBlogPosts = [
   {
     slug: "why-digital-menu",
@@ -149,7 +141,10 @@ export const demoBlogPosts = [
     excerpt_en:
       "Paper menus are outdated. See how a digital menu saves you time, money, and reduces ordering mistakes — starting today.",
     content_km: [
-      { t: "p", x: "រាល់ពេលដែលតម្លៃម្ហូបផ្លាស់ប្តូរ ម្ចាស់ហាងត្រូវបោះពុម្ពមីនុយថ្មី រួចបិទបាំង ឬលុបចោលថតចាស់ៗ។ នេះចំណាយទាំងថវិកា ទាំងពេលវេលា ហើយពេលខ្លះអតិថិជននៅតែឃើញតម្លៃចាស់ដដែល។" },
+      {
+        t: "p",
+        x: "រាល់ពេលដែលតម្លៃម្ហូបផ្លាស់ប្តូរ ម្ចាស់ហាងត្រូវបោះពុម្ពមីនុយថ្មី រួចបិទបាំង ឬលុបចោលថតចាស់ៗ។ នេះចំណាយទាំងថវិកា ទាំងពេលវេលា ហើយពេលខ្លះអតិថិជននៅតែឃើញតម្លៃចាស់ដដែល។",
+      },
       { t: "h", x: "អត្ថប្រយោជន៍សំខាន់ៗ" },
       {
         t: "ul",
@@ -161,11 +156,20 @@ export const demoBlogPosts = [
         ],
       },
       { t: "h", x: "ចាប់ផ្តើមដោយរបៀបណា?" },
-      { t: "p", x: "អ្នកគ្រាន់តែបង្កើតគណនី បន្ថែមម្ហូប និងតម្លៃ រួចបោះពុម្ព QR សម្រាប់តុនីមួយៗ។ អតិថិជនស្កេន ឃើញមីនុយ និងអាចបញ្ជាទិញបានភ្លាម។" },
-      { t: "p", x: "សាកល្បងមើលជាមួយផ្ទាំង «មីនុយសាកល្បង» នៅលើទំព័រដើមរបស់យើង មុនពេលសម្រេចចិត្តចុះឈ្មោះ។" },
+      {
+        t: "p",
+        x: "អ្នកគ្រាន់តែបង្កើតគណនី បន្ថែមម្ហូប និងតម្លៃ រួចបោះពុម្ព QR សម្រាប់តុនីមួយៗ។ អតិថិជនស្កេន ឃើញមីនុយ និងអាចបញ្ជាទិញបានភ្លាម។",
+      },
+      {
+        t: "p",
+        x: "សាកល្បងមើលជាមួយផ្ទាំង «មីនុយសាកល្បង» នៅលើទំព័រដើមរបស់យើង មុនពេលសម្រេចចិត្តចុះឈ្មោះ។",
+      },
     ],
     content_en: [
-      { t: "p", x: "Every time a price changes, restaurant owners print a new menu, tape over old prices, or hand out outdated paper copies. It costs money, takes time, and guests sometimes still see the old price." },
+      {
+        t: "p",
+        x: "Every time a price changes, restaurant owners print a new menu, tape over old prices, or hand out outdated paper copies. It costs money, takes time, and guests sometimes still see the old price.",
+      },
       { t: "h", x: "The big wins" },
       {
         t: "ul",
@@ -177,8 +181,14 @@ export const demoBlogPosts = [
         ],
       },
       { t: "h", x: "How to get started" },
-      { t: "p", x: "Create an account, add your dishes and prices, then print a QR code for each table. Guests scan, browse, and order right away." },
-      { t: "p", x: "Try our demo menu on the landing page first — no sign-up needed." },
+      {
+        t: "p",
+        x: "Create an account, add your dishes and prices, then print a QR code for each table. Guests scan, browse, and order right away.",
+      },
+      {
+        t: "p",
+        x: "Try our demo menu on the landing page first — no sign-up needed.",
+      },
     ],
   },
   {
@@ -196,7 +206,10 @@ export const demoBlogPosts = [
     excerpt_en:
       "You don't need a week or a tech team. Here are the simple steps to move your restaurant to QR menus in a single afternoon.",
     content_km: [
-      { t: "p", x: "ការផ្លាស់ប្តូរទៅមីនុយ QR ស្តាប់ទៅហាក់ដូចជាស្មុគស្មាញ ប៉ុន្តែការពិតវាសាមញ្ញណាស់។" },
+      {
+        t: "p",
+        x: "ការផ្លាស់ប្តូរទៅមីនុយ QR ស្តាប់ទៅហាក់ដូចជាស្មុគស្មាញ ប៉ុន្តែការពិតវាសាមញ្ញណាស់។",
+      },
       { t: "h", x: "ជំហានទាំង ៤" },
       {
         t: "ul",
@@ -208,10 +221,16 @@ export const demoBlogPosts = [
         ],
       },
       { t: "h", x: "ពេលរួចរាល់" },
-      { t: "p", x: "អតិថិជនស្កេន QR មើលមីនុយ បញ្ជាទិញ ហើយអ្នកទទួលសារភ្លាមៗតាម Telegram ជាមួយលេខតុ និងបញ្ជីម្ហូប។" },
+      {
+        t: "p",
+        x: "អតិថិជនស្កេន QR មើលមីនុយ បញ្ជាទិញ ហើយអ្នកទទួលសារភ្លាមៗតាម Telegram ជាមួយលេខតុ និងបញ្ជីម្ហូប។",
+      },
     ],
     content_en: [
-      { t: "p", x: "Switching to QR menus sounds technical, but in practice it's simple enough for any owner to do in one afternoon." },
+      {
+        t: "p",
+        x: "Switching to QR menus sounds technical, but in practice it's simple enough for any owner to do in one afternoon.",
+      },
       { t: "h", x: "The 4 steps" },
       {
         t: "ul",
@@ -223,7 +242,10 @@ export const demoBlogPosts = [
         ],
       },
       { t: "h", x: "When you're done" },
-      { t: "p", x: "Guests scan, browse, order — and you instantly receive the order on Telegram with the table number and item list." },
+      {
+        t: "p",
+        x: "Guests scan, browse, order — and you instantly receive the order on Telegram with the table number and item list.",
+      },
     ],
   },
   {
@@ -241,7 +263,10 @@ export const demoBlogPosts = [
     excerpt_en:
       "Wrong orders waste time and food. Self-service ordering lets guests pick exactly what they want — no verbal confusion, no handwritten notes.",
     content_km: [
-      { t: "p", x: "នៅពេលអតិថិជនបញ្ជាទិញដោយមាត់ ឬបុគ្គលិកសរសេរកត់ត្រា ឱកាសនៃការកម្មង់ខុសតែងតែកើតមាន។" },
+      {
+        t: "p",
+        x: "នៅពេលអតិថិជនបញ្ជាទិញដោយមាត់ ឬបុគ្គលិកសរសេរកត់ត្រា ឱកាសនៃការកម្មង់ខុសតែងតែកើតមាន។",
+      },
       { t: "h", x: "មូលហេតុដែលកម្មង់ខុស" },
       {
         t: "ul",
@@ -252,10 +277,16 @@ export const demoBlogPosts = [
         ],
       },
       { t: "h", x: "ដំណោះស្រាយ" },
-      { t: "p", x: "ជាមួយមីនុយឌីជីថល អតិថិជនមើលរូបភាព តម្លៃ និងបរិមាណ រួចបញ្ជាក់បញ្ជាទិញដោយខ្លួនឯង។ គ្រប់ការបញ្ជាទិញទៅដល់ផ្ទះបាយដោយអត្ថបទច្បាស់លាស់។" },
+      {
+        t: "p",
+        x: "ជាមួយមីនុយឌីជីថល អតិថិជនមើលរូបភាព តម្លៃ និងបរិមាណ រួចបញ្ជាក់បញ្ជាទិញដោយខ្លួនឯង។ គ្រប់ការបញ្ជាទិញទៅដល់ផ្ទះបាយដោយអត្ថបទច្បាស់លាស់។",
+      },
     ],
     content_en: [
-      { t: "p", x: "When guests order verbally and staff scribble notes, mistakes are almost guaranteed — especially during busy hours." },
+      {
+        t: "p",
+        x: "When guests order verbally and staff scribble notes, mistakes are almost guaranteed — especially during busy hours.",
+      },
       { t: "h", x: "Why orders go wrong" },
       {
         t: "ul",
@@ -266,7 +297,10 @@ export const demoBlogPosts = [
         ],
       },
       { t: "h", x: "The fix" },
-      { t: "p", x: "With a digital menu, guests see photos, prices, and quantities, then confirm the order themselves. Every order reaches the kitchen as clear text — table number included." },
+      {
+        t: "p",
+        x: "With a digital menu, guests see photos, prices, and quantities, then confirm the order themselves. Every order reaches the kitchen as clear text — table number included.",
+      },
     ],
   },
 ];

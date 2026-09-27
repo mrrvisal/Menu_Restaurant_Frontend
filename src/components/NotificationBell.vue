@@ -1,24 +1,13 @@
-<!-- ═══════════════════════════════════════════════════════════
-   NotificationBell — real-time notification centre button.
-   Sits right next to the profile avatar in the admin header.
-   Receives live events over the SSE order stream (new order /
-   order status change) via the notifications Pinia store.
-   ═══════════════════════════════════════════════════════════ -->
+<!-- Real-time notification center button and dropdown panel -->
 <template>
   <div class="nb-wrap" ref="wrapEl">
-    <button
-      class="nb-btn"
-      :class="{ 'nb-ring': ringing }"
-      @click.stop="open = !open"
-      :title="t.notifications || 'Notifications'"
-      :aria-label="t.notifications || 'Notifications'"
-      :aria-haspopup="true"
-      :aria-expanded="open"
-    >
+    <button class="nb-btn" :class="{ 'nb-ring': ringing }" @click.stop="open = !open"
+      :title="t.notifications || 'Notifications'" :aria-label="t.notifications || 'Notifications'" :aria-haspopup="true"
+      :aria-expanded="open">
       <AppIcon name="bell" :size="16" />
       <span v-if="store.unreadCount" class="nb-badge">{{
         store.unreadCount > 9 ? "9+" : store.unreadCount
-      }}</span>
+        }}</span>
     </button>
 
     <Transition name="fade">
@@ -26,63 +15,40 @@
         <div class="nb-head">
           <span class="nb-title">{{ t.notifications || "Notifications" }}</span>
           <div class="nb-head-acts">
-            <button
-              v-if="store.unreadCount"
-              class="nb-act"
-              @click="store.markAllRead()"
-            >
+            <button v-if="store.unreadCount" class="nb-act" @click="store.markAllRead()">
               {{ t.mark_all_read || "Mark all read" }}
             </button>
-            <button
-              v-if="store.notifications.length"
-              class="nb-act nb-act-danger"
-              @click="store.clearAll()"
-            >
+            <button v-if="store.notifications.length" class="nb-act nb-act-danger" @click="store.clearAll()">
               {{ t.clear_all || "Clear" }}
             </button>
           </div>
         </div>
 
         <div v-if="filterTabs.length" class="nb-filters">
-          <button
-            v-for="tab in filterTabs"
-            :key="tab.id"
-            type="button"
-            class="nb-filter"
-            :class="{ active: filterId === tab.id }"
-            @click="filterId = tab.id"
-          >
+          <button v-for="tab in filterTabs" :key="tab.id" type="button" class="nb-filter"
+            :class="{ active: filterId === tab.id }" @click="filterId = tab.id">
             {{ tab.name }}
-            <span
-              v-if="
+            <span v-if="
+              tab.id
+                ? store.notifications.filter(
+                  (n) =>
+                    !n.read && Number(n.restaurantId) === Number(tab.id),
+                ).length
+                : store.unreadCount
+            " class="nb-filter-badge">{{
                 tab.id
                   ? store.notifications.filter(
-                      (n) =>
-                        !n.read && Number(n.restaurantId) === Number(tab.id),
-                    ).length
+                    (n) =>
+                      !n.read && Number(n.restaurantId) === Number(tab.id),
+                  ).length
                   : store.unreadCount
-              "
-              class="nb-filter-badge"
-              >{{
-                tab.id
-                  ? store.notifications.filter(
-                      (n) =>
-                        !n.read && Number(n.restaurantId) === Number(tab.id),
-                    ).length
-                  : store.unreadCount
-              }}</span
-            >
+              }}</span>
           </button>
         </div>
 
         <div v-if="filteredNotifications.length" class="nb-list">
-          <button
-            v-for="n in filteredNotifications"
-            :key="n.id"
-            class="nb-item"
-            :class="{ 'nb-item-unread': !n.read }"
-            @click="onSelect(n)"
-          >
+          <button v-for="n in filteredNotifications" :key="n.id" class="nb-item" :class="{ 'nb-item-unread': !n.read }"
+            @click="onSelect(n)">
             <span class="nb-ico" :class="iconClass(n)">
               <AppIcon :name="iconName(n)" :size="15" />
             </span>
@@ -90,11 +56,7 @@
               <span class="nb-item-title">{{ n.title }}</span>
               <span class="nb-item-msg">{{ n.message }}</span>
               <span class="nb-item-meta">
-                <span
-                  v-if="showRestaurantChip && n.restaurantName"
-                  class="nb-rest"
-                  >{{ n.restaurantName }}</span
-                >
+                <span v-if="showRestaurantChip && n.restaurantName" class="nb-rest">{{ n.restaurantName }}</span>
                 <span class="nb-item-time">{{ timeAgo(n.createdAt) }}</span>
               </span>
             </span>
@@ -236,6 +198,7 @@ function timeAgo(iso) {
   display: inline-flex;
   align-items: center;
 }
+
 .nb-btn {
   position: relative;
   display: inline-flex;
@@ -252,6 +215,7 @@ function timeAgo(iso) {
   cursor: pointer;
   transition: all 0.2s ease;
 }
+
 .nb-btn:hover {
   border-color: var(--primary-strong, var(--primary, #2d7a2d));
   color: var(--primary-strong, var(--primary, #2d7a2d));
@@ -281,23 +245,30 @@ function timeAgo(iso) {
 .nb-ring {
   animation: nb-shake 0.6s ease;
 }
+
 @keyframes nb-shake {
+
   0%,
   100% {
     transform: rotate(0);
   }
+
   15% {
     transform: rotate(12deg);
   }
+
   30% {
     transform: rotate(-10deg);
   }
+
   45% {
     transform: rotate(8deg);
   }
+
   60% {
     transform: rotate(-6deg);
   }
+
   75% {
     transform: rotate(3deg);
   }
@@ -313,15 +284,18 @@ function timeAgo(iso) {
   border: 1px solid var(--border, #e2e8e2);
   border-radius: 14px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
-  z-index: 120; /* above sidebar (90-100), below modals (200+) */
+  z-index: 120;
+  /* above sidebar (90-100), below modals (200+) */
   overflow: hidden;
   animation: pm-pop 0.16s ease;
 }
+
 @keyframes pm-pop {
   from {
     opacity: 0;
     transform: translateY(-4px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -337,16 +311,19 @@ function timeAgo(iso) {
   border-bottom: 1px solid var(--border, #e2e8e2);
   background: var(--surface-green, var(--green-pale, #e8f5e9));
 }
+
 .nb-title {
   font-size: 12px;
   font-weight: 700;
   color: var(--text, #1b2e1b);
   white-space: nowrap;
 }
+
 .nb-head-acts {
   display: flex;
   gap: 6px;
 }
+
 .nb-act {
   border: none;
   background: transparent;
@@ -358,9 +335,11 @@ function timeAgo(iso) {
   cursor: pointer;
   white-space: nowrap;
 }
+
 .nb-act:hover {
   text-decoration: underline;
 }
+
 .nb-act-danger {
   color: var(--red, #ef4444);
 }
@@ -374,9 +353,11 @@ function timeAgo(iso) {
   overflow-x: auto;
   scrollbar-width: none;
 }
+
 .nb-filters::-webkit-scrollbar {
   display: none;
 }
+
 .nb-filter {
   display: inline-flex;
   align-items: center;
@@ -396,14 +377,17 @@ function timeAgo(iso) {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .nb-filter:hover {
   border-color: var(--primary-strong, var(--primary, #2d7a2d));
 }
+
 .nb-filter.active {
   background: var(--primary-strong, var(--primary, #2d7a2d));
   border-color: var(--primary-strong, var(--primary, #2d7a2d));
   color: #fff;
 }
+
 .nb-filter-badge {
   min-width: 15px;
   height: 15px;
@@ -416,6 +400,7 @@ function timeAgo(iso) {
   line-height: 15px;
   text-align: center;
 }
+
 .nb-filter.active .nb-filter-badge {
   background: rgba(255, 255, 255, 0.25);
 }
@@ -428,6 +413,7 @@ function timeAgo(iso) {
   min-width: 0;
   flex-wrap: wrap;
 }
+
 .nb-rest {
   display: inline-block;
   max-width: 110px;
@@ -448,6 +434,7 @@ function timeAgo(iso) {
   overflow-y: auto;
   overscroll-behavior: contain;
 }
+
 .nb-item {
   display: flex;
   align-items: flex-start;
@@ -461,18 +448,23 @@ function timeAgo(iso) {
   cursor: pointer;
   transition: background 0.15s ease;
 }
+
 .nb-item:last-child {
   border-bottom: none;
 }
+
 .nb-item:hover {
   background: var(--surface-green, var(--green-pale, #e8f5e9));
 }
+
 .nb-item-unread {
   background: var(--surface-green, var(--green-pale, #e8f5e9));
 }
+
 .nb-item-unread:hover {
   background: var(--green-soft, #c8e6c9);
 }
+
 .nb-ico {
   flex-shrink: 0;
   width: 30px;
@@ -483,18 +475,22 @@ function timeAgo(iso) {
   justify-content: center;
   margin-top: 2px;
 }
+
 .nb-ico-amber {
   background: #fef3c7;
   color: #b45309;
 }
+
 .nb-ico-green {
   background: var(--green-pale, #e8f5e9);
   color: var(--green-mid, #2d7a2d);
 }
+
 .nb-ico-red {
   background: #fef2f2;
   color: var(--red, #ef4444);
 }
+
 .nb-txt {
   display: flex;
   flex-direction: column;
@@ -502,21 +498,25 @@ function timeAgo(iso) {
   min-width: 0;
   flex: 1;
 }
+
 .nb-item-title {
   font-size: 12px;
   font-weight: 700;
   color: var(--text, #1b2e1b);
 }
+
 .nb-item-msg {
   font-size: 11px;
   color: var(--text-mid, #3a5a3a);
   line-height: 1.4;
   word-break: break-word;
 }
+
 .nb-item-time {
   font-size: 10px;
   color: var(--text-light, #6a8f6a);
 }
+
 .nb-unread-dot {
   flex-shrink: 0;
   width: 8px;
@@ -535,6 +535,7 @@ function timeAgo(iso) {
   padding: 26px 16px;
   color: var(--text-light, #6a8f6a);
 }
+
 .nb-empty p {
   font-size: 12px;
 }
@@ -548,11 +549,13 @@ function timeAgo(iso) {
     padding: 6px;
   }
 }
+
 @media (max-width: 380px) {
   .nb-panel {
     width: calc(100vw - 24px);
   }
 }
+
 @media (prefers-reduced-motion: reduce) {
   .nb-ring {
     animation: none;

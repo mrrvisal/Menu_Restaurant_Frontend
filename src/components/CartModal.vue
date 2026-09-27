@@ -1,4 +1,3 @@
-<!-- frontend/src/components/CartModal.vue -->
 <template>
   <Teleport to="body">
     <Transition name="fade">
@@ -7,26 +6,30 @@
           <div class="cart-modal-card" v-if="show">
             <!-- HEADER -->
             <div class="modal-header">
-              <span class="modal-header-title"><AppIcon name="clipboard" :size="18" /> តារាងការបញ្ជាទិញ</span>
-              <button class="close-btn" @click="$emit('close')"><AppIcon name="x" :size="16" /></button>
+              <span class="modal-header-title">
+                <AppIcon name="clipboard" :size="18" /> តារាងការបញ្ជាទិញ
+              </span>
+              <button class="close-btn" @click="$emit('close')">
+                <AppIcon name="x" :size="16" />
+              </button>
             </div>
 
             <!-- EMPTY STATE -->
             <div v-if="!cart.count" class="cart-empty">
-              <div class="empty-icon"><AppIcon name="clipboard" :size="48" /></div>
+              <div class="empty-icon">
+                <AppIcon name="clipboard" :size="48" />
+              </div>
               <p>មិនមានទំនិញក្នុងកញ្ចប់</p>
             </div>
 
             <!-- CART ITEMS -->
             <div v-else class="cart-list">
               <TransitionGroup name="item" tag="div">
-                <div
-                  v-for="(item, foodId) in cart.items"
-                  :key="foodId"
-                  class="cart-item"
-                >
+                <div v-for="(item, foodId) in cart.items" :key="foodId" class="cart-item">
                   <div class="item-img">
-                    <img :src="item.img || 'https://res.cloudinary.com/daji2ml3y/image/upload/v1789488500/no-image_c9olpk.jpg'" :alt="item.name" />
+                    <img
+                      :src="item.img || 'https://res.cloudinary.com/daji2ml3y/image/upload/v1789488500/no-image_c9olpk.jpg'"
+                      :alt="item.name" />
                   </div>
                   <div class="item-info">
                     <div class="item-name">{{ item.name }}</div>
@@ -72,22 +75,16 @@
 
               <!-- Table Number -->
               <div class="field-wrap">
-                <input
-                  v-model="tableNo"
-                  class="field-input"
-                  placeholder="លេខតុ (ចាំបាច់)"
-                />
+                <input v-model="tableNo" class="field-input" placeholder="លេខតុ (ចាំបាច់)" />
               </div>
 
               <!-- Note -->
               <div class="field-wrap">
-                <span class="field-label"><AppIcon name="note" :size="14" /> កំណត់ចំណាំ (optional)</span>
-                <textarea
-                  v-model="note"
-                  class="field-textarea"
-                  rows="2"
-                  placeholder="ឧ: មិនហូបខ្ទឹម, ហឹរតិច..."
-                ></textarea>
+                <span class="field-label">
+                  <AppIcon name="note" :size="14" /> កំណត់ចំណាំ (optional)
+                </span>
+                <textarea v-model="note" class="field-textarea" rows="2"
+                  placeholder="ឧ: មិនហូបខ្ទឹម, ហឹរតិច..."></textarea>
               </div>
 
               <!-- Actions -->
@@ -95,25 +92,15 @@
                 <button class="clear-btn" @click="cart.clear()">
                   <AppIcon name="trash" :size="14" /> សម្អាត
                 </button>
-                <button
-                  class="order-btn"
-                  :disabled="sending"
-                  @click="submitOrder"
-                >
+                <button class="order-btn" :disabled="sending" @click="submitOrder">
                   <span v-if="sending" class="spinner">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                      stroke-linecap="round">
+                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                    </svg>
                   </span>
-                  <svg
-                    v-else
-                    width="18"
-                    height="18"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
+                  <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <line x1="22" y1="2" x2="11" y2="13" />
                     <polygon points="22 2 15 22 11 13 2 9 22 2" />
                   </svg>
@@ -236,6 +223,7 @@ async function submitOrder() {
   align-items: flex-end;
   justify-content: center;
 }
+
 @media (min-width: 600px) {
   .modal-overlay {
     align-items: center;
@@ -254,11 +242,13 @@ async function submitOrder() {
   box-shadow: 0 -8px 40px var(--shadow-tint, rgba(0, 0, 0, 0.18));
   overflow: hidden;
 }
+
 @media (max-width: 480px) {
   .cart-modal-card {
     max-height: 96vh;
   }
 }
+
 @media (min-width: 600px) {
   .cart-modal-card {
     border-radius: 22px;
@@ -273,20 +263,24 @@ async function submitOrder() {
   border-bottom: 1.5px solid var(--green-soft, #e8f5e9);
   flex-shrink: 0;
 }
+
 @media (max-width: 480px) {
   .modal-header {
     padding: 14px 14px 12px;
   }
+
   .modal-header-title {
     font-size: 15px;
   }
 }
+
 .modal-header-title {
   font-family: "Hanuman", serif;
   font-size: 17px;
   font-weight: 700;
   color: var(--primary-strong, #0f766e);
 }
+
 .close-btn {
   width: 34px;
   height: 34px;
@@ -302,6 +296,7 @@ async function submitOrder() {
   justify-content: center;
   transition: background 0.2s;
 }
+
 .close-btn:hover {
   background: var(--green-soft, #dcfce7);
 }
@@ -315,10 +310,12 @@ async function submitOrder() {
   padding: 50px 20px;
   color: #9e9e9e;
 }
+
 .cart-empty .empty-icon {
   font-size: 54px;
   margin-bottom: 12px;
 }
+
 .cart-empty p {
   font-size: 15px;
   font-family: "Hanuman", serif;
@@ -340,15 +337,18 @@ async function submitOrder() {
   border-bottom: 1px solid var(--green-pale, #f1f8f4);
   transition: background 0.15s;
 }
+
 @media (max-width: 480px) {
   .cart-item {
     gap: 8px;
     padding: 8px 12px;
   }
 }
+
 .cart-item:last-child {
   border-bottom: none;
 }
+
 .cart-item:hover {
   background: var(--green-pale, #f9fffe);
 }
@@ -364,11 +364,13 @@ async function submitOrder() {
   align-items: center;
   justify-content: center;
 }
+
 .item-img img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
 .item-emoji {
   font-size: 26px;
   line-height: 1;
@@ -378,6 +380,7 @@ async function submitOrder() {
   flex: 1;
   min-width: 0;
 }
+
 .item-name {
   font-family: "Hanuman", serif;
   font-size: 13.5px;
@@ -387,6 +390,7 @@ async function submitOrder() {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .item-price {
   font-size: 12px;
   color: var(--green-strong, #16a34a);
@@ -400,6 +404,7 @@ async function submitOrder() {
   gap: 6px;
   flex-shrink: 0;
 }
+
 .qty-btn {
   width: 28px;
   height: 28px;
@@ -416,12 +421,15 @@ async function submitOrder() {
   transition: background 0.15s, transform 0.1s;
   line-height: 1;
 }
+
 .qty-btn:hover {
   background: var(--green-soft, #bbf7d0);
 }
+
 .qty-btn:active {
   transform: scale(0.88);
 }
+
 .qty-val {
   min-width: 22px;
   text-align: center;
@@ -438,6 +446,7 @@ async function submitOrder() {
   text-align: right;
   flex-shrink: 0;
 }
+
 @media (max-width: 480px) {
   .item-subtotal {
     min-width: 40px;
@@ -453,6 +462,7 @@ async function submitOrder() {
   flex-direction: column;
   gap: 10px;
 }
+
 @media (max-width: 480px) {
   .cart-footer {
     padding: 12px 12px 16px;
@@ -470,6 +480,7 @@ async function submitOrder() {
   font-weight: 600;
   font-family: "Hanuman", serif;
 }
+
 .tg-error {
   background: #fef2f2;
   color: #dc2626;
@@ -486,17 +497,20 @@ async function submitOrder() {
   justify-content: space-between;
   align-items: center;
 }
+
 @media (max-width: 480px) {
   .cart-total-amt {
     font-size: 18px;
   }
 }
+
 .cart-total-label {
   font-family: "Hanuman", serif;
   font-size: 15px;
   color: #555;
   font-weight: 600;
 }
+
 .cart-total-amt {
   font-size: 22px;
   font-weight: 800;
@@ -508,6 +522,7 @@ async function submitOrder() {
   flex-direction: column;
   gap: 5px;
 }
+
 .field-label {
   font-size: 12px;
   color: #888;
@@ -527,6 +542,7 @@ async function submitOrder() {
   transition: border 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
+
 .field-input:focus {
   border-color: var(--green-strong, #22c55e);
   box-shadow: 0 0 0 4px var(--glow-soft, transparent);
@@ -546,6 +562,7 @@ async function submitOrder() {
   transition: border 0.2s, box-shadow 0.2s;
   box-sizing: border-box;
 }
+
 .field-textarea:focus {
   border-color: var(--green-strong, #a7f3d0);
   box-shadow: 0 0 0 4px var(--glow-soft, transparent);
@@ -555,11 +572,13 @@ async function submitOrder() {
   display: flex;
   gap: 10px;
 }
+
 @media (max-width: 480px) {
   .cart-actions {
     flex-direction: column;
     gap: 8px;
   }
+
   .clear-btn {
     width: 100%;
     justify-content: center;
@@ -579,6 +598,7 @@ async function submitOrder() {
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .clear-btn:hover {
   background: #fee2e2;
 }
@@ -601,11 +621,13 @@ async function submitOrder() {
   transition: all 0.2s;
   box-shadow: 0 4px 14px var(--glow-strong, rgba(15, 118, 110, 0.35));
 }
+
 .order-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, var(--primary-dark, #0d6761) 0%, var(--primary, #16a34a) 100%);
   transform: translateY(-1px);
   box-shadow: 0 6px 18px var(--glow-strong, rgba(15, 118, 110, 0.4));
 }
+
 .order-btn:disabled {
   opacity: 0.7;
   cursor: not-allowed;
@@ -616,6 +638,7 @@ async function submitOrder() {
   display: inline-block;
   animation: spin 0.8s linear infinite;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -627,6 +650,7 @@ async function submitOrder() {
 .fade-leave-active {
   transition: opacity 0.25s ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
@@ -635,13 +659,16 @@ async function submitOrder() {
 .slide-up-enter-active {
   transition: transform 0.32s cubic-bezier(0.32, 1.1, 0.6, 1), opacity 0.25s;
 }
+
 .slide-up-leave-active {
   transition: transform 0.22s ease, opacity 0.2s;
 }
+
 .slide-up-enter-from {
   transform: translateY(60px);
   opacity: 0;
 }
+
 .slide-up-leave-to {
   transform: translateY(30px);
   opacity: 0;
@@ -650,13 +677,16 @@ async function submitOrder() {
 .item-enter-active {
   transition: all 0.22s ease;
 }
+
 .item-leave-active {
   transition: all 0.18s ease;
 }
+
 .item-enter-from {
   opacity: 0;
   transform: translateX(-14px);
 }
+
 .item-leave-to {
   opacity: 0;
   transform: translateX(14px);

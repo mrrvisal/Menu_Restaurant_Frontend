@@ -1,14 +1,14 @@
-// frontend/src/stores/cart.js
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 
 export const useCartStore = defineStore("cart", () => {
-  // { foodId: { qty, name, price, img, category } }
+  // Keyed by foodId: { qty, name, price, img, category }
   const items = ref({});
 
   const count = computed(() =>
     Object.values(items.value).reduce((s, v) => s + v.qty, 0),
   );
+
   const total = computed(() =>
     Object.values(items.value).reduce((s, v) => s + v.price * v.qty, 0),
   );
@@ -31,7 +31,9 @@ export const useCartStore = defineStore("cart", () => {
   function change(foodId, delta) {
     if (!items.value[foodId]) return;
     items.value[foodId].qty += delta;
-    if (items.value[foodId].qty <= 0) delete items.value[foodId];
+    if (items.value[foodId].qty <= 0) {
+      delete items.value[foodId];
+    }
   }
 
   function clear() {

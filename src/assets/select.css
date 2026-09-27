@@ -56,8 +56,10 @@
 
   cursor: pointer;
 }
+
 .app-select::-ms-expand {
-  display: none; /* hide legacy IE/Edge arrow */
+  display: none;
+  /* hide legacy IE/Edge arrow */
 }
 
 /* ─────────── OPTION LIST — shared design ───────────
@@ -74,17 +76,20 @@
   padding: 10px 14px;
   line-height: 1.4;
 }
+
 .app-select option:hover,
 .app-select option:active,
 .app-select option:focus {
   background-color: #f0fdf4;
   color: #166534;
 }
+
 .app-select option:checked {
   background: linear-gradient(135deg, #166534, #22c55e);
   color: #ffffff;
   font-weight: 600;
 }
+
 .app-select option:disabled,
 .app-select option[value=""] {
   color: #9ca3af;
@@ -99,6 +104,7 @@
   background-color: #f0fdf4;
   color: #0f766e;
 }
+
 .app-select--teal option:checked {
   background: linear-gradient(135deg, #0f766e, #14b8a6);
   color: #ffffff;

@@ -1,4 +1,3 @@
-// frontend/src/router/index.js
 import { createRouter, createWebHistory } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 
@@ -41,9 +40,7 @@ const routes = [
     component: () => import("@/views/VerifyEmailView.vue"),
   },
   {
-    // Google OAuth landing pad — receives the ID token from Google and
-    // forwards it to the opener window (or parks it for the redirect
-    // fallback). Never shows real UI.
+    // Google OAuth landing pad (forwards ID token to opener or fallback)
     path: "/auth/google/callback",
     name: "GoogleAuthCallback",
     component: () => import("@/views/GoogleAuthCallback.vue"),
@@ -69,15 +66,14 @@ const routes = [
     redirect: "/dashboard",
   },
   {
-    // Kitchen Display System — a dedicated, chrome-free board for the
-    // kitchen screen. Reuses the same SSE order stream as the dashboard.
+    // Kitchen Display System for kitchen screen
     path: "/kds",
     name: "Kds",
     component: () => import("@/views/KdsView.vue"),
     meta: { requiresAuth: true },
   },
   {
-    // Guest order tracking — live status of one order (public, token link)
+    // Guest order live status tracking
     path: "/track",
     name: "Track",
     component: () => import("@/views/TrackView.vue"),
@@ -89,9 +85,7 @@ const routes = [
     meta: { requiresAuth: true, requiresSuperAdmin: true },
   },
   {
-    // 404 — any path that doesn't match a route above lands here.
-    // The :pathMatch syntax keeps the full unknown path available as
-    // route.params.pathMatch (and route.fullPath) for display.
+    // 404 Not Found fallback
     path: "/:pathMatch(.*)*",
     name: "NotFound",
     component: () => import("@/views/NotFoundView.vue"),
@@ -117,7 +111,9 @@ router.beforeEach((to, from, next) => {
 
   // Block unverified users from accessing protected pages
   if (to.meta.requiresAuth && auth.isLoggedIn && !auth.isEmailVerified) {
-    return next(`/verify-email?email=${encodeURIComponent(auth.user?.email || "")}`);
+    return next(
+      `/verify-email?email=${encodeURIComponent(auth.user?.email || "")}`,
+    );
   }
 
   if (to.meta.requiresSuperAdmin && !auth.isSuperAdmin) {

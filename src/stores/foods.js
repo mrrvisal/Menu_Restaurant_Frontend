@@ -1,4 +1,3 @@
-// frontend/src/stores/foods.js
 import { defineStore } from "pinia";
 import { ref, watch } from "vue";
 import axios from "axios";
@@ -14,11 +13,7 @@ export const useFoodsStore = defineStore("foods", () => {
   const loading = ref(false);
   const error = ref(null);
 
-  // Never keep another account's (or another restaurant's) data in memory.
-  // The dashboard is a SPA, so logging in as a different account (or
-  // switching restaurants) would otherwise keep showing the previous
-  // owner's foods/categories until a successful refetch — and actions on
-  // them would hit the API with wrong ids.
+  // Clear in-memory food & category data when switching user or restaurant
   watch(
     () => [auth.user?.id, auth.restaurantId],
     () => {
@@ -29,11 +24,11 @@ export const useFoodsStore = defineStore("foods", () => {
     },
   );
 
-  // The currently active restaurant (for owner actions)
   function activeRestaurantId() {
     return auth.restaurantId;
   }
 
+  // ─── MENUS ────────────────────────────────────────────────
   async function fetchMenus(restaurantId = null) {
     const id = restaurantId || activeRestaurantId();
     if (!id) {
@@ -70,21 +65,17 @@ export const useFoodsStore = defineStore("foods", () => {
     categories.value = categories.value.filter((c) => c.menu_id !== id);
   }
 
+  // ─── CATEGORIES ───────────────────────────────────────────
   async function fetchCategories(params = {}, restaurantId = null) {
     const id = restaurantId || activeRestaurantId();
     if (!id) {
-      // No restaurant selected → nothing to show (never fetch without one:
-      // the server no longer guesses, it answers 400).
       categories.value = [];
       return;
     }
     const res = await axios.get(`${API_BASE_URL}/api/categories`, {
       params: { restaurant_id: id, ...params },
     });
-    // Defensive dedupe: older data may contain the same category name more
-    // than once (different menus / historical bugs). Collapse to one entry
-    // per unique name so tabs/chips never render duplicates. The API returns
-    // rows ordered by id ASC, so the first (lowest-id) row wins.
+    // Deduplicate categories by normalized name/label
     const seen = new Set();
     categories.value = (res.data || []).filter((cat) => {
       const key = String(cat.label_km || cat.label || cat.name || "")
@@ -96,11 +87,10 @@ export const useFoodsStore = defineStore("foods", () => {
     });
   }
 
+  // ─── FOODS ────────────────────────────────────────────────
   async function fetchFoods(params = {}, restaurantId = null) {
     const id = restaurantId || activeRestaurantId();
     if (!id) {
-      // No restaurant selected → nothing to show (never fetch without one:
-      // the server no longer guesses, it answers 400).
       foods.value = [];
       return;
     }
@@ -110,7 +100,7 @@ export const useFoodsStore = defineStore("foods", () => {
       const res = await axios.get(`${API_BASE_URL}/api/foods`, {
         params: { restaurant_id: id, ...params },
       });
-      // Transform img to img_url for frontend compatibility
+      // Map img to img_url for frontend compatibility
       foods.value = res.data.map((food) => ({
         ...food,
         img_url: food.img,
@@ -179,9 +169,23 @@ export const useFoodsStore = defineStore("foods", () => {
   }
 
   return {
-    foods, categories, menus, loading, error,
-    fetchCategories, fetchFoods, fetchMenus, addMenu, updateMenu, deleteMenu,
-    addFood, updateFood, toggleStatus, deleteFood,
-    addCategory, updateCategory, deleteCategory,
+    foods,
+    categories,
+    menus,
+    loading,
+    error,
+    fetchCategories,
+    fetchFoods,
+    fetchMenus,
+    addMenu,
+    updateMenu,
+    deleteMenu,
+    addFood,
+    updateFood,
+    toggleStatus,
+    deleteFood,
+    addCategory,
+    updateCategory,
+    deleteCategory,
   };
 });

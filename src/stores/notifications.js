@@ -1,9 +1,3 @@
-// frontend/src/stores/notifications.js
-// Real-time notification centre state. Fed by the SSE order stream that the
-// Admin dashboard already listens to (events: "new-order", "order-status").
-// The list is kept in memory AND mirrored to localStorage (scoped per user id)
-// so the history survives page reloads. Duplicates are filtered by `id` so an
-// SSE reconnect / replay can never double-post the same event.
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 
@@ -14,9 +8,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
   const notifications = ref([]);
   const userId = ref(null);
 
-  // Bumped (Date.now()) every time a notification arrives. The bell watches
-  // this to play its "new notification" ring animation, even when the value
-  // itself is not rendered anywhere.
+  // Timestamp bumped on every incoming notification to trigger bell animations
   const lastAddedAt = ref(0);
 
   const unreadCount = computed(
@@ -31,11 +23,11 @@ export const useNotificationsStore = defineStore("notifications", () => {
     try {
       localStorage.setItem(storageKey(), JSON.stringify(notifications.value));
     } catch {
-      /* quota exceeded / private mode — the list just stays in memory */
+      // Ignore quota exceeded / private mode errors
     }
   }
 
-  /** Load the notification list for a user (call once after auth is ready). */
+  // Load the notification list for a user (called after auth is ready)
   function load(id = null) {
     userId.value = id;
     try {
@@ -46,11 +38,7 @@ export const useNotificationsStore = defineStore("notifications", () => {
     }
   }
 
-  /**
-   * Add a notification (newest first).
-   * Requires a unique `id` — e.g. `new-order-42` — which doubles as the
-   * dedupe key for SSE reconnect replays.
-   */
+  // Add a notification (newest first, deduped by id)
   function push(notif) {
     if (!notif || !notif.id) return;
     if (notifications.value.some((n) => n.id === notif.id)) return;

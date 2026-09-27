@@ -1,7 +1,3 @@
-// frontend/src/stores/theme.js
-// Dynamic theme color — the user picks a primary color (preset or custom)
-// and every derived shade (dark/light/glow/ink/tints) is applied instantly
-// as CSS variables on <html>, persisted per account in localStorage.
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import {
@@ -13,7 +9,7 @@ import {
   strongColor,
 } from "@/utils/color.mjs";
 
-// 6 ready-made colors (first one = original brand default)
+// Ready-made theme color presets
 export const THEME_PRESETS = [
   { name: "Teal", value: "#0f766e" },
   { name: "Green", value: "#16a34a" },
@@ -25,7 +21,7 @@ export const THEME_PRESETS = [
 
 const DEFAULT_COLOR = THEME_PRESETS[0].value;
 
-// Per-user storage key so each account keeps its own color
+// Per-user storage key so each account keeps its own theme color
 function userStorageKey() {
   try {
     const user = JSON.parse(localStorage.getItem("admin_user") || "null");
@@ -35,8 +31,7 @@ function userStorageKey() {
   }
 }
 
-// Push the whole palette as inline CSS variables on <html> —
-// inline styles win over any stylesheet :root definition.
+// Push palette as inline CSS variables on <html>
 function applyToDocument(hex) {
   if (typeof document === "undefined") return;
   const s = document.documentElement.style;
@@ -44,13 +39,10 @@ function applyToDocument(hex) {
   s.setProperty("--primary", hex);
   s.setProperty("--primary-dark", mix(hex, "#000000", 0.18));
   s.setProperty("--primary-light", mix(hex, "#ffffff", 0.28));
-  // Glows derive from the "strong" variant so they stay visible on light themes
   s.setProperty("--primary-glow", hexToRgba(strong, 0.15));
   s.setProperty("--primary-glow-strong", hexToRgba(strong, 0.25));
-  // Foreground + accent variants tuned for white/light primaries
   s.setProperty("--on-primary", onColor(hex));
   s.setProperty("--primary-strong", strong);
-  // Headings & tinted surfaces follow the theme so the whole UI recolors
   s.setProperty("--ink", mix(hex, "#03150d", 0.74));
   s.setProperty("--ink-light", mix(hex, "#000000", 0.35));
   s.setProperty("--surface-green", mix(hex, "#ffffff", 0.94));
@@ -61,7 +53,6 @@ function applyToDocument(hex) {
 export const useThemeStore = defineStore("theme", () => {
   const primary = ref(DEFAULT_COLOR);
 
-  // Returns true when the color was valid & applied
   function setPrimary(hex, { persist = true } = {}) {
     const norm = normalizeHex(hex);
     if (!isValidHex(norm)) return false;
@@ -71,28 +62,23 @@ export const useThemeStore = defineStore("theme", () => {
       try {
         localStorage.setItem(userStorageKey(), primary.value);
       } catch {
-        /* storage unavailable — theme still applies for this session */
+        // Theme still applies in-memory even if storage is unavailable
       }
     }
     return true;
   }
 
-  // Restore the saved color for the logged-in account.
-  // Called at app start and whenever the logged-in user changes, so one
-  // user's color never leaks into another account on the same browser.
+  // Restore saved color for the active user account
   function load() {
     try {
       const saved = localStorage.getItem(userStorageKey());
-      // No saved color → fall back to the brand default (never inherit the
-      // previous account's color from memory)
       setPrimary(saved || DEFAULT_COLOR, { persist: false });
     } catch {
-      /* ignore */
+      // Ignore storage errors
     }
   }
 
-  // Back to the original brand color. persist=false is used on logout so
-  // we reset the in-memory UI WITHOUT overwriting the user's stored choice.
+  // Reset to original brand color
   function reset({ persist = true } = {}) {
     setPrimary(DEFAULT_COLOR, { persist });
   }

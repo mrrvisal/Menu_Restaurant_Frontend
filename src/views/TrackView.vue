@@ -1,21 +1,10 @@
-<!-- ═══════════════════════════════════════════════════════════
-   TrackView — Guest order tracking (/track)
-   After placing an order from the QR menu the guest is redirected
-   here with a one-time token. The page streams live status over
-   SSE: Received -> Preparing -> Ready -> Served (SVG step icons).
-   Public route — protected by the per-order track token.
-   ═══════════════════════════════════════════════════════════ -->
+<!-- Guest order live status tracking view (/track) -->
 <template>
   <div class="track" :style="themeVars">
     <!-- ─── TOP BAR ─── -->
     <header class="trk-top">
       <div class="trk-brand">
-        <img
-          v-if="order?.logoUrl"
-          :src="order.logoUrl"
-          class="trk-logo"
-          alt=""
-        />
+        <img v-if="order?.logoUrl" :src="order.logoUrl" class="trk-logo" alt="" />
         <AppIcon v-else name="store" :size="22" />
         <strong>{{ order?.restaurantName || i18n.t.track_title }}</strong>
       </div>
@@ -62,31 +51,20 @@
         <!-- ─── LIVE STEPPER ─── -->
         <div v-else class="trk-steps">
           <template v-for="(s, i) in steps" :key="s.key">
-            <div
-              class="trk-step"
-              :class="{ done: currentStep >= i, now: currentStep === i }"
-            >
+            <div class="trk-step" :class="{ done: currentStep >= i, now: currentStep === i }">
               <div class="step-dot">
                 <AppIcon :name="s.icon" :size="16" />
               </div>
               <span class="step-label">{{ s.label }}</span>
             </div>
-            <div
-              v-if="i < steps.length - 1"
-              class="step-line"
-              :class="{ filled: currentStep > i }"
-            ></div>
+            <div v-if="i < steps.length - 1" class="step-line" :class="{ filled: currentStep > i }"></div>
           </template>
         </div>
 
         <!-- ─── ITEMS ─── -->
         <div class="trk-items">
           <div class="trk-items-h">{{ i18n.t.kds_items }}</div>
-          <div
-            v-for="(it, idx) in parseItems(order.items)"
-            :key="idx"
-            class="trk-item"
-          >
+          <div v-for="(it, idx) in parseItems(order.items)" :key="idx" class="trk-item">
             <span class="qty">{{ it.qty }}×</span>
             <span class="name">{{ it.name }}</span>
             <span class="price">
@@ -333,12 +311,14 @@ onUnmounted(() => {
   color: var(--on-primary, #fff);
   flex-wrap: wrap;
 }
+
 .trk-brand {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
 }
+
 .trk-logo {
   width: 34px;
   height: 34px;
@@ -347,17 +327,20 @@ onUnmounted(() => {
   border: 2px solid rgba(255, 255, 255, 0.4);
   flex-shrink: 0;
 }
+
 .trk-brand strong {
   font-size: 15px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .trk-top-acts {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .trk-lang {
   height: 30px;
   min-width: 48px;
@@ -372,9 +355,11 @@ onUnmounted(() => {
   cursor: pointer;
   white-space: nowrap;
 }
+
 .trk-lang:hover {
   background: rgba(255, 255, 255, 0.22);
 }
+
 .trk-live {
   display: inline-flex;
   align-items: center;
@@ -387,6 +372,7 @@ onUnmounted(() => {
   font-weight: 700;
   white-space: nowrap;
 }
+
 .trk-live i {
   width: 7px;
   height: 7px;
@@ -394,15 +380,19 @@ onUnmounted(() => {
   background: #a7f3d0;
   animation: trk-blink 1.4s ease-in-out infinite;
 }
+
 .trk-live.off i {
   background: #fecaca;
   animation: none;
 }
+
 @keyframes trk-blink {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.25;
   }
@@ -416,6 +406,7 @@ onUnmounted(() => {
   justify-content: center;
   padding: 26px 14px 60px;
 }
+
 .trk-blank {
   text-align: center;
   color: var(--text-light, #6b7280);
@@ -425,10 +416,12 @@ onUnmounted(() => {
   gap: 12px;
   padding: 60px 10px;
 }
+
 .trk-blank p {
   margin: 0;
   font-size: 14px;
 }
+
 .trk-spinner {
   width: 30px;
   height: 30px;
@@ -437,6 +430,7 @@ onUnmounted(() => {
   border-radius: 50%;
   animation: trk-spin 0.7s linear infinite;
 }
+
 @keyframes trk-spin {
   to {
     transform: rotate(360deg);
@@ -456,6 +450,7 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 16px;
 }
+
 .trk-head {
   display: flex;
   align-items: center;
@@ -463,11 +458,13 @@ onUnmounted(() => {
   gap: 8px;
   flex-wrap: wrap;
 }
+
 .trk-oid {
   font-size: 17px;
   font-weight: 800;
   color: var(--primary-strong, var(--primary));
 }
+
 .trk-table {
   display: inline-flex;
   align-items: center;
@@ -479,6 +476,7 @@ onUnmounted(() => {
   background: var(--green-pale, #f0fdf4);
   color: var(--green-dark, #14532d);
 }
+
 .trk-time {
   font-size: 11px;
   color: var(--text-light, #6b7280);
@@ -505,6 +503,7 @@ onUnmounted(() => {
   display: flex;
   align-items: flex-start;
 }
+
 .trk-step {
   display: flex;
   flex-direction: column;
@@ -513,6 +512,7 @@ onUnmounted(() => {
   flex: 0 0 auto;
   min-width: 58px;
 }
+
 .step-dot {
   width: 38px;
   height: 38px;
@@ -525,6 +525,7 @@ onUnmounted(() => {
   border: 2px solid var(--green-soft, #e5efe9);
   transition: all 0.3s ease;
 }
+
 .step-label {
   font-size: 10.5px;
   font-weight: 700;
@@ -533,26 +534,33 @@ onUnmounted(() => {
   line-height: 1.25;
   white-space: nowrap;
 }
+
 .trk-step.done .step-dot {
   background: var(--primary);
   border-color: var(--primary);
   color: var(--on-primary, #fff);
 }
+
 .trk-step.done .step-label {
   color: var(--primary-strong, var(--primary));
 }
+
 .trk-step.now .step-dot {
   animation: trk-pulse 1.8s ease-in-out infinite;
 }
+
 @keyframes trk-pulse {
+
   0%,
   100% {
     box-shadow: 0 0 0 4px var(--glow-soft, rgba(74, 222, 128, 0.2));
   }
+
   50% {
     box-shadow: 0 0 0 8px var(--glow-soft, rgba(74, 222, 128, 0.08));
   }
 }
+
 .step-line {
   flex: 1;
   height: 3px;
@@ -562,6 +570,7 @@ onUnmounted(() => {
   min-width: 12px;
   transition: background 0.3s ease;
 }
+
 .step-line.filled {
   background: var(--primary);
 }
@@ -574,6 +583,7 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 7px;
 }
+
 .trk-items-h {
   font-size: 10.5px;
   font-weight: 800;
@@ -581,28 +591,33 @@ onUnmounted(() => {
   letter-spacing: 0.6px;
   color: var(--text-light, #9ca3af);
 }
+
 .trk-item {
   display: flex;
   align-items: baseline;
   gap: 8px;
   font-size: 14px;
 }
+
 .trk-item .qty {
   color: var(--primary-strong, var(--primary));
   font-weight: 800;
   min-width: 28px;
   text-align: right;
 }
+
 .trk-item .name {
   flex: 1;
   min-width: 0;
 }
+
 .trk-item .price {
   font-weight: 600;
   color: var(--text-light, #4b5563);
   font-size: 12.5px;
   white-space: nowrap;
 }
+
 .trk-note {
   margin-top: 4px;
   font-size: 12px;
@@ -627,6 +642,7 @@ onUnmounted(() => {
   font-weight: 700;
   color: var(--text-light, #6b7280);
 }
+
 .trk-total strong {
   font-size: 20px;
   font-weight: 800;
@@ -638,6 +654,7 @@ onUnmounted(() => {
   .step-label {
     font-size: 9.5px;
   }
+
   .trk-card {
     padding: 15px 14px 18px;
   }
@@ -650,4 +667,3 @@ onUnmounted(() => {
   }
 }
 </style>
-

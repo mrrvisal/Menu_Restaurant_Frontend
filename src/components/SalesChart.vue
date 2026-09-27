@@ -1,33 +1,11 @@
-<!--
-  frontend/src/components/SalesChart.vue
-  ─────────────────────────────────────────────────────────────
-  Dependency-free SVG bar chart for the dashboard Reports tab.
-  The project ships no chart library (and its whole iconography is inline
-  SVG), so this draws the axis, grid, bars and labels itself and sizes to
-  its container with a ResizeObserver.
-
-  Usage:
-    <SalesChart :points="[{ label: '2026-09-10', value: 125000 }]"
-                :format-value="currencyStore.fmt" />
--->
+<!-- Dependency-free SVG bar chart for dashboard reports -->
 <template>
   <div ref="root" class="chart-root" :style="{ height: height + 'px' }">
-    <div
-      v-if="!points.length"
-      class="chart-empty"
-      :style="{ lineHeight: height + 'px' }"
-    >
+    <div v-if="!points.length" class="chart-empty" :style="{ lineHeight: height + 'px' }">
       {{ emptyText }}
     </div>
-    <svg
-      v-else
-      class="chart-svg"
-      :width="width"
-      :height="height"
-      :viewBox="`0 0 ${Math.max(width, 1)} ${height}`"
-      role="img"
-      :aria-label="ariaLabel"
-    >
+    <svg v-else class="chart-svg" :width="width" :height="height" :viewBox="`0 0 ${Math.max(width, 1)} ${height}`"
+      role="img" :aria-label="ariaLabel">
       <defs>
         <linearGradient :id="gradientId" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" :stop-color="color" stop-opacity="0.95" />
@@ -39,12 +17,7 @@
       <g class="chart-grid">
         <template v-for="t in ticks" :key="'t' + t.value">
           <line :x1="pad.left" :y1="t.y" :x2="width - pad.right" :y2="t.y" />
-          <text
-            class="chart-axis-y"
-            :x="pad.left - 8"
-            :y="t.y + 3.5"
-            text-anchor="end"
-          >
+          <text class="chart-axis-y" :x="pad.left - 8" :y="t.y + 3.5" text-anchor="end">
             {{ formatAxis ? formatAxis(t.value) : t.value }}
           </text>
         </template>
@@ -53,26 +26,12 @@
       <!-- bars (with a full-height hit area so the whole slot is hoverable) -->
       <g>
         <template v-for="b in bars" :key="b.label + b.index">
-          <rect
-            :class="['chart-bar', { active: hoverIndex === b.index }]"
-            :x="b.x"
-            :y="b.y"
-            :width="b.w"
-            :height="b.h"
-            :rx="barRadius"
-            :fill="`url(#${gradientId})`"
-          >
+          <rect :class="['chart-bar', { active: hoverIndex === b.index }]" :x="b.x" :y="b.y" :width="b.w" :height="b.h"
+            :rx="barRadius" :fill="`url(#${gradientId})`">
             <title>{{ b.label }} — {{ formatValue ? formatValue(b.value) : b.value }}</title>
           </rect>
-          <rect
-            class="chart-hit"
-            :x="b.x - b.gap / 2"
-            :y="pad.top"
-            :width="b.w + b.gap"
-            :height="innerH"
-            @pointerenter="hoverIndex = b.index"
-            @pointerleave="hoverIndex = null"
-          >
+          <rect class="chart-hit" :x="b.x - b.gap / 2" :y="pad.top" :width="b.w + b.gap" :height="innerH"
+            @pointerenter="hoverIndex = b.index" @pointerleave="hoverIndex = null">
             <title>{{ b.label }} — {{ formatValue ? formatValue(b.value) : b.value }}</title>
           </rect>
         </template>
@@ -80,13 +39,8 @@
 
       <!-- x labels (thinned out so they never overlap) -->
       <g class="chart-axis-x">
-        <text
-          v-for="b in labelledBars"
-          :key="'x' + b.index"
-          :x="b.x + b.w / 2"
-          :y="height - 8"
-          text-anchor="middle"
-        >{{ b.shortLabel }}</text>
+        <text v-for="b in labelledBars" :key="'x' + b.index" :x="b.x + b.w / 2" :y="height - 8" text-anchor="middle">{{
+          b.shortLabel }}</text>
       </g>
     </svg>
   </div>
@@ -213,36 +167,44 @@ onBeforeUnmount(() => {
   width: 100%;
   overflow: hidden;
 }
+
 .chart-empty {
   font-size: 12px;
   color: var(--muted, #6b7280);
   text-align: center;
 }
+
 .chart-svg {
   display: block;
 }
+
 .chart-grid line {
   stroke: var(--border, #e2e8f0);
   stroke-width: 1;
   stroke-dasharray: 3 4;
 }
+
 .chart-axis-y,
 .chart-axis-x text {
   font-size: 9.5px;
   font-weight: 600;
   fill: var(--muted-light, #9ca3af);
 }
+
 .chart-axis-x text {
   font-size: 9px;
 }
+
 .chart-bar {
   transition: opacity 0.15s ease;
   pointer-events: none;
 }
+
 .chart-hit {
   fill: transparent;
   cursor: default;
 }
+
 .chart-bar.active {
   opacity: 0.65;
 }

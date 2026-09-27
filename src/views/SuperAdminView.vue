@@ -2,7 +2,9 @@
   <div class="shell" :class="{ 'nav-open': mobileNavOpen }">
     <!-- MOBILE TOP BAR -->
     <div class="mobile-bar sel-light">
-      <div class="mark "><img width="40" src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png" alt=""></div>
+      <div class="mark "><img width="40"
+          src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png"
+          alt=""></div>
       <span class="mobile-bar-title">{{ t.super_admin }}</span>
       <button class="icon-btn" @click="mobileNavOpen = !mobileNavOpen" :aria-label="t.toggle_nav">
         <AppIcon name="menu" :size="18" />
@@ -14,7 +16,9 @@
       <div class="brand-area">
         <div class="brand-glow"></div>
         <div class="brand-content">
-          <div class="mark"><img width="40" src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png" alt=""></div>
+          <div class="mark"><img width="40"
+              src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png"
+              alt=""></div>
           <div class="brand-text">
             <span class="brand-name">{{ t.super_admin }}</span>
           </div>
@@ -22,43 +26,28 @@
       </div>
 
       <nav class="nav">
-        <button
-          class="nav-item"
-          :class="{ active: tab === 'admins' }"
-          @click="tab = 'admins'; fetchAdmins(); mobileNavOpen = false"
-        >
+        <button class="nav-item" :class="{ active: tab === 'admins' }"
+          @click="tab = 'admins'; fetchAdmins(); mobileNavOpen = false">
           <AppIcon name="users" :size="18" />
           <span>{{ t.admin_management }}</span>
         </button>
-        <button
-          class="nav-item"
-          :class="{ active: tab === 'super-admins' }"
-          @click="tab = 'super-admins'; fetchSuperAdmins(); mobileNavOpen = false"
-        >
+        <button class="nav-item" :class="{ active: tab === 'super-admins' }"
+          @click="tab = 'super-admins'; fetchSuperAdmins(); mobileNavOpen = false">
           <AppIcon name="shield" :size="18" />
           <span>{{ t.super_admin_management }}</span>
         </button>
-        <button
-          class="nav-item"
-          :class="{ active: tab === 'restaurants' }"
-          @click="tab = 'restaurants'; fetchRestaurants(); mobileNavOpen = false"
-        >
+        <button class="nav-item" :class="{ active: tab === 'restaurants' }"
+          @click="tab = 'restaurants'; fetchRestaurants(); mobileNavOpen = false">
           <AppIcon name="store" :size="18" />
           <span>{{ t.restaurants }}</span>
         </button>
-        <button
-          class="nav-item"
-          :class="{ active: tab === 'orders' }"
-          @click="tab = 'orders'; fetchOrders(); mobileNavOpen = false"
-        >
+        <button class="nav-item" :class="{ active: tab === 'orders' }"
+          @click="tab = 'orders'; fetchOrders(); mobileNavOpen = false">
           <AppIcon name="orders" :size="18" />
           <span>{{ t.orders }}</span>
         </button>
-        <button
-          class="nav-item"
-          :class="{ active: tab === 'access' }"
-          @click="tab = 'access'; fetchAccess(); mobileNavOpen = false"
-        >
+        <button class="nav-item" :class="{ active: tab === 'access' }"
+          @click="tab = 'access'; fetchAccess(); mobileNavOpen = false">
           <AppIcon name="activity" :size="18" />
           <span>{{ t.access_logs }}</span>
         </button>
@@ -83,12 +72,7 @@
           <h1 class="page-title">{{ getPageTitle() }}</h1>
           <p class="page-sub">{{ t.super_admin }} · {{ t.manage_system }}</p>
         </div>
-        <button
-          class="btn btn-refresh"
-          :class="{ spinning: loading }"
-          :disabled="loading"
-          @click="refreshAll"
-        >
+        <button class="btn btn-refresh" :class="{ spinning: loading }" :disabled="loading" @click="refreshAll">
           <AppIcon name="refresh" :size="15" /> {{ t.refresh }}
         </button>
       </header>
@@ -96,15 +80,20 @@
       <!-- STATS -->
       <section class="stats-grid">
         <div class="stat-card stat-click" role="button" :title="t.admin_management" @click="goToTab('admins')">
-          <div class="stat-icon-wrap icon-teal"><AppIcon name="users" :size="20" /></div>
+          <div class="stat-icon-wrap icon-teal">
+            <AppIcon name="users" :size="20" />
+          </div>
           <div class="stat-body">
             <span class="stat-num">{{ adminStats?.byRole?.owner?.total ?? 0 }}</span>
             <span class="stat-label">{{ t.admins }}</span>
           </div>
           <div class="stat-spark teal"></div>
         </div>
-        <div class="stat-card stat-click" role="button" :title="t.super_admin_management" @click="goToTab('super-admins')">
-          <div class="stat-icon-wrap icon-purple"><AppIcon name="shield" :size="20" /></div>
+        <div class="stat-card stat-click" role="button" :title="t.super_admin_management"
+          @click="goToTab('super-admins')">
+          <div class="stat-icon-wrap icon-purple">
+            <AppIcon name="shield" :size="20" />
+          </div>
           <div class="stat-body">
             <span class="stat-num">{{ adminStats?.byRole?.super_admin?.total ?? 0 }}</span>
             <span class="stat-label">{{ t.super_admins }}</span>
@@ -112,7 +101,9 @@
           <div class="stat-spark purple"></div>
         </div>
         <div class="stat-card stat-click" role="button" :title="t.restaurants" @click="goToTab('restaurants')">
-          <div class="stat-icon-wrap icon-amber"><AppIcon name="store" :size="20" /></div>
+          <div class="stat-icon-wrap icon-amber">
+            <AppIcon name="store" :size="20" />
+          </div>
           <div class="stat-body">
             <span class="stat-num">{{ adminStats?.totalRestaurants ?? stats.totalRestaurants }}</span>
             <span class="stat-label">{{ t.total_restaurants }}</span>
@@ -120,7 +111,9 @@
           <div class="stat-spark amber"></div>
         </div>
         <div class="stat-card stat-click" role="button" :title="t.orders" @click="goToTab('orders')">
-          <div class="stat-icon-wrap icon-blue"><AppIcon name="clipboard" :size="20" /></div>
+          <div class="stat-icon-wrap icon-blue">
+            <AppIcon name="clipboard" :size="20" />
+          </div>
           <div class="stat-body">
             <span class="stat-num">{{ adminStats?.totalOrders ?? stats.totalOrders }}</span>
             <span class="stat-label">{{ t.total_orders }}</span>
@@ -128,7 +121,9 @@
           <div class="stat-spark blue"></div>
         </div>
         <div class="stat-card stat-click" role="button" :title="t.foods" @click="goToTab('restaurants')">
-          <div class="stat-icon-wrap icon-green"><AppIcon name="food" :size="20" /></div>
+          <div class="stat-icon-wrap icon-green">
+            <AppIcon name="food" :size="20" />
+          </div>
           <div class="stat-body">
             <span class="stat-num">{{ stats.totalFoods }}</span>
             <span class="stat-label">{{ t.total_foods }}</span>
@@ -136,7 +131,9 @@
           <div class="stat-spark green"></div>
         </div>
         <div class="stat-card stat-click" role="button" :title="t.orders_today" @click="goToTab('orders')">
-          <div class="stat-icon-wrap icon-blue"><AppIcon name="orders" :size="20" /></div>
+          <div class="stat-icon-wrap icon-blue">
+            <AppIcon name="orders" :size="20" />
+          </div>
           <div class="stat-body">
             <span class="stat-num">{{ stats.todayOrders ?? 0 }}</span>
             <span class="stat-label">{{ t.orders_today }}</span>
@@ -144,7 +141,9 @@
           <div class="stat-spark blue"></div>
         </div>
         <div class="stat-card stat-click" role="button" :title="t.active_sessions" @click="goToTab('admins')">
-          <div class="stat-icon-wrap icon-blue"><AppIcon name="activity" :size="20" /></div>
+          <div class="stat-icon-wrap icon-blue">
+            <AppIcon name="activity" :size="20" />
+          </div>
           <div class="stat-body">
             <span class="stat-num">{{ adminStats?.activeSessions ?? 0 }}</span>
             <span class="stat-label">{{ t.active_sessions }}</span>
@@ -152,7 +151,9 @@
           <div class="stat-spark blue"></div>
         </div>
         <div class="stat-card stat-click" role="button" :title="t.pending" @click="goToTab('orders')">
-          <div class="stat-icon-wrap icon-amber"><AppIcon name="clock" :size="20" /></div>
+          <div class="stat-icon-wrap icon-amber">
+            <AppIcon name="clock" :size="20" />
+          </div>
           <div class="stat-body">
             <span class="stat-num">{{ stats.pendingOrders ?? 0 }}</span>
             <span class="stat-label">{{ t.pending }}</span>
@@ -160,7 +161,9 @@
           <div class="stat-spark amber"></div>
         </div>
         <div class="stat-card stat-click" role="button" :title="t.revenue_label" @click="goToTab('orders')">
-          <div class="stat-icon-wrap icon-green"><AppIcon name="cart" :size="20" /></div>
+          <div class="stat-icon-wrap icon-green">
+            <AppIcon name="cart" :size="20" />
+          </div>
           <div class="stat-body">
             <span class="stat-num">{{ formatMoney(stats.revenue ?? 0) }}</span>
             <span class="stat-label">{{ t.revenue_label }}</span>
@@ -169,203 +172,162 @@
         </div>
       </section>
       <!-- ADMINS (Owners) -->
-       <section v-if="tab === 'admins'" class="panel">
-         <div class="panel-head">
-           <span class="panel-title"><AppIcon name="users" :size="16" /> {{ t.admins }}</span>
-           <div class="panel-tools">
-             <div class="search-box">
-               <AppIcon name="search" :size="14" />
-               <input v-model="adminSearch" class="search-input" :placeholder="t.search" />
-             </div>
-             <AppSelect
-               size="sm"
-               variant="teal"
-               min-width="110px"
-               :model-value="adminStatusFilter"
-               :options="adminStatusOptions"
-               @update:model-value="adminStatusFilter = $event"
-             />
-             <span class="panel-count">{{ filteredAdmins.length }}</span>
-           </div>
-         </div>
+      <section v-if="tab === 'admins'" class="panel">
+        <div class="panel-head">
+          <span class="panel-title">
+            <AppIcon name="users" :size="16" /> {{ t.admins }}
+          </span>
+          <div class="panel-tools">
+            <div class="search-box">
+              <AppIcon name="search" :size="14" />
+              <input v-model="adminSearch" class="search-input" :placeholder="t.search" />
+            </div>
+            <AppSelect size="sm" variant="teal" min-width="110px" :model-value="adminStatusFilter"
+              :options="adminStatusOptions" @update:model-value="adminStatusFilter = $event" />
+            <span class="panel-count">{{ filteredAdmins.length }}</span>
+          </div>
+        </div>
 
-         <div class="panel-actions">
-           <button class="btn btn-teal" @click="showCreateAdminModal = true">
-             <AppIcon name="plus" :size="14" /> {{ t.add_admin }}
-           </button>
-         </div>
+        <div class="panel-actions">
+          <button class="btn btn-teal" @click="showCreateAdminModal = true">
+            <AppIcon name="plus" :size="14" /> {{ t.add_admin }}
+          </button>
+        </div>
 
-         <div v-if="adminLoading && !admins.length" class="rows">
-           <div v-for="i in 3" :key="i" class="skel-row">
-             <span class="skel skel-avatar"></span>
-             <span class="skel skel-line"></span>
-             <span class="skel skel-line short"></span>
-           </div>
-         </div>
-         <div v-else-if="filteredAdmins.length" class="rows">
-           <div
-             v-for="admin in filteredAdmins"
-             :key="admin.id"
-             class="row"
-             @click="openAdminDetail(admin)"
-           >
-             <div class="row-main">
-               <div class="avatar avatar-teal">
-                 {{ (admin.full_name || admin.email || '?').charAt(0).toUpperCase() }}
-               </div>
-               <div class="row-text">
-                 <span class="row-muted">{{ admin.full_name || admin.email }}</span>
-                 <span class="row-sub">{{ admin.restaurant_name || t.restaurant_owner }}</span>
-               </div>
-             </div>
+        <div v-if="adminLoading && !admins.length" class="rows">
+          <div v-for="i in 3" :key="i" class="skel-row">
+            <span class="skel skel-avatar"></span>
+            <span class="skel skel-line"></span>
+            <span class="skel skel-line short"></span>
+          </div>
+        </div>
+        <div v-else-if="filteredAdmins.length" class="rows">
+          <div v-for="admin in filteredAdmins" :key="admin.id" class="row" @click="openAdminDetail(admin)">
+            <div class="row-main">
+              <div class="avatar avatar-teal">
+                {{ (admin.full_name || admin.email || '?').charAt(0).toUpperCase() }}
+              </div>
+              <div class="row-text">
+                <span class="row-muted">{{ admin.full_name || admin.email }}</span>
+                <span class="row-sub">{{ admin.restaurant_name || t.restaurant_owner }}</span>
+              </div>
+            </div>
 
-             <div class="row-meta">
-               <span class="tag tag-teal">{{ t.owner }}</span>
-               <span class="status-dot" :class="'sd-' + admin.status">
-                 <i></i>{{ statusLabel(admin.status) }}
-               </span>
-               <span class="status-dot" :class="admin.email_verified ? 'sd-verified' : 'sd-pending'">
-                 <i></i>{{ admin.email_verified ? t.email_verified : t.not_verified }}
-               </span>
-               <span class="row-muted">{{ admin.restaurant_count }} {{ t.restaurants }}</span>
-             </div>
+            <div class="row-meta">
+              <span class="tag tag-teal">{{ t.owner }}</span>
+              <span class="status-dot" :class="'sd-' + admin.status">
+                <i></i>{{ statusLabel(admin.status) }}
+              </span>
+              <span class="status-dot" :class="admin.email_verified ? 'sd-verified' : 'sd-pending'">
+                <i></i>{{ admin.email_verified ? t.email_verified : t.not_verified }}
+              </span>
+              <span class="row-muted">{{ admin.restaurant_count }} {{ t.restaurants }}</span>
+            </div>
 
-             <div class="row-actions" @click.stop>
-               <AppSelect
-                 size="sm"
-                 variant="teal"
-                 min-width="110px"
-                 :model-value="admin.status"
-                 :options="[
-                   { value: 'active', label: t.activate },
-                   { value: 'suspended', label: t.suspend },
-                   { value: 'inactive', label: t.inactive },
-                 ]"
-                 @update:model-value="(v) => updateAdminStatus(admin.id, v)"
-               />
-             </div>
-           </div>
-         </div>
-         <div v-else class="empty">
-           <AppIcon name="category" :size="34" />
-           <p>{{ (adminSearch || adminStatusFilter) ? t.no_results : t.no_admins }}</p>
-         </div>
-       </section>
+            <div class="row-actions" @click.stop>
+              <AppSelect size="sm" variant="teal" min-width="110px" :model-value="admin.status" :options="[
+                { value: 'active', label: t.activate },
+                { value: 'suspended', label: t.suspend },
+                { value: 'inactive', label: t.inactive },
+              ]" @update:model-value="(v) => updateAdminStatus(admin.id, v)" />
+            </div>
+          </div>
+        </div>
+        <div v-else class="empty">
+          <AppIcon name="category" :size="34" />
+          <p>{{ (adminSearch || adminStatusFilter) ? t.no_results : t.no_admins }}</p>
+        </div>
+      </section>
       <!-- SUPER ADMINS -->
-       <section v-if="tab === 'super-admins'" class="panel">
-         <div class="panel-head">
-           <span class="panel-title"><AppIcon name="shield" :size="16" /> {{ t.super_admins }}</span>
-           <div class="panel-tools">
-             <div class="search-box">
-               <AppIcon name="search" :size="14" />
-               <input v-model="superAdminSearch" class="search-input" :placeholder="t.search" />
-             </div>
-             <AppSelect
-               size="sm"
-               variant="purple"
-               min-width="110px"
-               :model-value="superAdminStatusFilter"
-               :options="adminStatusOptions"
-               @update:model-value="superAdminStatusFilter = $event"
-             />
-             <span class="panel-count">{{ filteredSuperAdmins.length }}</span>
-           </div>
-         </div>
+      <section v-if="tab === 'super-admins'" class="panel">
+        <div class="panel-head">
+          <span class="panel-title">
+            <AppIcon name="shield" :size="16" /> {{ t.super_admins }}
+          </span>
+          <div class="panel-tools">
+            <div class="search-box">
+              <AppIcon name="search" :size="14" />
+              <input v-model="superAdminSearch" class="search-input" :placeholder="t.search" />
+            </div>
+            <AppSelect size="sm" variant="purple" min-width="110px" :model-value="superAdminStatusFilter"
+              :options="adminStatusOptions" @update:model-value="superAdminStatusFilter = $event" />
+            <span class="panel-count">{{ filteredSuperAdmins.length }}</span>
+          </div>
+        </div>
 
-         <div class="panel-actions">
-           <button class="btn btn-purple" @click="showCreateSuperAdminModal = true">
-             <AppIcon name="plus" :size="14" /> {{ t.add_super_admin }}
-           </button>
-         </div>
+        <div class="panel-actions">
+          <button class="btn btn-purple" @click="showCreateSuperAdminModal = true">
+            <AppIcon name="plus" :size="14" /> {{ t.add_super_admin }}
+          </button>
+        </div>
 
-         <div v-if="superAdminLoading && !superAdmins.length" class="rows">
-           <div v-for="i in 3" :key="i" class="skel-row">
-             <span class="skel skel-avatar"></span>
-             <span class="skel skel-line"></span>
-             <span class="skel skel-line short"></span>
-           </div>
-         </div>
-         <div v-else-if="filteredSuperAdmins.length" class="rows">
-           <div
-             v-for="admin in filteredSuperAdmins"
-             :key="admin.id"
-             class="row"
-             @click="openSuperAdminDetail(admin)"
-           >
-             <div class="row-main">
-               <div class="avatar avatar-purple">
-                 {{ (admin.full_name || admin.email || '?').charAt(0).toUpperCase() }}
-               </div>
-               <div class="row-text">
-                 <span class="row-muted">{{ admin.full_name || admin.email }}</span>
-                 <span class="row-sub">{{ t.super_admin_label }}</span>
-               </div>
-             </div>
+        <div v-if="superAdminLoading && !superAdmins.length" class="rows">
+          <div v-for="i in 3" :key="i" class="skel-row">
+            <span class="skel skel-avatar"></span>
+            <span class="skel skel-line"></span>
+            <span class="skel skel-line short"></span>
+          </div>
+        </div>
+        <div v-else-if="filteredSuperAdmins.length" class="rows">
+          <div v-for="admin in filteredSuperAdmins" :key="admin.id" class="row" @click="openSuperAdminDetail(admin)">
+            <div class="row-main">
+              <div class="avatar avatar-purple">
+                {{ (admin.full_name || admin.email || '?').charAt(0).toUpperCase() }}
+              </div>
+              <div class="row-text">
+                <span class="row-muted">{{ admin.full_name || admin.email }}</span>
+                <span class="row-sub">{{ t.super_admin_label }}</span>
+              </div>
+            </div>
 
-             <div class="row-meta">
-               <span class="tag tag-purple">{{ t.super_admin_label }}</span>
-               <span class="status-dot" :class="'sd-' + admin.status">
-                 <i></i>{{ statusLabel(admin.status) }}
-               </span>
-               <span class="status-dot" :class="admin.email_verified ? 'sd-verified' : 'sd-pending'">
-                 <i></i>{{ admin.email_verified ? t.email_verified : t.not_verified }}
-               </span>
-               <span class="status-dot sd-lastlogin" :title="t.last_login">
-                 <i></i>{{ admin.last_login_at ? formatDate(admin.last_login_at) : t.never }}
-               </span>
-             </div>
+            <div class="row-meta">
+              <span class="tag tag-purple">{{ t.super_admin_label }}</span>
+              <span class="status-dot" :class="'sd-' + admin.status">
+                <i></i>{{ statusLabel(admin.status) }}
+              </span>
+              <span class="status-dot" :class="admin.email_verified ? 'sd-verified' : 'sd-pending'">
+                <i></i>{{ admin.email_verified ? t.email_verified : t.not_verified }}
+              </span>
+              <span class="status-dot sd-lastlogin" :title="t.last_login">
+                <i></i>{{ admin.last_login_at ? formatDate(admin.last_login_at) : t.never }}
+              </span>
+            </div>
 
-             <div class="row-actions" @click.stop>
-               <AppSelect
-                 size="sm"
-                 variant="purple"
-                 min-width="110px"
-                 :model-value="admin.status"
-                 :options="[
-                   { value: 'active', label: t.activate },
-                   { value: 'suspended', label: t.suspend },
-                   { value: 'inactive', label: t.inactive },
-                 ]"
-                 @update:model-value="(v) => updateSuperAdminStatus(admin.id, v)"
-               />
-             </div>
-           </div>
-         </div>
-         <div v-else class="empty">
-           <AppIcon name="shield" :size="34" />
-           <p>{{ (superAdminSearch || superAdminStatusFilter) ? t.no_results : t.no_super_admins }}</p>
-         </div>
-       </section>
+            <div class="row-actions" @click.stop>
+              <AppSelect size="sm" variant="purple" min-width="110px" :model-value="admin.status" :options="[
+                { value: 'active', label: t.activate },
+                { value: 'suspended', label: t.suspend },
+                { value: 'inactive', label: t.inactive },
+              ]" @update:model-value="(v) => updateSuperAdminStatus(admin.id, v)" />
+            </div>
+          </div>
+        </div>
+        <div v-else class="empty">
+          <AppIcon name="shield" :size="34" />
+          <p>{{ (superAdminSearch || superAdminStatusFilter) ? t.no_results : t.no_super_admins }}</p>
+        </div>
+      </section>
 
       <!-- USERS -->
       <section v-if="tab === 'users'" class="panel">
         <div class="panel-head">
-          <span class="panel-title"><AppIcon name="users" :size="16" /> {{ t.users }}</span>
+          <span class="panel-title">
+            <AppIcon name="users" :size="16" /> {{ t.users }}
+          </span>
           <div class="panel-tools">
             <div class="search-box">
               <AppIcon name="search" :size="14" />
               <input v-model="userSearch" class="search-input" :placeholder="t.search" />
             </div>
-            <AppSelect
-              size="sm"
-              variant="teal"
-              min-width="110px"
-              :model-value="userSort"
-              :options="userSortOptions"
-              @update:model-value="userSort = $event"
-            />
+            <AppSelect size="sm" variant="teal" min-width="110px" :model-value="userSort" :options="userSortOptions"
+              @update:model-value="userSort = $event" />
             <span class="panel-count">{{ filteredUsers.length }}</span>
           </div>
         </div>
 
         <div class="order-chips">
-          <button
-            v-for="s in userRoleFilters"
-            :key="s.value"
-            class="chip"
-            :class="{ 'chip-active': userRoleFilter === s.value }"
-            @click="userRoleFilter = s.value"
-          >
+          <button v-for="s in userRoleFilters" :key="s.value" class="chip"
+            :class="{ 'chip-active': userRoleFilter === s.value }" @click="userRoleFilter = s.value">
             {{ s.label }}
           </button>
         </div>
@@ -378,12 +340,7 @@
           </div>
         </div>
         <div v-else-if="filteredUsers.length" class="rows">
-          <div
-            v-for="user in filteredUsers"
-            :key="user.id"
-            class="row"
-            @click="openUserDetail(user)"
-          >
+          <div v-for="user in filteredUsers" :key="user.id" class="row" @click="openUserDetail(user)">
             <div class="row-main">
               <div class="avatar" :class="user.role === 'super_admin' ? 'avatar-amber' : 'avatar-teal'">
                 {{ (user.full_name || user.email || '?').charAt(0).toUpperCase() }}
@@ -410,18 +367,11 @@
             </div>
 
             <div class="row-actions" @click.stop>
-              <AppSelect
-                size="sm"
-                variant="teal"
-                min-width="110px"
-                :model-value="user.status"
-                :options="[
-                  { value: 'active', label: t.activate },
-                  { value: 'suspended', label: t.suspend },
-                  { value: 'inactive', label: t.inactive },
-                ]"
-                @update:model-value="(v) => updateUserStatus(user.id, v)"
-              />
+              <AppSelect size="sm" variant="teal" min-width="110px" :model-value="user.status" :options="[
+                { value: 'active', label: t.activate },
+                { value: 'suspended', label: t.suspend },
+                { value: 'inactive', label: t.inactive },
+              ]" @update:model-value="(v) => updateUserStatus(user.id, v)" />
             </div>
           </div>
         </div>
@@ -434,32 +384,23 @@
       <!-- RESTAURANTS -->
       <section v-if="tab === 'restaurants'" class="panel">
         <div class="panel-head">
-          <span class="panel-title"><AppIcon name="store" :size="16" /> {{ t.restaurants }}</span>
+          <span class="panel-title">
+            <AppIcon name="store" :size="16" /> {{ t.restaurants }}
+          </span>
           <div class="panel-tools">
             <div class="search-box">
               <AppIcon name="search" :size="14" />
               <input v-model="restaurantSearch" class="search-input" :placeholder="t.search" />
             </div>
-            <AppSelect
-              size="sm"
-              variant="teal"
-              min-width="110px"
-              :model-value="restSort"
-              :options="restSortOptions"
-              @update:model-value="restSort = $event"
-            />
+            <AppSelect size="sm" variant="teal" min-width="110px" :model-value="restSort" :options="restSortOptions"
+              @update:model-value="restSort = $event" />
             <span class="panel-count">{{ filteredRestaurants.length }}</span>
           </div>
         </div>
 
         <div class="order-chips">
-          <button
-            v-for="s in restStatusFilters"
-            :key="s.value"
-            class="chip"
-            :class="{ 'chip-active': restStatusFilter === s.value }"
-            @click="restStatusFilter = s.value"
-          >
+          <button v-for="s in restStatusFilters" :key="s.value" class="chip"
+            :class="{ 'chip-active': restStatusFilter === s.value }" @click="restStatusFilter = s.value">
             {{ s.label }}
           </button>
         </div>
@@ -472,12 +413,7 @@
           </div>
         </div>
         <div v-else-if="filteredRestaurants.length" class="rows">
-          <div
-            v-for="r in filteredRestaurants"
-            :key="r.id"
-            class="row"
-            @click="openRestaurantDetail(r)"
-          >
+          <div v-for="r in filteredRestaurants" :key="r.id" class="row" @click="openRestaurantDetail(r)">
             <div class="row-main">
               <div class="avatar avatar-amber avatar-square">
                 <AppIcon name="store" :size="16" />
@@ -500,18 +436,11 @@
             </div>
 
             <div class="row-actions" @click.stop>
-              <AppSelect
-                size="sm"
-                variant="teal"
-                min-width="110px"
-                :model-value="r.status"
-                :options="[
-                  { value: 'active', label: t.activate },
-                  { value: 'suspended', label: t.suspend },
-                  { value: 'inactive', label: t.inactive },
-                ]"
-                @update:model-value="(v) => updateRestaurantStatus(r.id, v)"
-              />
+              <AppSelect size="sm" variant="teal" min-width="110px" :model-value="r.status" :options="[
+                { value: 'active', label: t.activate },
+                { value: 'suspended', label: t.suspend },
+                { value: 'inactive', label: t.inactive },
+              ]" @update:model-value="(v) => updateRestaurantStatus(r.id, v)" />
             </div>
           </div>
         </div>
@@ -524,18 +453,16 @@
       <!-- ORDERS (global feed all restaurants -->
       <section v-if="tab === 'orders'" class="panel">
         <div class="panel-head">
-          <span class="panel-title"><AppIcon name="orders" :size="16" /> {{ t.orders }}</span>
+          <span class="panel-title">
+            <AppIcon name="orders" :size="16" /> {{ t.orders }}
+          </span>
           <span class="panel-count">{{ orders.length }}</span>
         </div>
 
         <div class="order-chips">
-          <button
-            v-for="s in orderStatuses"
-            :key="s.value"
-            class="chip"
+          <button v-for="s in orderStatuses" :key="s.value" class="chip"
             :class="{ 'chip-active': orderStatusFilter === s.value }"
-            @click="orderStatusFilter = s.value; fetchOrders()"
-          >
+            @click="orderStatusFilter = s.value; fetchOrders()">
             {{ s.label }}
           </button>
         </div>
@@ -548,14 +475,11 @@
           </div>
         </div>
         <div v-else-if="orders.length" class="rows">
-          <div
-            v-for="o in orders"
-            :key="o.id"
-            class="row"
-            @click="openOrderDetail(o)"
-          >
+          <div v-for="o in orders" :key="o.id" class="row" @click="openOrderDetail(o)">
             <div class="row-main">
-              <div class="avatar avatar-amber avatar-square"><AppIcon name="orders" :size="16" /></div>
+              <div class="avatar avatar-amber avatar-square">
+                <AppIcon name="orders" :size="16" />
+              </div>
               <div class="row-text">
                 <span class="row-title">#{{ o.id }} · {{ o.restaurant_name }}</span>
                 <span class="row-sub">{{ o.tableNo }} · {{ o.customerName || "—" }}</span>
@@ -581,7 +505,9 @@
       <template v-if="tab === 'access'">
         <section class="stats-grid">
           <div class="stat-card">
-            <div class="stat-icon-wrap icon-teal"><AppIcon name="users" :size="20" /></div>
+            <div class="stat-icon-wrap icon-teal">
+              <AppIcon name="users" :size="20" />
+            </div>
             <div class="stat-body">
               <span class="stat-num">{{ accessStats.usersToday ?? 0 }}</span>
               <span class="stat-label">{{ t.unique_users_today }}</span>
@@ -589,7 +515,9 @@
             <div class="stat-spark teal"></div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon-wrap icon-green"><AppIcon name="activity" :size="20" /></div>
+            <div class="stat-icon-wrap icon-green">
+              <AppIcon name="activity" :size="20" />
+            </div>
             <div class="stat-body">
               <span class="stat-num">{{ accessStats.onlineNow ?? 0 }}</span>
               <span class="stat-label">{{ t.online_now }}</span>
@@ -597,7 +525,9 @@
             <div class="stat-spark green"></div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon-wrap icon-blue"><AppIcon name="key" :size="20" /></div>
+            <div class="stat-icon-wrap icon-blue">
+              <AppIcon name="key" :size="20" />
+            </div>
             <div class="stat-body">
               <span class="stat-num">{{ accessStats.loginsToday ?? 0 }}</span>
               <span class="stat-label">{{ t.logins_today }}</span>
@@ -605,7 +535,9 @@
             <div class="stat-spark blue"></div>
           </div>
           <div class="stat-card">
-            <div class="stat-icon-wrap icon-amber"><AppIcon name="lock" :size="20" /></div>
+            <div class="stat-icon-wrap icon-amber">
+              <AppIcon name="lock" :size="20" />
+            </div>
             <div class="stat-body">
               <span class="stat-num">{{ accessStats.activeSessions ?? 0 }}</span>
               <span class="stat-label">{{ t.active_sessions }}</span>
@@ -616,7 +548,9 @@
 
         <section class="panel">
           <div class="panel-head">
-            <span class="panel-title"><AppIcon name="activity" :size="16" /> {{ t.access_logs }}</span>
+            <span class="panel-title">
+              <AppIcon name="activity" :size="16" /> {{ t.access_logs }}
+            </span>
             <div class="panel-tools">
               <div class="search-box">
                 <AppIcon name="search" :size="14" />
@@ -627,13 +561,8 @@
           </div>
 
           <div class="order-chips">
-            <button
-              v-for="s in accessMethodFilters"
-              :key="s.value"
-              class="chip"
-              :class="{ 'chip-active': accessMethodFilter === s.value }"
-              @click="accessMethodFilter = s.value"
-            >
+            <button v-for="s in accessMethodFilters" :key="s.value" class="chip"
+              :class="{ 'chip-active': accessMethodFilter === s.value }" @click="accessMethodFilter = s.value">
               {{ s.label }}
             </button>
           </div>
@@ -651,7 +580,8 @@
                 <div class="avatar avatar-teal">{{ (h.email || "?").charAt(0).toUpperCase() }}</div>
                 <div class="row-text">
                   <span class="row-title">{{ h.fullName || h.email || "—" }}</span>
-                  <span class="row-sub">{{ h.email }}{{ h.role === "super_admin" ? " · " + t.super_admin_label : "" }}</span>
+                  <span class="row-sub">{{ h.email }}{{ h.role === "super_admin" ? " · " + t.super_admin_label : ""
+                    }}</span>
                 </div>
               </div>
 
@@ -659,9 +589,11 @@
                 <span class="os" :class="h.method === 'google' ? 'os-served' : 'os-preparing'">
                   <i></i>{{ h.method === 'google' ? t.google_method : t.email_method }}
                 </span>
-                <span class="row-muted" :title="t.device">{{ h.deviceName || h.browser || "—" }}{{ h.os ? " · " + h.os : "" }}</span>
+                <span class="row-muted" :title="t.device">{{ h.deviceName || h.browser || "—" }}{{ h.os ? " · " + h.os :
+                  "" }}</span>
                 <code class="code" v-if="h.ipAddress" :title="t.ip">{{ h.ipAddress }}</code>
-                <span class="row-muted" :title="t.location">{{ [h.city, h.country].filter(Boolean).join(", ") || "—" }}</span>
+                <span class="row-muted" :title="t.location">{{ [h.city, h.country].filter(Boolean).join(", ") || "—"
+                  }}</span>
                 <span class="row-muted">{{ formatDateTime(h.createdAt) }}</span>
               </div>
             </div>
@@ -675,7 +607,9 @@
         <!-- live sessions -->
         <section class="panel" style="margin-top: 20px">
           <div class="panel-head">
-            <span class="panel-title"><AppIcon name="clock" :size="16" /> {{ t.sessions_label }}</span>
+            <span class="panel-title">
+              <AppIcon name="clock" :size="16" /> {{ t.sessions_label }}
+            </span>
             <span class="panel-count">{{ accessSessions.length }}</span>
           </div>
 
@@ -711,14 +645,18 @@
         <!-- actions feed -->
         <section class="panel" style="margin-top: 20px">
           <div class="panel-head">
-            <span class="panel-title"><AppIcon name="clipboard" :size="16" /> {{ t.actions_feed }}</span>
+            <span class="panel-title">
+              <AppIcon name="clipboard" :size="16" /> {{ t.actions_feed }}
+            </span>
             <span class="panel-count">{{ accessActivities.length }}</span>
           </div>
 
           <div v-if="accessActivities.length" class="rows">
             <div v-for="a in accessActivities" :key="a.id" class="row">
               <div class="row-main">
-                <div class="avatar avatar-teal avatar-square"><AppIcon name="clipboard" :size="15" /></div>
+                <div class="avatar avatar-teal avatar-square">
+                  <AppIcon name="clipboard" :size="15" />
+                </div>
                 <div class="row-text">
                   <span class="row-title">{{ a.action }}</span>
                   <span class="row-sub">{{ a.description || "—" }}</span>
@@ -746,7 +684,8 @@
           <div class="drawer">
             <div class="drawer-head">
               <div class="drawer-id">
-                <div class="avatar avatar-lg" :class="selectedUser.role === 'super_admin' ? 'avatar-amber' : 'avatar-teal'">
+                <div class="avatar avatar-lg"
+                  :class="selectedUser.role === 'super_admin' ? 'avatar-amber' : 'avatar-teal'">
                   {{ (selectedUser.full_name || '?').charAt(0).toUpperCase() }}
                 </div>
                 <div>
@@ -754,7 +693,9 @@
                   <div class="drawer-sub">{{ selectedUser.email }}</div>
                 </div>
               </div>
-              <button class="icon-btn" @click="selectedUser = null" :aria-label="t.close"><AppIcon name="x" :size="16" /></button>
+              <button class="icon-btn" @click="selectedUser = null" :aria-label="t.close">
+                <AppIcon name="x" :size="16" />
+              </button>
             </div>
 
             <div class="drawer-body">
@@ -771,7 +712,9 @@
                 </div>
                 <div class="field">
                   <span class="field-label">{{ t.status }}</span>
-                  <span class="status-dot" :class="'sd-' + selectedUser.status"><i></i>{{ statusLabel(selectedUser.status) }}</span>
+                  <span class="status-dot" :class="'sd-' + selectedUser.status"><i></i>{{
+                    statusLabel(selectedUser.status)
+                    }}</span>
                 </div>
                 <div class="field">
                   <span class="field-label">{{ t.email_verified }}</span>
@@ -789,20 +732,25 @@
                 </div>
                 <div class="field">
                   <span class="field-label">{{ t.last_login }}</span>
-                  <span class="field-value">{{ selectedUser.last_login_at ? formatDateTime(selectedUser.last_login_at) : t.never }}</span>
+                  <span class="field-value">{{ selectedUser.last_login_at ? formatDateTime(selectedUser.last_login_at) :
+                    t.never }}</span>
                 </div>
               </div>
 
               <div class="logins-block">
-                <div class="logins-title"><AppIcon name="clock" :size="12" /> {{ t.recent_logins }}</div>
+                <div class="logins-title">
+                  <AppIcon name="clock" :size="12" /> {{ t.recent_logins }}
+                </div>
                 <div v-if="selectedUser.loginHistory?.length" class="logins">
                   <div v-for="h in selectedUser.loginHistory" :key="h.id" class="login-item">
                     <div class="login-main">
                       <strong>{{ h.deviceName || "—" }}</strong>
-                      <span>{{ t.via }} {{ h.method === 'google' ? t.google_method : t.email_method }} · {{ [h.city, h.region, h.country].filter(Boolean).join(", ") || "—" }}</span>
+                      <span>{{ t.via }} {{ h.method === 'google' ? t.google_method : t.email_method }} · {{ [h.city,
+                      h.region, h.country].filter(Boolean).join(", ") || "—" }}</span>
                     </div>
                     <div class="login-side">
-                      <span class="row-muted" :title="t.device">{{ h.browser || "—" }}{{ h.os ? " · " + h.os : "" }}</span>
+                      <span class="row-muted" :title="t.device">{{ h.browser || "—" }}{{ h.os ? " · " + h.os : ""
+                        }}</span>
                       <code class="code" v-if="h.ipAddress" :title="t.ip">{{ h.ipAddress }}</code>
                       <span class="os" :class="h.method === 'google' ? 'os-served' : 'os-preparing'">
                         <i></i>{{ h.method === 'google' ? t.google_method : t.email_method }}
@@ -815,55 +763,30 @@
               </div>
 
               <div class="drawer-actions">
-                <AppSelect
-                  block
-                  size="sm"
-                  variant="teal"
-                  :model-value="selectedUser.status"
-                  :options="[
-                    { value: 'active', label: t.activate },
-                    { value: 'suspended', label: t.suspend },
-                    { value: 'inactive', label: t.inactive },
-                  ]"
-                  @update:model-value="updateModalUserStatus"
-                />
+                <AppSelect block size="sm" variant="teal" :model-value="selectedUser.status" :options="[
+                  { value: 'active', label: t.activate },
+                  { value: 'suspended', label: t.suspend },
+                  { value: 'inactive', label: t.inactive },
+                ]" @update:model-value="updateModalUserStatus" />
 
-                <AppSelect
-                  block
-                  size="sm"
-                  variant="teal"
-                  :model-value="selectedUser.role"
-                  :disabled="selectedUser.id === auth.user?.id"
-                  :title="t.change_role"
-                  :options="[
+                <AppSelect block size="sm" variant="teal" :model-value="selectedUser.role"
+                  :disabled="selectedUser.id === auth.user?.id" :title="t.change_role" :options="[
                     { value: 'owner', label: t.owner },
                     { value: 'super_admin', label: t.super_admin_label },
-                  ]"
-                  @update:model-value="changeUserRole"
-                />
+                  ]" @update:model-value="changeUserRole" />
 
-                <button
-                  v-if="!selectedUser.email_verified_at"
-                  class="btn btn-green"
-                  @click="verifyUserEmail(selectedUser.id)"
-                >
+                <button v-if="!selectedUser.email_verified_at" class="btn btn-green"
+                  @click="verifyUserEmail(selectedUser.id)">
                   <AppIcon name="check" :size="14" /> {{ t.verify_email_btn }}
                 </button>
-                <button
-                  v-if="!selectedUser.email_verified_at"
-                  class="btn btn-blue"
-                  @click="resendVerification(selectedUser.id)"
-                >
+                <button v-if="!selectedUser.email_verified_at" class="btn btn-blue"
+                  @click="resendVerification(selectedUser.id)">
                   <AppIcon name="mail" :size="14" /> {{ t.resend_verification }}
                 </button>
                 <button class="btn btn-blue" @click="resetUserPassword(selectedUser)">
                   <AppIcon name="key" :size="14" /> {{ t.reset_password }}
                 </button>
-                <button
-                  v-if="selectedUser.id !== auth.user?.id"
-                  class="btn btn-red"
-                  @click="deleteUser(selectedUser)"
-                >
+                <button v-if="selectedUser.id !== auth.user?.id" class="btn btn-red" @click="deleteUser(selectedUser)">
                   <AppIcon name="trash" :size="14" /> {{ t.delete_user }}
                 </button>
                 <button class="btn btn-ghost" @click="selectedUser = null">{{ t.close }}</button>
@@ -889,7 +812,9 @@
                   <div class="drawer-sub">{{ selectedRestaurant.owner_email }}</div>
                 </div>
               </div>
-              <button class="icon-btn" @click="selectedRestaurant = null" :aria-label="t.close"><AppIcon name="x" :size="16" /></button>
+              <button class="icon-btn" @click="selectedRestaurant = null" :aria-label="t.close">
+                <AppIcon name="x" :size="16" />
+              </button>
             </div>
 
             <div class="drawer-body">
@@ -929,11 +854,8 @@
                   <span class="field-label">{{ t.telegram_link_code || t.link_code }}</span>
                   <span class="field-value link-row">
                     <code class="code">{{ selectedRestaurant.telegram_link_code || "—" }}</code>
-                    <button
-                      v-if="selectedRestaurant.telegram_link_code"
-                      class="copy-btn"
-                      @click="copyText(selectedRestaurant.telegram_link_code)"
-                    >
+                    <button v-if="selectedRestaurant.telegram_link_code" class="copy-btn"
+                      @click="copyText(selectedRestaurant.telegram_link_code)">
                       <AppIcon name="copy" :size="12" /> {{ t.copy_link }}
                     </button>
                   </span>
@@ -953,18 +875,11 @@
               </div>
 
               <div class="drawer-actions">
-                <AppSelect
-                  block
-                  size="sm"
-                  variant="teal"
-                  :model-value="selectedRestaurant.status"
-                  :options="[
-                    { value: 'active', label: t.activate },
-                    { value: 'suspended', label: t.suspend },
-                    { value: 'inactive', label: t.inactive },
-                  ]"
-                  @update:model-value="(v) => updateRestaurantStatus(selectedRestaurant.id, v)"
-                />
+                <AppSelect block size="sm" variant="teal" :model-value="selectedRestaurant.status" :options="[
+                  { value: 'active', label: t.activate },
+                  { value: 'suspended', label: t.suspend },
+                  { value: 'inactive', label: t.inactive },
+                ]" @update:model-value="(v) => updateRestaurantStatus(selectedRestaurant.id, v)" />
                 <button class="btn btn-ghost" @click="selectedRestaurant = null">{{ t.close }}</button>
               </div>
             </div>
@@ -980,13 +895,17 @@
           <div class="drawer">
             <div class="drawer-head">
               <div class="drawer-id">
-                <div class="avatar avatar-lg avatar-amber avatar-square"><AppIcon name="orders" :size="20" /></div>
+                <div class="avatar avatar-lg avatar-amber avatar-square">
+                  <AppIcon name="orders" :size="20" />
+                </div>
                 <div>
                   <div class="drawer-title">#{{ selectedOrder.id }} · {{ selectedOrder.restaurant_name }}</div>
                   <div class="drawer-sub">{{ t.table_no }} {{ selectedOrder.tableNo }}</div>
                 </div>
               </div>
-              <button class="icon-btn" @click="selectedOrder = null" :aria-label="t.close"><AppIcon name="x" :size="16" /></button>
+              <button class="icon-btn" @click="selectedOrder = null" :aria-label="t.close">
+                <AppIcon name="x" :size="16" />
+              </button>
             </div>
 
             <div class="drawer-body">
@@ -1018,17 +937,14 @@
               <div class="logins-block">
                 <div class="logins-title">{{ t.order_items }}</div>
                 <div class="logins">
-                  <div
-                    v-for="(item, i) in selectedOrder.items"
-                    :key="i"
-                    class="login-item"
-                  >
+                  <div v-for="(item, i) in selectedOrder.items" :key="i" class="login-item">
                     <div class="login-main">
                       <strong>{{ item.name }}</strong>
                       <span class="row-muted">{{ item.qty }} × {{ formatMoney(item.price) }}</span>
                     </div>
                     <div class="login-side">
-                      <code class="code">{{ t.subtotal }}: {{ formatMoney((Number(item.price) || 0) * (Number(item.qty) || 0)) }}</code>
+                      <code class="code">{{ t.subtotal }}: {{ formatMoney((Number(item.price) || 0) * (Number(item.qty) ||
+                    0)) }}</code>
                     </div>
                   </div>
                 </div>
@@ -1039,14 +955,8 @@
               </div>
 
               <div class="drawer-actions">
-                <AppSelect
-                  block
-                  size="sm"
-                  variant="teal"
-                  :model-value="selectedOrder.status"
-                  :options="orderStatusOptions"
-                  @update:model-value="updateOrderStatus"
-                />
+                <AppSelect block size="sm" variant="teal" :model-value="selectedOrder.status"
+                  :options="orderStatusOptions" @update:model-value="updateOrderStatus" />
                 <button class="btn btn-ghost" @click="selectedOrder = null">{{ t.close }}</button>
               </div>
             </div>
@@ -1058,13 +968,11 @@
     <!-- CONFIRM LOGOUT (exact style from AdminView) -->
     <Teleport to="body">
       <Transition name="fade">
-        <div
-          v-if="showLogoutModal"
-          class="modal-overlay"
-          @click.self="showLogoutModal = false"
-        >
+        <div v-if="showLogoutModal" class="modal-overlay" @click.self="showLogoutModal = false">
           <div class="confirm-box pop-in">
-            <div class="confirm-icon"><AppIcon name="lock" :size="36" /></div>
+            <div class="confirm-icon">
+              <AppIcon name="lock" :size="36" />
+            </div>
             <div class="confirm-title confirm-title--blue">{{ t.logout }}</div>
             <div class="confirm-name">{{ t.confirm_logout }}</div>
             <div class="confirm-btns">
@@ -1092,101 +1000,111 @@
     <Teleport to="body">
       <Transition name="fade">
 
-     <!-- CREATE ADMIN MODAL -->
-     <Teleport to="body">
-       <Transition name="fade">
-         <div v-if="showCreateAdminModal" class="modal-overlay" @click.self="showCreateAdminModal = false">
-           <div class="modal-card pop-in">
-             <div class="modal-header">
-               <span class="modal-title"><AppIcon name="users" :size="16" /> {{ t.add_admin }}</span>
-               <button class="modal-close" @click="showCreateAdminModal = false">
-                 <AppIcon name="x" :size="18" />
-               </button>
-             </div>
-             <form @submit.prevent="createAdmin" class="modal-form">
-               <div class="form-group">
-                 <label>{{ t.email }} *</label>
-                 <input v-model="newAdminForm.email" type="email" class="input" placeholder="admin@example.com" required />
-               </div>
-               <div class="form-group">
-                 <label>{{ t.full_name }} *</label>
-                 <input v-model="newAdminForm.fullName" type="text" class="input" placeholder="Admin Name" required />
-               </div>
-               <div class="form-group">
-                 <label>{{ t.role }}</label>
-                 <AppSelect
-                   block size="sm"
-                   variant="teal"
-                   :model-value="newAdminForm.role"
-                   :options="[
-                     { value: 'owner', label: t.owner },
-                     { value: 'super_admin', label: t.super_admin_label },
-                   ]"
-                   @update:model-value="newAdminForm.role = $event"
-                 />
-               </div>
-               <div class="form-group" v-if="newAdminForm.role === 'super_admin'">
-                 <label>{{ t.password }} * (min 8 chars)</label>
-                 <input v-model="newAdminForm.password" type="password" class="input" placeholder="••••••••" required minlength="8" />
-               </div>
-               <div class="form-group" v-else>
-                 <label>{{ t.password }} <span class="text-muted">(optional)</span></label>
-                 <input v-model="newAdminForm.password" type="password" class="input" placeholder="•••••••• (optional)" />
-               </div>
-               <div class="form-hint">{{ t.fill_required_fields }}</div>
-               <div class="modal-actions">
-                 <button type="button" class="btn btn-ghost" @click="showCreateAdminModal = false">{{ t.cancel }}</button>
-                 <button type="submit" class="btn btn-teal" :disabled="adminLoading">
-                   <AppIcon name="check" :size="14" /> {{ t.save }}
-                 </button>
-               </div>
-             </form>
-           </div>
-         </div>
-       </Transition>
-     </Teleport>
+        <!-- CREATE ADMIN MODAL -->
+        <Teleport to="body">
+          <Transition name="fade">
+            <div v-if="showCreateAdminModal" class="modal-overlay" @click.self="showCreateAdminModal = false">
+              <div class="modal-card pop-in">
+                <div class="modal-header">
+                  <span class="modal-title">
+                    <AppIcon name="users" :size="16" /> {{ t.add_admin }}
+                  </span>
+                  <button class="modal-close" @click="showCreateAdminModal = false">
+                    <AppIcon name="x" :size="18" />
+                  </button>
+                </div>
+                <form @submit.prevent="createAdmin" class="modal-form">
+                  <div class="form-group">
+                    <label>{{ t.email }} *</label>
+                    <input v-model="newAdminForm.email" type="email" class="input" placeholder="admin@example.com"
+                      required />
+                  </div>
+                  <div class="form-group">
+                    <label>{{ t.full_name }} *</label>
+                    <input v-model="newAdminForm.fullName" type="text" class="input" placeholder="Admin Name"
+                      required />
+                  </div>
+                  <div class="form-group">
+                    <label>{{ t.role }}</label>
+                    <AppSelect block size="sm" variant="teal" :model-value="newAdminForm.role" :options="[
+                      { value: 'owner', label: t.owner },
+                      { value: 'super_admin', label: t.super_admin_label },
+                    ]" @update:model-value="newAdminForm.role = $event" />
+                  </div>
+                  <div class="form-group" v-if="newAdminForm.role === 'super_admin'">
+                    <label>{{ t.password }} * (min 8 chars)</label>
+                    <input v-model="newAdminForm.password" type="password" class="input" placeholder="••••••••" required
+                      minlength="8" />
+                  </div>
+                  <div class="form-group" v-else>
+                    <label>{{ t.password }} <span class="text-muted">(optional)</span></label>
+                    <input v-model="newAdminForm.password" type="password" class="input"
+                      placeholder="•••••••• (optional)" />
+                  </div>
+                  <div class="form-hint">{{ t.fill_required_fields }}</div>
+                  <div class="modal-actions">
+                    <button type="button" class="btn btn-ghost" @click="showCreateAdminModal = false">{{ t.cancel
+                      }}</button>
+                    <button type="submit" class="btn btn-teal" :disabled="adminLoading">
+                      <AppIcon name="check" :size="14" /> {{ t.save }}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </Transition>
+        </Teleport>
 
-     <!-- CREATE SUPER ADMIN MODAL -->
-     <Teleport to="body">
-       <Transition name="fade">
-         <div v-if="showCreateSuperAdminModal" class="modal-overlay" @click.self="showCreateSuperAdminModal = false">
-           <div class="modal-card pop-in">
-             <div class="modal-header">
-               <span class="modal-title modal-title--purple"><AppIcon name="shield" :size="16" /> {{ t.add_super_admin }}</span>
-               <button class="modal-close" @click="showCreateSuperAdminModal = false">
-                 <AppIcon name="x" :size="18" />
-               </button>
-             </div>
-             <form @submit.prevent="createSuperAdmin" class="modal-form">
-               <div class="form-group">
-                 <label>{{ t.email }} *</label>
-                 <input v-model="newSuperAdminForm.email" type="email" class="input" placeholder="admin@example.com" required />
-               </div>
-               <div class="form-group">
-                 <label>{{ t.full_name }} *</label>
-                 <input v-model="newSuperAdminForm.fullName" type="text" class="input" placeholder="Super Admin Name" required />
-               </div>
-               <div class="form-group">
-                 <label>{{ t.password }} * (min 8 chars)</label>
-                 <input v-model="newSuperAdminForm.password" type="password" class="input" placeholder="••••••••" required minlength="8" />
-               </div>
-               <div class="form-hint">{{ t.fill_required_fields }}</div>
-               <div class="modal-actions">
-                 <button type="button" class="btn btn-ghost" @click="showCreateSuperAdminModal = false">{{ t.cancel }}</button>
-                 <button type="submit" class="btn btn-purple" :disabled="superAdminLoading">
-                   <AppIcon name="check" :size="14" /> {{ t.save }}
-                 </button>
-               </div>
-             </form>
-           </div>
-         </div>
-       </Transition>
-     </Teleport>
+        <!-- CREATE SUPER ADMIN MODAL -->
+        <Teleport to="body">
+          <Transition name="fade">
+            <div v-if="showCreateSuperAdminModal" class="modal-overlay" @click.self="showCreateSuperAdminModal = false">
+              <div class="modal-card pop-in">
+                <div class="modal-header">
+                  <span class="modal-title modal-title--purple">
+                    <AppIcon name="shield" :size="16" /> {{ t.add_super_admin }}
+                  </span>
+                  <button class="modal-close" @click="showCreateSuperAdminModal = false">
+                    <AppIcon name="x" :size="18" />
+                  </button>
+                </div>
+                <form @submit.prevent="createSuperAdmin" class="modal-form">
+                  <div class="form-group">
+                    <label>{{ t.email }} *</label>
+                    <input v-model="newSuperAdminForm.email" type="email" class="input" placeholder="admin@example.com"
+                      required />
+                  </div>
+                  <div class="form-group">
+                    <label>{{ t.full_name }} *</label>
+                    <input v-model="newSuperAdminForm.fullName" type="text" class="input" placeholder="Super Admin Name"
+                      required />
+                  </div>
+                  <div class="form-group">
+                    <label>{{ t.password }} * (min 8 chars)</label>
+                    <input v-model="newSuperAdminForm.password" type="password" class="input" placeholder="••••••••"
+                      required minlength="8" />
+                  </div>
+                  <div class="form-hint">{{ t.fill_required_fields }}</div>
+                  <div class="modal-actions">
+                    <button type="button" class="btn btn-ghost" @click="showCreateSuperAdminModal = false">{{ t.cancel
+                      }}</button>
+                    <button type="submit" class="btn btn-purple" :disabled="superAdminLoading">
+                      <AppIcon name="check" :size="14" /> {{ t.save }}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </Transition>
+        </Teleport>
 
         <div v-if="confirmState" class="modal-overlay" @click.self="closeConfirm">
           <div class="confirm-box pop-in">
-            <div class="confirm-icon"><AppIcon :name="confirmState.danger ? 'trash' : 'check'" :size="36" /></div>
-            <div class="confirm-title" :class="{ 'confirm-title--red': confirmState.danger }">{{ confirmState.title }}</div>
+            <div class="confirm-icon">
+              <AppIcon :name="confirmState.danger ? 'trash' : 'check'" :size="36" />
+            </div>
+            <div class="confirm-title" :class="{ 'confirm-title--red': confirmState.danger }">{{ confirmState.title }}
+            </div>
             <div class="confirm-name">{{ confirmState.message }}</div>
             <div class="confirm-btns">
               <button class="confirm-cancel" @click="closeConfirm">{{ t.cancel }}</button>
@@ -1204,7 +1122,9 @@
       <Transition name="fade">
         <div v-if="tempPw" class="modal-overlay" @click.self="tempPw = null">
           <div class="confirm-box pop-in">
-            <div class="confirm-icon"><AppIcon name="key" :size="36" /></div>
+            <div class="confirm-icon">
+              <AppIcon name="key" :size="36" />
+            </div>
             <div class="confirm-title confirm-title--blue">{{ t.temp_password }}</div>
             <div class="confirm-name">{{ tempPw.email }}</div>
             <div class="temp-pw-row">
@@ -2057,6 +1977,7 @@ function confirmLogout() {
   height: 70px;
   overflow: hidden;
 }
+
 .brand-glow {
   position: absolute;
   top: -40px;
@@ -2067,6 +1988,7 @@ function confirmLogout() {
   background: rgba(255, 255, 255, 0.08);
   pointer-events: none;
 }
+
 .brand-content {
   display: flex;
   align-items: center;
@@ -2074,6 +1996,7 @@ function confirmLogout() {
   position: relative;
   z-index: 1;
 }
+
 .mark {
   width: 36px;
   height: 36px;
@@ -2090,6 +2013,7 @@ function confirmLogout() {
   display: flex;
   flex-direction: column;
 }
+
 .brand-name {
   font-family: "Hanuman", serif;
   font-size: 15px;
@@ -2097,6 +2021,7 @@ function confirmLogout() {
   color: white;
   line-height: 1.3;
 }
+
 .brand-role {
   font-size: 11px;
   color: rgba(255, 255, 255, 0.75);
@@ -2111,6 +2036,7 @@ function confirmLogout() {
   padding: 12px 10px;
   flex: 1;
 }
+
 .nav-item {
   display: flex;
   align-items: center;
@@ -2127,10 +2053,12 @@ function confirmLogout() {
   text-align: left;
   transition: all 0.15s;
 }
+
 .nav-item:hover {
   background: var(--surface-warm);
   color: var(--ink);
 }
+
 .nav-item.active {
   background: var(--surface-warm);
   color: var(--teal);
@@ -2145,6 +2073,7 @@ function confirmLogout() {
   padding: 14px 14px 20px;
   border-top: 1px solid var(--border);
 }
+
 .lang-btn {
   padding: 9px 12px;
   background: var(--surface-warm);
@@ -2157,10 +2086,12 @@ function confirmLogout() {
   cursor: pointer;
   transition: border-color 0.15s, background 0.15s;
 }
+
 .lang-btn:hover {
   border-color: var(--green);
   background: #dcfce7;
 }
+
 .logout-link {
   display: flex;
   align-items: center;
@@ -2178,14 +2109,21 @@ function confirmLogout() {
   cursor: pointer;
   transition: all 0.15s;
 }
+
 .logout-link:hover {
   background: #fef2f2;
   border-color: #fecaca;
 }
 
 /* ═══ MOBILE BAR / SCRIM ═══ */
-.mobile-bar { display: none; height: 70px;}
-.nav-scrim { display: none; }
+.mobile-bar {
+  display: none;
+  height: 70px;
+}
+
+.nav-scrim {
+  display: none;
+}
 
 /* ═══ MAIN ═══ */
 .main {
@@ -2193,6 +2131,7 @@ function confirmLogout() {
   max-width: 1200px;
   width: 100%;
 }
+
 .topbar {
   margin-bottom: 24px;
   padding-bottom: 16px;
@@ -2202,20 +2141,33 @@ function confirmLogout() {
   justify-content: space-between;
   gap: 16px;
 }
+
 .btn-refresh {
   background: var(--surface);
   border: 1px solid var(--border);
   color: var(--ink);
 }
+
 .btn-refresh:hover:not(:disabled) {
   background: var(--surface-warm);
   border-color: var(--green-soft);
 }
-.btn-refresh:disabled { opacity: 0.6; cursor: default; }
-.btn-refresh.spinning :deep(svg) { animation: spin 0.8s linear infinite; }
-@keyframes spin {
-  to { transform: rotate(360deg); }
+
+.btn-refresh:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
+
+.btn-refresh.spinning :deep(svg) {
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .page-title {
   font-family: "Hanuman", serif;
   font-size: 22px;
@@ -2226,6 +2178,7 @@ function confirmLogout() {
   align-items: center;
   gap: 10px;
 }
+
 .page-sub {
   font-size: 12.5px;
   color: var(--muted);
@@ -2240,6 +2193,7 @@ function confirmLogout() {
   gap: 14px;
   margin-bottom: 28px;
 }
+
 /* Large tablets */
 @media (max-width: 1200px) {
   .stats-grid {
@@ -2260,6 +2214,7 @@ function confirmLogout() {
     grid-template-columns: 1fr;
   }
 }
+
 .stat-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -2272,10 +2227,12 @@ function confirmLogout() {
   overflow: hidden;
   transition: transform 0.18s, box-shadow 0.18s;
 }
+
 .stat-card:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(20, 83, 45, 0.08);
 }
+
 .stat-icon-wrap {
   width: 42px;
   height: 42px;
@@ -2285,16 +2242,33 @@ function confirmLogout() {
   justify-content: center;
   flex-shrink: 0;
 }
-.icon-teal { background: #ccfbf1; color: var(--teal); }
-.icon-amber { background: #fef3c7; color: var(--amber); }
-.icon-blue { background: #dbeafe; color: var(--blue); }
-.icon-green { background: #dcfce7; color: #166534; }
+
+.icon-teal {
+  background: #ccfbf1;
+  color: var(--teal);
+}
+
+.icon-amber {
+  background: #fef3c7;
+  color: var(--amber);
+}
+
+.icon-blue {
+  background: #dbeafe;
+  color: var(--blue);
+}
+
+.icon-green {
+  background: #dcfce7;
+  color: #166534;
+}
 
 .stat-body {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
+
 .stat-num {
   font-family: "Hanuman", serif;
   font-size: 26px;
@@ -2302,6 +2276,7 @@ function confirmLogout() {
   color: var(--ink);
   line-height: 1.1;
 }
+
 .stat-label {
   font-size: 11.5px;
   color: var(--muted);
@@ -2309,6 +2284,7 @@ function confirmLogout() {
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
+
 .stat-spark {
   position: absolute;
   bottom: 0;
@@ -2316,10 +2292,22 @@ function confirmLogout() {
   right: 0;
   height: 3px;
 }
-.stat-spark.teal { background: linear-gradient(90deg, var(--teal), var(--green)); }
-.stat-spark.amber { background: linear-gradient(90deg, var(--amber), var(--amber-soft)); }
-.stat-spark.blue { background: linear-gradient(90deg, var(--blue), #93c5fd); }
-.stat-spark.green { background: linear-gradient(90deg, #166534, var(--green)); }
+
+.stat-spark.teal {
+  background: linear-gradient(90deg, var(--teal), var(--green));
+}
+
+.stat-spark.amber {
+  background: linear-gradient(90deg, var(--amber), var(--amber-soft));
+}
+
+.stat-spark.blue {
+  background: linear-gradient(90deg, var(--blue), #93c5fd);
+}
+
+.stat-spark.green {
+  background: linear-gradient(90deg, #166534, var(--green));
+}
 
 /* ═══ PANEL / ROWS ═══ */
 .panel {
@@ -2329,6 +2317,7 @@ function confirmLogout() {
   overflow: hidden;
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
 }
+
 .panel-head {
   display: flex;
   align-items: center;
@@ -2337,6 +2326,7 @@ function confirmLogout() {
   border-bottom: 1px solid var(--border);
   background: var(--surface-soft);
 }
+
 .panel-title {
   font-family: "Hanuman", serif;
   font-size: 14.5px;
@@ -2346,6 +2336,7 @@ function confirmLogout() {
   align-items: center;
   gap: 8px;
 }
+
 .panel-count {
   font-size: 11.5px;
   font-weight: 700;
@@ -2355,11 +2346,13 @@ function confirmLogout() {
   padding: 3px 12px;
   border-radius: 999px;
 }
+
 .panel-tools {
   display: flex;
   align-items: center;
   gap: 10px;
 }
+
 .search-box {
   display: flex;
   align-items: center;
@@ -2371,10 +2364,12 @@ function confirmLogout() {
   color: var(--muted);
   transition: border-color 0.15s, box-shadow 0.15s;
 }
+
 .search-box:focus-within {
   border-color: var(--green);
   box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
 }
+
 .search-input {
   border: none;
   outline: none;
@@ -2384,9 +2379,15 @@ function confirmLogout() {
   color: var(--text);
   width: 170px;
 }
-.search-input::placeholder { color: var(--muted-light); }
 
-.rows { display: flex; flex-direction: column; }
+.search-input::placeholder {
+  color: var(--muted-light);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+}
 
 .row {
   display: flex;
@@ -2397,8 +2398,14 @@ function confirmLogout() {
   cursor: pointer;
   transition: background 0.12s;
 }
-.row:last-child { border-bottom: none; }
-.row:hover { background: #f8fdfa; }
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.row:hover {
+  background: #f8fdfa;
+}
 
 .row-main {
   display: flex;
@@ -2422,17 +2429,35 @@ function confirmLogout() {
   color: white;
   flex-shrink: 0;
 }
-.avatar-square { border-radius: 10px; }
-.avatar-lg { width: 46px; height: 46px; font-size: 16px; }
-.avatar-teal { background: linear-gradient(135deg, var(--teal), var(--green)); }
-.avatar-amber { background: linear-gradient(135deg, var(--amber), #f59e0b); }
-.avatar-purple { background: linear-gradient(135deg, var(--purple), var(--purple-light)); }
+
+.avatar-square {
+  border-radius: 10px;
+}
+
+.avatar-lg {
+  width: 46px;
+  height: 46px;
+  font-size: 16px;
+}
+
+.avatar-teal {
+  background: linear-gradient(135deg, var(--teal), var(--green));
+}
+
+.avatar-amber {
+  background: linear-gradient(135deg, var(--amber), #f59e0b);
+}
+
+.avatar-purple {
+  background: linear-gradient(135deg, var(--purple), var(--purple-light));
+}
 
 .row-text {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
+
 .row-title {
   font-size: 13.5px;
   font-weight: 600;
@@ -2441,6 +2466,7 @@ function confirmLogout() {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .row-sub {
   font-size: 11.5px;
   color: var(--muted);
@@ -2457,18 +2483,26 @@ function confirmLogout() {
   flex: 1 0 auto;
   justify-content: flex-end;
 }
-.row-muted { font-size: 12px; color: var(--muted); white-space: nowrap; }
 
-.row-actions { flex-shrink: 0; }
+.row-muted {
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.row-actions {
+  flex-shrink: 0;
+}
 
 /* ═══ ORDER CHIPS (status filter) ═══ */
 .order-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
-  padding:  14px 20px;
+  padding: 14px 20px;
   border-bottom: 1px solid #f1f5f9;
 }
+
 .chip {
   border: 1px solid var(--border);
   background: var(--surface);
@@ -2481,7 +2515,12 @@ function confirmLogout() {
   cursor: pointer;
   transition: all 0.15s;
 }
-.chip:hover { border-color: var(--green-soft); color: var(--ink); }
+
+.chip:hover {
+  border-color: var(--green-soft);
+  color: var(--ink);
+}
+
 .chip-active {
   background: linear-gradient(135deg, var(--teal), var(--green));
   border-color: transparent;
@@ -2497,18 +2536,38 @@ function confirmLogout() {
   font-weight: 600;
   white-space: nowrap;
 }
+
 .os i {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   display: inline-block;
 }
-.os-pending i { background: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15); }
-.os-confirmed i { background: #2563eb; }
-.os-preparing i { background: #7c3aed; }
-.os-ready i { background: #0f766e; }
-.os-served i { background: #16a34a; }
-.os-cancelled i { background: var(--red); }
+
+.os-pending i {
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+}
+
+.os-confirmed i {
+  background: #2563eb;
+}
+
+.os-preparing i {
+  background: #7c3aed;
+}
+
+.os-ready i {
+  background: #0f766e;
+}
+
+.os-served i {
+  background: #16a34a;
+}
+
+.os-cancelled i {
+  background: var(--red);
+}
 
 /* ═══ LOGINS LIST (user drawer) ═══ */
 .logins-block {
@@ -2519,6 +2578,7 @@ function confirmLogout() {
   flex-direction: column;
   gap: 8px;
 }
+
 .logins-title {
   font-size: 11px;
   font-weight: 700;
@@ -2526,10 +2586,12 @@ function confirmLogout() {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
+
 .logins {
   display: flex;
   flex-direction: column;
 }
+
 .login-item {
   display: flex;
   align-items: center;
@@ -2538,13 +2600,19 @@ function confirmLogout() {
   padding: 8px 0;
   border-bottom: 1px solid var(--border-light);
 }
-.login-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+.login-item:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
 .login-main {
   display: flex;
   flex-direction: column;
   gap: 2px;
   min-width: 0;
 }
+
 .login-main strong {
   font-size: 12.5px;
   color: var(--ink);
@@ -2552,13 +2620,19 @@ function confirmLogout() {
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.login-main span { font-size: 11.5px; color: var(--muted); }
+
+.login-main span {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
 .login-side {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-shrink: 0;
 }
+
 .logins-empty {
   font-size: 12px;
   color: var(--muted);
@@ -2567,11 +2641,20 @@ function confirmLogout() {
 }
 
 /* ═══ DANGER BUTTON ═══ */
-.btn-red { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
-.btn-red:hover { background: #fecaca; }
+.btn-red {
+  background: #fee2e2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.btn-red:hover {
+  background: #fecaca;
+}
 
 /* ═══ CLICKABLE STAT CARDS ═══ */
-.stat-click { cursor: pointer; }
+.stat-click {
+  cursor: pointer;
+}
 
 /* ═══ SKELETON LOADING ═══ */
 .skel-row {
@@ -2581,6 +2664,7 @@ function confirmLogout() {
   padding: 14px 20px;
   border-bottom: 1px solid #f1f5f9;
 }
+
 .skel {
   display: inline-block;
   background: linear-gradient(90deg, #eef2f0, #f6faf7, #eef2f0);
@@ -2588,13 +2672,33 @@ function confirmLogout() {
   animation: skel-shimmer 1.2s ease-in-out infinite;
   border-radius: 8px;
 }
+
 @keyframes skel-shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
 }
-.skel-avatar { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; }
-.skel-line { flex: 1; height: 12px; max-width: 220px; }
-.skel-line.short { max-width: 120px; }
+
+.skel-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skel-line {
+  flex: 1;
+  height: 12px;
+  max-width: 220px;
+}
+
+.skel-line.short {
+  max-width: 120px;
+}
 
 /* ═══ TOASTS ═══ */
 .toast-stack {
@@ -2606,6 +2710,7 @@ function confirmLogout() {
   flex-direction: column;
   gap: 8px;
 }
+
 .toast {
   display: flex;
   align-items: center;
@@ -2621,14 +2726,36 @@ function confirmLogout() {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
   max-width: 320px;
 }
-.toast-error { border-left-color: var(--red); color: var(--red-deep); }
-.toast-enter-active, .toast-leave-active { transition: opacity 0.18s, transform 0.18s; }
-.toast-enter-from, .toast-leave-to { opacity: 0; transform: translateY(-8px); }
+
+.toast-error {
+  border-left-color: var(--red);
+  color: var(--red-deep);
+}
+
+.toast-enter-active,
+.toast-leave-active {
+  transition: opacity 0.18s, transform 0.18s;
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateY(-8px);
+}
 
 /* ═══ CONFIRM DANGER + TEMP PASSWORD ═══ */
-.confirm-title--red { color: var(--red); }
-.confirm-danger { background: var(--red-deep); }
-.confirm-danger:hover { background: #8f1d1d; }
+.confirm-title--red {
+  color: var(--red);
+}
+
+.confirm-danger {
+  background: var(--red-deep);
+}
+
+.confirm-danger:hover {
+  background: #8f1d1d;
+}
+
 .temp-pw-row {
   display: flex;
   align-items: center;
@@ -2636,7 +2763,12 @@ function confirmLogout() {
   gap: 8px;
   margin-bottom: 16px;
 }
-.temp-pw { font-size: 14px; padding: 6px 12px; letter-spacing: 0.5px; }
+
+.temp-pw {
+  font-size: 14px;
+  padding: 6px 12px;
+  letter-spacing: 0.5px;
+}
 
 /* ═══ ORDER TOTAL ═══ */
 .order-total-row {
@@ -2648,14 +2780,30 @@ function confirmLogout() {
   font-size: 13px;
   color: var(--text);
 }
-.order-total-row strong { font-size: 15px; color: var(--teal); }
+
+.order-total-row strong {
+  font-size: 15px;
+  color: var(--teal);
+}
 
 /* ═══ FIELD EXTRAS ═══ */
-.field-full { grid-column: 1 / -1; }
-.note-text { white-space: pre-wrap; word-break: break-word; }
+.field-full {
+  grid-column: 1 / -1;
+}
+
+.note-text {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
 
 /* ═══ LINK COPY + COLOR SWATCH ═══ */
-.link-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.link-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .copy-btn {
   border: 1px solid var(--border);
   background: var(--surface);
@@ -2669,7 +2817,12 @@ function confirmLogout() {
   align-items: center;
   gap: 4px;
 }
-.copy-btn:hover { background: var(--surface-warm); border-color: var(--green-soft); }
+
+.copy-btn:hover {
+  background: var(--surface-warm);
+  border-color: var(--green-soft);
+}
+
 .swatch {
   display: inline-block;
   width: 12px;
@@ -2680,7 +2833,11 @@ function confirmLogout() {
 }
 
 /* ═══ LOGIN HISTORY METHOD BADGE ═══ */
-.logins-title { display: flex; align-items: center; gap: 5px; }
+.logins-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
 
 /* Tags */
 .tag {
@@ -2691,9 +2848,21 @@ function confirmLogout() {
   white-space: nowrap;
   letter-spacing: 0.2px;
 }
-.tag-amber { background: #fef3c7; color: #92400e; }
-.tag-blue { background: #dbeafe; color: #1e40af; }
-.tag-teal { background: #ccfbf1; color: #0f766e; }
+
+.tag-amber {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.tag-blue {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.tag-teal {
+  background: #ccfbf1;
+  color: #0f766e;
+}
 
 /* Status dots */
 .status-dot {
@@ -2705,18 +2874,40 @@ function confirmLogout() {
   color: var(--text);
   white-space: nowrap;
 }
+
 .status-dot i {
   width: 7px;
   height: 7px;
   border-radius: 50%;
   display: inline-block;
 }
-.sd-active i { background: #16a34a; box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15); }
-.sd-suspended i { background: var(--red); }
-.sd-inactive i { background: var(--muted-light); }
-.sd-verified i { background: #16a34a; box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15); }
-.sd-pending i { background: #f59e0b; box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15); }
-.sd-lastlogin i { background: var(--muted-light); }
+
+.sd-active i {
+  background: #16a34a;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+}
+
+.sd-suspended i {
+  background: var(--red);
+}
+
+.sd-inactive i {
+  background: var(--muted-light);
+}
+
+.sd-verified i {
+  background: #16a34a;
+  box-shadow: 0 0 0 2px rgba(22, 163, 74, 0.15);
+}
+
+.sd-pending i {
+  background: #f59e0b;
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+}
+
+.sd-lastlogin i {
+  background: var(--muted-light);
+}
 
 /* Code */
 .code {
@@ -2743,8 +2934,16 @@ function confirmLogout() {
   min-width: 100px;
   transition: border-color 0.15s;
 }
-.select:focus, .select:focus-visible { border-color: var(--green); box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12); }
-.select-block { width: 100%; }
+
+.select:focus,
+.select:focus-visible {
+  border-color: var(--green);
+  box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.12);
+}
+
+.select-block {
+  width: 100%;
+}
 
 /* Empty state */
 .empty {
@@ -2756,7 +2955,11 @@ function confirmLogout() {
   align-items: center;
   gap: 10px;
 }
-.empty p { margin: 0; font-size: 13.5px; }
+
+.empty p {
+  margin: 0;
+  font-size: 13.5px;
+}
 
 /* ═══ ICON BUTTONS ═══ */
 .icon-btn {
@@ -2774,7 +2977,11 @@ function confirmLogout() {
   transition: all 0.15s;
   flex-shrink: 0;
 }
-.icon-btn:hover { background: var(--surface-warm); border-color: var(--green-soft); }
+
+.icon-btn:hover {
+  background: var(--surface-warm);
+  border-color: var(--green-soft);
+}
 
 /* ═══ DRAWER (detail panels) ═══ */
 .drawer-overlay {
@@ -2785,6 +2992,7 @@ function confirmLogout() {
   display: flex;
   justify-content: flex-end;
 }
+
 .drawer {
   width: 100%;
   max-width: 440px;
@@ -2795,8 +3003,11 @@ function confirmLogout() {
   flex-direction: column;
   overflow-y: auto;
 }
+
 .drawer-overlay:active .drawer,
-.drawer:hover { box-shadow: -18px 0 50px rgba(0, 0, 0, 0.15); }
+.drawer:hover {
+  box-shadow: -18px 0 50px rgba(0, 0, 0, 0.15);
+}
 
 .drawer-head {
   display: flex;
@@ -2806,16 +3017,32 @@ function confirmLogout() {
   border-bottom: 1px solid var(--border);
   background: var(--surface-soft);
 }
-.drawer-id { display: flex; align-items: center; gap: 12px; }
+
+.drawer-id {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .drawer-title {
   font-family: "Hanuman", serif;
   font-size: 16px;
   font-weight: 700;
   color: var(--ink);
 }
-.drawer-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
 
-.drawer-body { padding: 22px 22px 30px; display: flex; flex-direction: column; gap: 24px; }
+.drawer-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.drawer-body {
+  padding: 22px 22px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
 
 /* Field grid */
 .field-grid {
@@ -2823,6 +3050,7 @@ function confirmLogout() {
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
+
 .field {
   background: var(--surface-soft);
   border-radius: 11px;
@@ -2831,6 +3059,7 @@ function confirmLogout() {
   flex-direction: column;
   gap: 4px;
 }
+
 .field-label {
   font-size: 10px;
   font-weight: 700;
@@ -2838,7 +3067,12 @@ function confirmLogout() {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-.field-value { font-size: 13px; font-weight: 600; color: var(--text); }
+
+.field-value {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
 
 /* Drawer actions */
 .drawer-actions {
@@ -2846,6 +3080,7 @@ function confirmLogout() {
   flex-wrap: wrap;
   gap: 8px;
 }
+
 .drawer-actions .btn {
   flex: 1;
   justify-content: center;
@@ -2867,14 +3102,44 @@ function confirmLogout() {
   transition: all 0.15s;
   white-space: nowrap;
 }
-.btn:hover { filter: brightness(0.95); }
-.btn:active { transform: scale(0.98); }
-.btn-ghost { background: var(--surface-warm); color: var(--ink); }
-.btn-ghost:hover { background: #dcfce7; }
-.btn-green { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
-.btn-green:hover { background: #bbf7d0; }
-.btn-blue { background: #dbeafe; color: #1e40af; border: 1px solid #93c5fd; }
-.btn-blue:hover { background: #bfdbfe; }
+
+.btn:hover {
+  filter: brightness(0.95);
+}
+
+.btn:active {
+  transform: scale(0.98);
+}
+
+.btn-ghost {
+  background: var(--surface-warm);
+  color: var(--ink);
+}
+
+.btn-ghost:hover {
+  background: #dcfce7;
+}
+
+.btn-green {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.btn-green:hover {
+  background: #bbf7d0;
+}
+
+.btn-blue {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
+}
+
+.btn-blue:hover {
+  background: #bfdbfe;
+}
+
 /* ═══ CONFIRM MODAL (exact style from AdminView) ═══ */
 .modal-overlay {
   position: fixed;
@@ -2886,6 +3151,7 @@ function confirmLogout() {
   justify-content: center;
   padding: 20px;
 }
+
 .confirm-box {
   background: white;
   border-radius: 22px;
@@ -2894,10 +3160,12 @@ function confirmLogout() {
   padding: 28px 22px;
   text-align: center;
 }
+
 .confirm-icon {
   font-size: 36px;
   margin-bottom: 8px;
 }
+
 .confirm-title {
   font-family: "Hanuman", serif;
   font-size: 17px;
@@ -2905,18 +3173,22 @@ function confirmLogout() {
   color: #c62828;
   margin-bottom: 6px;
 }
+
 .confirm-title--blue {
   color: #b71c1c;
 }
+
 .confirm-name {
   font-size: 13px;
   color: var(--text);
   margin-bottom: 18px;
 }
+
 .confirm-btns {
   display: flex;
   gap: 10px;
 }
+
 .confirm-cancel {
   flex: 1;
   padding: 11px;
@@ -2925,125 +3197,145 @@ function confirmLogout() {
   border: none;
   border-radius: 10px;
 
-/* ═══ MODAL CARD (for create admin/super admin modals) ═══ */
-.modal-card {
-  background: white;
-  border-radius: 22px;
-  width: 100%;
-  max-width: 400px;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  overflow: hidden;
-}
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  background: var(--surface-soft);
-  border-bottom: 1px solid var(--border);
-}
-.modal-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ink);
-}
-.modal-title--purple {
-  color: var(--purple);
-}
-.modal-close {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: var(--muted);
-  padding: 4px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.modal-close:hover {
-  background: var(--border);
-  color: var(--text);
-}
-.modal-form {
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-.modal-form .form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-.modal-form .form-group label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--muted);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-.modal-form .input {
-  width: 100%;
-  padding: 10px 14px;
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  font-size: 14px;
-  font-family: inherit;
-  outline: none;
-  transition: border-color 0.2s;
-}
-.modal-form .input:focus {
-  border-color: var(--teal);
-}
-.modal-form .input::placeholder {
-  color: var(--muted-light);
-}
-.modal-form .form-hint {
-  font-size: 11px;
-  color: var(--muted);
-  font-style: italic;
-}
-.modal-form .modal-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: 8px;
-}
-.modal-form .modal-actions .btn {
-  flex: 1;
-  justify-content: center;
-}
-.btn-purple {
-  background: linear-gradient(135deg, #7c3aed, #a78bfa);
-  color: white;
-  border: none;
-  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
-}
-.btn-purple:hover {
-  filter: brightness(1.05);
-}
-.btn-purple:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-  box-shadow: none;
-}
-.btn-teal {
-  background: linear-gradient(135deg, #0f766e, #14b8a6);
-  color: white;
-  border: none;
-  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
-}
-.btn-teal:hover {
-  filter: brightness(1.05);
-}
-.btn-teal:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-  box-shadow: none;
-}
+  /* ═══ MODAL CARD (for create admin/super admin modals) ═══ */
+  .modal-card {
+    background: white;
+    border-radius: 22px;
+    width: 100%;
+    max-width: 400px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+  }
+
+  .modal-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--surface-soft);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+
+  .modal-title--purple {
+    color: var(--purple);
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--muted);
+    padding: 4px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-close:hover {
+    background: var(--border);
+    color: var(--text);
+  }
+
+  .modal-form {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .modal-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .modal-form .form-group label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .modal-form .input {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: inherit;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .modal-form .input:focus {
+    border-color: var(--teal);
+  }
+
+  .modal-form .input::placeholder {
+    color: var(--muted-light);
+  }
+
+  .modal-form .form-hint {
+    font-size: 11px;
+    color: var(--muted);
+    font-style: italic;
+  }
+
+  .modal-form .modal-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+  }
+
+  .modal-form .modal-actions .btn {
+    flex: 1;
+    justify-content: center;
+  }
+
+  .btn-purple {
+    background: linear-gradient(135deg, #7c3aed, #a78bfa);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 14px rgba(124, 58, 237, 0.3);
+  }
+
+  .btn-purple:hover {
+    filter: brightness(1.05);
+  }
+
+  .btn-purple:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
+
+  .btn-teal {
+    background: linear-gradient(135deg, #0f766e, #14b8a6);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 14px rgba(15, 118, 110, 0.3);
+  }
+
+  .btn-teal:hover {
+    filter: brightness(1.05);
+  }
+
+  .btn-teal:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+    box-shadow: none;
+  }
 
   font-family: inherit;
   font-size: 13px;
@@ -3051,9 +3343,11 @@ function confirmLogout() {
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .confirm-cancel:hover {
   background: #c8e6c9;
 }
+
 .confirm-logout {
   flex: 1;
   padding: 11px;
@@ -3067,23 +3361,47 @@ function confirmLogout() {
   cursor: pointer;
   transition: background 0.2s;
 }
+
 .confirm-logout:hover {
   background: #7a2a2a;
 }
 
 /* ═══ TRANSITIONS ═══ */
-.fade-enter-active, .fade-leave-active { transition: opacity 0.18s ease; }
-.fade-enter-from, .fade-leave-to { opacity: 0; }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.18s ease;
+}
 
-.drawer-enter-active, .drawer-leave-active { transition: opacity 0.2s ease; }
-.drawer-enter-from, .drawer-leave-to { opacity: 0; }
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 
-.drawer { transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1); }
-.drawer-enter-from .drawer, .drawer-leave-to .drawer { transform: translateX(100%); }
+.drawer-enter-active,
+.drawer-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.drawer-enter-from,
+.drawer-leave-to {
+  opacity: 0;
+}
+
+.drawer {
+  transition: transform 0.25s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.drawer-enter-from .drawer,
+.drawer-leave-to .drawer {
+  transform: translateX(100%);
+}
 
 /* ═══ REDUCED MOTION ═══ */
 @media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; animation: none !important; }
+  * {
+    transition: none !important;
+    animation: none !important;
+  }
 }
 
 /* ════════════════════════════════════════════════════════
@@ -3092,7 +3410,9 @@ function confirmLogout() {
 
 /* Tablet: 900px and below */
 @media (max-width: 900px) {
-  .shell { grid-template-columns: 1fr; }
+  .shell {
+    grid-template-columns: 1fr;
+  }
 
   /* Mobile top bar */
   .mobile-bar {
@@ -3107,12 +3427,17 @@ function confirmLogout() {
     top: 0;
     z-index: 90;
   }
+
   .mobile-bar .icon-btn {
     border-color: rgba(255, 255, 255, 0.2);
     background: rgba(255, 255, 255, 0.1);
     color: white;
   }
-  .mobile-bar .icon-btn:hover { background: rgba(255, 255, 255, 0.2); }
+
+  .mobile-bar .icon-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
   .mobile-bar-title {
     font-family: "Hanuman", serif;
     font-weight: 700;
@@ -3131,7 +3456,11 @@ function confirmLogout() {
     transition: left 0.22s ease;
     box-shadow: none;
   }
-  .nav-open .sidebar { left: 0; box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15); }
+
+  .nav-open .sidebar {
+    left: 0;
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+  }
 
   .nav-open .nav-scrim {
     display: block;
@@ -3142,22 +3471,62 @@ function confirmLogout() {
   }
 
   /* Main content */
-  .main { padding: 20px 14px 48px; }
+  .main {
+    padding: 20px 14px 48px;
+  }
 
   /* Topbar + search stack on mobile */
-  .topbar { flex-direction: column; align-items: stretch; gap: 10px; }
-  .btn-refresh { align-self: flex-start; }
-  .panel-tools { width: 100%; justify-content: space-between; }
-  .search-box { flex: 1; }
-  .search-input { width: 100%; min-width: 0; }
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .btn-refresh {
+    align-self: flex-start;
+  }
+
+  .panel-tools {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .search-box {
+    flex: 1;
+  }
+
+  .search-input {
+    width: 100%;
+    min-width: 0;
+  }
 
   /* Stats: 2x2 grid */
-  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
-  .stat-card { padding: 14px; }
-  .stat-icon-wrap { width: 36px; height: 36px; }
-  .stat-icon-wrap :deep(svg) { width: 18px; height: 18px; }
-  .stat-num { font-size: 22px; }
-  .stat-label { font-size: 10px; }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 14px;
+  }
+
+  .stat-icon-wrap {
+    width: 36px;
+    height: 36px;
+  }
+
+  .stat-icon-wrap :deep(svg) {
+    width: 18px;
+    height: 18px;
+  }
+
+  .stat-num {
+    font-size: 22px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
 
   /* Row: stack vertically */
   .row {
@@ -3166,49 +3535,136 @@ function confirmLogout() {
     padding: 14px 16px;
     gap: 10px;
   }
-  .row-main { min-width: 0; }
+
+  .row-main {
+    min-width: 0;
+  }
+
   .row-meta {
     justify-content: flex-start;
     gap: 8px;
   }
-  .row-actions { width: 100%; }
-  .row-actions .select { width: 100%; }
+
+  .row-actions {
+    width: 100%;
+  }
+
+  .row-actions .select {
+    width: 100%;
+  }
 
   /* Drawer: full width on mobile */
-  .drawer { max-width: 100%; }
-  .field-grid { grid-template-columns: 1fr; }
-  .drawer-actions .btn { min-width: 0; }
+  .drawer {
+    max-width: 100%;
+  }
+
+  .field-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .drawer-actions .btn {
+    min-width: 0;
+  }
 }
 
 /* Small phone: 480px and below */
 @media (max-width: 480px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
-  .stat-card { padding: 12px; gap: 10px; }
-  .stat-icon-wrap { width: 32px; height: 32px; border-radius: 10px; }
-  .stat-icon-wrap :deep(svg) { width: 16px; height: 16px; }
-  .stat-num { font-size: 20px; }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+  }
 
-  .panel-head { padding: 14px 14px; }
-  .panel-head .panel-title { font-size: 13px; }
+  .stat-card {
+    padding: 12px;
+    gap: 10px;
+  }
 
-  .row { padding: 12px 14px; }
-  .row-title { font-size: 12.5px; }
-  .row-sub { font-size: 11px; }
-  .row-meta { font-size: 11px; gap: 6px; }
+  .stat-icon-wrap {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
 
-  .row-meta .tag { font-size: 10px; padding: 2px 8px; }
-  .row-meta .status-dot { font-size: 10.5px; }
+  .stat-icon-wrap :deep(svg) {
+    width: 16px;
+    height: 16px;
+  }
 
-  .avatar { width: 32px; height: 32px; font-size: 12px; }
-  .avatar-lg { width: 40px; height: 40px; font-size: 14px; }
+  .stat-num {
+    font-size: 20px;
+  }
 
-  .drawer-head { padding: 18px 16px 14px; }
-  .drawer-body { padding: 16px 16px 24px; gap: 18px; }
+  .panel-head {
+    padding: 14px 14px;
+  }
 
-  .topbar { margin-bottom: 16px; padding-bottom: 12px; }
-  .page-title { font-size: 18px; }
-  .page-sub { font-size: 11.5px; }
+  .panel-head .panel-title {
+    font-size: 13px;
+  }
 
-  .confirm-box { max-width: 280px; padding: 24px 18px; }
+  .row {
+    padding: 12px 14px;
+  }
+
+  .row-title {
+    font-size: 12.5px;
+  }
+
+  .row-sub {
+    font-size: 11px;
+  }
+
+  .row-meta {
+    font-size: 11px;
+    gap: 6px;
+  }
+
+  .row-meta .tag {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+
+  .row-meta .status-dot {
+    font-size: 10.5px;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    font-size: 12px;
+  }
+
+  .avatar-lg {
+    width: 40px;
+    height: 40px;
+    font-size: 14px;
+  }
+
+  .drawer-head {
+    padding: 18px 16px 14px;
+  }
+
+  .drawer-body {
+    padding: 16px 16px 24px;
+    gap: 18px;
+  }
+
+  .topbar {
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+  }
+
+  .page-title {
+    font-size: 18px;
+  }
+
+  .page-sub {
+    font-size: 11.5px;
+  }
+
+  .confirm-box {
+    max-width: 280px;
+    padding: 24px 18px;
+  }
 }
 </style>

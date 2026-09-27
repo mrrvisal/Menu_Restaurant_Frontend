@@ -12,11 +12,18 @@ self.addEventListener("activate", (event) => {
 });
 
 // ─── FETCH EVENT (installability) ───────────────────────────
-// Chrome requires a fetch listener for the web app to be installable
-// ("Install app" / beforeinstallprompt). It stays a no-op pass-through:
-// the browser's normal network stack handles every request, so nothing
-// here can serve stale content or break caching.
-self.addEventListener("fetch", () => {});
+// Minimal passthrough handler to fulfill PWA installability requirements
+// without triggering Chrome's "no-op fetch handler" warning or overhead.
+self.addEventListener("fetch", (event) => {
+  // Pass non-GET requests directly to the network
+  if (event.request.method !== "GET") return;
+  // Let the browser handle cross-origin or non-HTTP schemes
+  if (!event.request.url.startsWith("http")) return;
+
+  event.respondWith(
+    fetch(event.request).catch(() => caches.match(event.request)),
+  );
+});
 
 // ─── PUSH EVENT ─────────────────────────────────────────────
 // Payload sent by the backend (services/webpush.js):
@@ -40,16 +47,15 @@ self.addEventListener("push", (event) => {
     data: { url: data.url || "/dashboard" },
   };
 
-  event.waitUntil(
-    self.registration.showNotification(title, options),
-  );
+  event.waitUntil(self.registration.showNotification(title, options));
 });
 
 // ─── NOTIFICATION CLICK ─────────────────────────────────────
 // Focus an existing app window if there is one, otherwise open the URL.
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const url = (event.notification.data && event.notification.data.url) || "/dashboard";
+  const url =
+    (event.notification.data && event.notification.data.url) || "/dashboard";
 
   event.waitUntil(
     (async () => {

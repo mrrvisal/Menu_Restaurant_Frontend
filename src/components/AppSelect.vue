@@ -1,80 +1,34 @@
 <template>
-  <div
-    ref="rootEl"
-    class="as-root"
-    :class="[
-      `as-var-${variant}`,
-      `as-tone-${tone}`,
-      `as-size-${size}`,
-      { 'is-open': opened, 'as-block': block, 'as-ghost': ghost, 'as-disabled': disabled },
-    ]"
-    :style="{ '--as-radius': radius || (size === 'sm' ? '8px' : '10px'), minWidth: minWidth || undefined }"
-  >
-    <button
-      type="button"
-      :id="controlId"
-      class="as-control"
-      :disabled="disabled"
-      :aria-label="label || undefined"
-      aria-haspopup="listbox"
-      :aria-controls="menuId"
-      :aria-expanded="opened"
-      :title="currentOption ? labelOf(currentOption) : placeholder"
-      @click="toggle"
-      @keydown="onKeydown"
-    >
+  <div ref="rootEl" class="as-root" :class="[
+    `as-var-${variant}`,
+    `as-tone-${tone}`,
+    `as-size-${size}`,
+    { 'is-open': opened, 'as-block': block, 'as-ghost': ghost, 'as-disabled': disabled },
+  ]" :style="{ '--as-radius': radius || (size === 'sm' ? '8px' : '10px'), minWidth: minWidth || undefined }">
+    <button type="button" :id="controlId" class="as-control" :disabled="disabled" :aria-label="label || undefined"
+      aria-haspopup="listbox" :aria-controls="menuId" :aria-expanded="opened"
+      :title="currentOption ? labelOf(currentOption) : placeholder" @click="toggle" @keydown="onKeydown">
       <span class="as-value" :class="{ 'is-placeholder': !currentOption }">{{
         currentOption ? labelOf(currentOption) : placeholder
       }}</span>
-      <svg
-        class="as-chevron"
-        width="16"
-        height="16"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      ><polyline points="6 9 12 15 18 9" /></svg>
+      <svg class="as-chevron" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
     </button>
 
     <Teleport to="body">
       <Transition name="as-pop">
-        <ul
-          v-if="opened"
-          :id="menuId"
-          ref="menuEl"
-          class="as-menu"
-          :class="[`as-var-${variant}`, `as-tone-${tone}`]"
-          role="listbox"
-          :aria-label="label || 'Select'"
-          :style="menuStyle"
-          @pointerdown.stop
-        >
-          <li
-            v-for="(opt, i) in options"
-            :key="keyOf(opt, i)"
-            class="as-option"
-            :class="{ 'is-active': i === activeIndex, 'is-selected': isSelected(opt) }"
-            role="option"
-            :aria-selected="isSelected(opt)"
-            @click="select(opt)"
-            @pointerenter="activeIndex = i"
-          >
+        <ul v-if="opened" :id="menuId" ref="menuEl" class="as-menu" :class="[`as-var-${variant}`, `as-tone-${tone}`]"
+          role="listbox" :aria-label="label || 'Select'" :style="menuStyle" @pointerdown.stop>
+          <li v-for="(opt, i) in options" :key="keyOf(opt, i)" class="as-option"
+            :class="{ 'is-active': i === activeIndex, 'is-selected': isSelected(opt) }" role="option"
+            :aria-selected="isSelected(opt)" @click="select(opt)" @pointerenter="activeIndex = i">
             <span class="as-option-label">{{ labelOf(opt) }}</span>
-            <svg
-              v-if="isSelected(opt)"
-              class="as-check"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            ><polyline points="20 6 9 17 4 12" /></svg>
+            <svg v-if="isSelected(opt)" class="as-check" width="16" height="16" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
           </li>
           <li v-if="!options.length" class="as-empty">{{ emptyText }}</li>
         </ul>
@@ -326,6 +280,7 @@ onBeforeUnmount(() => {
 .as-menu.as-tone-soft {
   --as-border: var(--border-green, var(--green-soft, #bbf7d0));
 }
+
 /* Tone: plain (neutral border) */
 .as-root.as-tone-plain,
 .as-menu.as-tone-plain {
@@ -339,13 +294,20 @@ onBeforeUnmount(() => {
 }
 
 /* Block / ghost / sizes */
-.as-root.as-block { width: 100%; }
-.as-root.as-ghost .as-control { background: transparent; }
+.as-root.as-block {
+  width: 100%;
+}
+
+.as-root.as-ghost .as-control {
+  background: transparent;
+}
+
 .as-root.as-size-sm .as-control {
   min-height: 30px;
   padding: 4px 10px 4px 10px;
   font-size: 12px;
 }
+
 .as-root.as-size-md .as-control {
   min-height: 38px;
   padding: 8px 10px 8px 10px;
@@ -374,15 +336,18 @@ onBeforeUnmount(() => {
   -webkit-appearance: none;
   appearance: none;
 }
+
 .as-control:hover:not(:disabled) {
   border-color: var(--as-accent);
 }
+
 .as-control:focus-visible,
 .as-root.is-open .as-control {
   outline: none;
   border-color: var(--as-accent);
   box-shadow: 0 0 0 3px var(--as-ring);
 }
+
 .as-control:disabled {
   opacity: 0.55;
   cursor: not-allowed;
@@ -396,14 +361,17 @@ onBeforeUnmount(() => {
   font-size: 12px;
   text-overflow: ellipsis;
 }
+
 .as-value.is-placeholder {
   color: var(--muted-light, #9ca3af);
 }
+
 .as-chevron {
   flex-shrink: 0;
   color: var(--as-accent);
   transition: transform 0.2s ease;
 }
+
 .is-open .as-chevron {
   transform: rotate(180deg);
 }
@@ -435,20 +403,24 @@ onBeforeUnmount(() => {
   color: var(--text, #0f172a);
   transition: background-color 0.12s ease, color 0.12s ease;
 }
-.as-option + .as-option {
+
+.as-option+.as-option {
   margin-top: 2px;
 }
+
 .as-option.is-active,
 .as-option:hover {
   background: var(--as-hover-bg);
   color: var(--as-hover-ink);
 }
+
 .as-option.is-selected {
   background: linear-gradient(135deg, var(--as-grad-a), var(--as-grad-b));
   color: #fff;
   font-weight: 600;
   box-shadow: 0 2px 8px var(--as-ring);
 }
+
 .as-option-label {
   min-width: 0;
   font-size: 12px;
@@ -456,6 +428,7 @@ onBeforeUnmount(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .as-check {
   flex-shrink: 0;
 }
@@ -473,6 +446,7 @@ onBeforeUnmount(() => {
   transition: opacity 0.16s ease, transform 0.16s ease;
   transform-origin: top;
 }
+
 .as-pop-enter-from,
 .as-pop-leave-to {
   opacity: 0;

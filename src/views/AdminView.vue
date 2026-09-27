@@ -1,66 +1,30 @@
-<!-- ═══════════════════════════════════════════════════════════
-   AdminView — v3.3 Fully Responsive
-   Fix: Complete responsive redesign
-   ═══════════════════════════════════════════════════════════ -->
+<!-- Admin dashboard management view -->
 <template>
-  <div
-    class="root"
-    :class="['layout-' + (sidebarPosition || 'left'), { 'nav-open': showMobile }]"
-  >
+  <div class="root" :class="['layout-' + (sidebarPosition || 'left'), { 'nav-open': showMobile }]">
     <!-- ─── MOBILE BAR ─── -->
     <header class="mob">
       <div class="mob-info">
         <div class="mob-av">
-          <img
-            v-if="restaurantLogo"
-            :src="restaurantLogo"
-            alt=""
-            @error="logoLoadError = true"
-          />
-          <svg
-            v-else
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
+          <img v-if="restaurantLogo" :src="restaurantLogo" alt="" @error="logoLoadError = true" />
+          <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
           </svg>
         </div>
         <span class="mob-label">{{
           auth.restaurant?.name || "ភោជនីយដ្ឋាន"
-        }}</span>
+          }}</span>
       </div>
       <!-- Install app — when the app is already installed the icon shows ✓ and
            the tooltip says so, but the button stays ENABLED: the owner can
            still install again (another browser/device, or after removing it). -->
-      <button
-        class="mob-btn mob-install"
-        v-if="installAvailable"
-        :title="installEntryLabel"
-        :aria-label="installEntryLabel"
-        @click="openInstall"
-      >
+      <button class="mob-btn mob-install" v-if="installAvailable" :title="installEntryLabel"
+        :aria-label="installEntryLabel" @click="openInstall">
         <AppIcon :name="isInstalled ? 'check-circle' : 'download'" :size="18" />
       </button>
-      <button
-        class="mob-btn"
-        @click="showMobile = !showMobile"
-        aria-label="Menu"
-        :aria-expanded="showMobile"
-        aria-controls="admin-sidebar"
-      >
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
+      <button class="mob-btn" @click="showMobile = !showMobile" aria-label="Menu" :aria-expanded="showMobile"
+        aria-controls="admin-sidebar">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <line x1="3" y1="6" x2="21" y2="6" />
           <line x1="3" y1="12" x2="21" y2="12" />
           <line x1="3" y1="18" x2="21" y2="18" />
@@ -73,21 +37,8 @@
       <div class="side-top">
         <div class="side-brand">
           <div class="side-icon">
-            <img
-              v-if="restaurantLogo"
-              :src="restaurantLogo"
-              alt=""
-              @error="logoLoadError = true"
-            />
-            <svg
-              v-else
-              width="18"
-              height="18"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
+            <img v-if="restaurantLogo" :src="restaurantLogo" alt="" @error="logoLoadError = true" />
+            <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
               <circle cx="12" cy="7" r="4" />
             </svg>
@@ -95,23 +46,15 @@
           <div class="side-meta">
             <span class="side-name">{{
               auth.restaurant?.name || "ភោជនីយដ្ឋាន"
-            }}</span>
+              }}</span>
           </div>
         </div>
 
         <!-- Restaurant Switcher (one account may manage many restaurants) -->
         <div class="side-rest" v-if="auth.restaurants.length > 1">
-          <AppSelect
-            block
-            size="sm"
-            tone="soft"
-            variant="teal"
-            :model-value="auth.restaurantId"
-            :options="auth.restaurants"
-            option-value="id"
-            option-label="name"
-            @update:model-value="onSwitchRestaurant"
-          />
+          <AppSelect block size="sm" tone="soft" variant="teal" :model-value="auth.restaurantId"
+            :options="auth.restaurants" option-value="id" option-label="name"
+            @update:model-value="onSwitchRestaurant" />
         </div>
         <button class="side-add-rest" @click="openAddRestaurant">
           + {{ i18n.t.add_restaurant || "បន្ថែមភោជនីយដ្ឋាន" }}
@@ -119,86 +62,43 @@
       </div>
 
       <nav class="side-nav">
-        <button
-          class="nav-i"
-          :class="{ active: adminTab === 'foods' }"
-          @click="
-            adminTab = 'foods';
-            showMobile = false;
-          "
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path
-              d="M3 11h18M3 11v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8M3 11V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4"
-            />
+        <button class="nav-i" :class="{ active: adminTab === 'foods' }" @click="
+          adminTab = 'foods';
+        showMobile = false;
+        ">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M3 11h18M3 11v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8M3 11V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4" />
           </svg>
           <span>{{ i18n.t.foods }}</span>
         </button>
-        <button
-          class="nav-i"
-          :class="{ active: adminTab === 'categories' }"
-          @click="
-            adminTab = 'categories';
-            showMobile = false;
-          "
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path
-              d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z"
-            />
+        <button class="nav-i" :class="{ active: adminTab === 'categories' }" @click="
+          adminTab = 'categories';
+        showMobile = false;
+        ">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z" />
           </svg>
           <span>{{ i18n.t.categories }}</span>
         </button>
-        <button
-          class="nav-i"
-          :class="{ active: adminTab === 'orders' }"
-          @click="
-            adminTab = 'orders';
-            fetchOrders();
-            showMobile = false;
-          "
-        >
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
-            <path
-              d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
-            />
+        <button class="nav-i" :class="{ active: adminTab === 'orders' }" @click="
+          adminTab = 'orders';
+        fetchOrders();
+        showMobile = false;
+        ">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
             <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
           </svg>
           <span>{{ i18n.t.orders }}</span>
           <span v-if="orders.length" class="nav-badge">{{
             orders.length
-          }}</span>
+            }}</span>
         </button>
         <!-- Sales reports — the screen owners judge the SaaS by -->
-        <button
-          class="nav-i"
-          :class="{ active: adminTab === 'reports' }"
-          @click="
-            openReports();
-            showMobile = false;
-          "
-        >
+        <button class="nav-i" :class="{ active: adminTab === 'reports' }" @click="
+          openReports();
+        showMobile = false;
+        ">
           <AppIcon name="chart" :size="18" />
           <span>{{ i18n.t.reports || "Reports" }}</span>
         </button>
@@ -214,14 +114,7 @@
           {{ i18n.locale === "km" ? "EN" : "ខ្មែរ" }}
         </button>
         <button class="logout" @click="loggingOut = true">
-          <svg
-            width="15"
-            height="15"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.5"
-          >
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
             <path d="M7 11V7a5 5 0 0 1 10 0v4" />
           </svg>
@@ -242,31 +135,19 @@
               adminTab === "foods"
                 ? i18n.t.foods
                 : adminTab === "categories"
-                ? i18n.t.categories
-                : adminTab === "reports"
-                ? i18n.t.reports || "Reports"
-                : i18n.t.orders
+                  ? i18n.t.categories
+                  : adminTab === "reports"
+                    ? i18n.t.reports || "Reports"
+                    : i18n.t.orders
             }}
           </h1>
         </div>
         <div class="hdr-r">
           <NotificationBell @select="onNotificationSelect" />
           <div class="profile-wrap" ref="profileWrap">
-            <button
-              class="ac ac-primary ac-avatar"
-              @click="toggleProfileMenu"
-              :title="i18n.t.profile || i18n.t.settings"
-              :aria-haspopup="true"
-              :aria-expanded="profileMenuOpen"
-            >
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
+            <button class="ac ac-primary ac-avatar" @click="toggleProfileMenu"
+              :title="i18n.t.profile || i18n.t.settings" :aria-haspopup="true" :aria-expanded="profileMenuOpen">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                 <circle cx="12" cy="7" r="4" />
               </svg>
@@ -277,14 +158,8 @@
               <div v-if="profileMenuOpen" class="profile-menu">
                 <div class="pm-head">
                   <div class="pm-avatar">
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="1.5">
                       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                       <circle cx="12" cy="7" r="4" />
                     </svg>
@@ -292,23 +167,15 @@
                   <div class="pm-info">
                     <strong>{{
                       auth.restaurant?.name || auth.user?.email || i18n.t.profile
-                    }}</strong>
+                      }}</strong>
                     <span>{{ auth.user?.email }}</span>
                   </div>
                 </div>
 
                 <div class="pm-body">
                   <button class="pm-item" @click="runProfileAction(openProfile)">
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="12" cy="8" r="4" />
                       <path d="M4 21v-1a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v1" />
                     </svg>
@@ -321,14 +188,8 @@
                   </button>
 
                   <button class="pm-item" @click="runProfileAction(openQR)">
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="1.5">
                       <rect x="3" y="3" width="7" height="7" />
                       <rect x="14" y="3" width="7" height="7" />
                       <rect x="3" y="14" width="7" height="7" />
@@ -337,42 +198,24 @@
                     <span>{{ i18n.t.generate_qr }}</span>
                   </button>
                   <button class="pm-item" @click="runProfileAction(openDevices)">
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="1.5">
                       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                       <polyline points="9 12 11 14 15 10" />
                     </svg>
                     <span>{{ i18n.t.devices }}</span>
                   </button>
                   <button class="pm-item" @click="runProfileAction(openTelegramSettings)">
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="1.5">
                       <path d="m21 4-4.5 16-5.2-5.1L7 19l1.2-6L3 10.8 21 4Z" />
                     </svg>
                     <span>{{ i18n.t.telegram }}</span>
                     <span v-if="!isLinked" class="pm-dot"></span>
                   </button>
                   <button class="pm-item" @click="runProfileAction(openPreview)">
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="1.5">
                       <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
                       <circle cx="12" cy="12" r="3" />
                     </svg>
@@ -388,41 +231,23 @@
                   <!-- ── Install app (PWA download) ──
                        Once the app is already installed this row still works:
                        it says "Installed" and offers "Install again". -->
-                  <button
-                    v-if="installAvailable"
-                    class="pm-item"
-                    @click="runProfileAction(openInstall)"
-                  >
-                    <AppIcon
-                      :name="isInstalled ? 'check-circle' : 'download'"
-                      :size="15"
-                    />
+                  <button v-if="installAvailable" class="pm-item" @click="runProfileAction(openInstall)">
+                    <AppIcon :name="isInstalled ? 'check-circle' : 'download'" :size="15" />
                     <span class="pm-label">
                       {{
                         isInstalled ? i18n.t.install_again : i18n.t.install_app
                       }}
                       <em v-if="isInstalled" class="pm-note">{{
                         i18n.t.install_installed
-                      }}</em>
+                        }}</em>
                     </span>
                   </button>
 
                   <div class="pm-sep"></div>
 
-                  <button
-                    class="pm-item pm-danger"
-                    @click="runProfileAction(() => { loggingOut = true; })"
-                  >
-                    <svg
-                      width="15"
-                      height="15"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
+                  <button class="pm-item pm-danger" @click="runProfileAction(() => { loggingOut = true; })">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                      stroke-linecap="round" stroke-linejoin="round">
                       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                       <polyline points="16 17 21 12 16 7" />
                       <line x1="21" y1="12" x2="9" y2="12" />
@@ -440,14 +265,7 @@
       <div class="metrics">
         <div class="metric metric-teal">
           <div class="metric-icon mi-teal">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M3 3v18h18" />
               <path d="M18 17V9" />
               <path d="M13 17V5" />
@@ -455,26 +273,15 @@
             </svg>
           </div>
           <div class="metric-b">
-            <span class="metric-v"
-              >{{ currencyStore.fmt(stats.summary?.revenue ?? stats.totalRevenue) }}</span
-            >
+            <span class="metric-v">{{ currencyStore.fmt(stats.summary?.revenue ?? stats.totalRevenue) }}</span>
             <span class="metric-l">{{ i18n.t.revenue }}</span>
           </div>
           <div class="metric-glow"></div>
         </div>
         <div class="metric metric-green">
           <div class="metric-icon mi-green">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
-              <path
-                d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
-              />
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
               <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
             </svg>
           </div>
@@ -486,14 +293,7 @@
         </div>
         <div class="metric metric-amber">
           <div class="metric-icon mi-amber">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.5"
-            >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
               <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
               <circle cx="9" cy="7" r="4" />
               <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
@@ -520,11 +320,7 @@
         <template v-else-if="!foods.menus.length">
           <div class="menustrip-empty">
             <span>{{ i18n.t.need_menu || "សូមបង្កើតមីនុយជាមុន" }}</span>
-            <button
-              class="btn btn-primary btn-sm"
-              :disabled="menuCreating"
-              @click="ensureDefaultMenu()"
-            >
+            <button class="btn btn-primary btn-sm" :disabled="menuCreating" @click="ensureDefaultMenu()">
               {{ menuCreating ? i18n.t.loading : (i18n.t.create_menu || "បង្កើតមីនុយ") }}
             </button>
           </div>
@@ -540,69 +336,34 @@
       <template v-if="adminTab === 'foods'">
         <div class="bar">
           <div class="bar-scroll">
-            <button
-              v-for="cat in foods.categories"
-              :key="cat.id"
-              class="chip"
-              :class="{ active: curCat === cat.id }"
+            <button v-for="cat in foods.categories" :key="cat.id" class="chip" :class="{ active: curCat === cat.id }"
               @click="
                 curCat = cat.id;
-                load();
-              "
-            >
+              load();
+              ">
               {{ cat.label_km }}
             </button>
           </div>
           <div class="bar-acts">
             <div class="srch">
-              <svg
-                class="srch-i"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
+              <svg class="srch-i" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="1.5">
                 <circle cx="11" cy="11" r="8" />
                 <path d="m21 21-4.3-4.3" />
               </svg>
-              <input
-                v-model="searchQ"
-                :placeholder="i18n.t.search"
-                @input="load()"
-              />
-              <button
-                v-if="searchQ"
-                class="srch-x"
-                aria-label="Clear search"
-                @click="
-                  searchQ = '';
-                  load();
-                "
-              >
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                >
+              <input v-model="searchQ" :placeholder="i18n.t.search" @input="load()" />
+              <button v-if="searchQ" class="srch-x" aria-label="Clear search" @click="
+                searchQ = '';
+              load();
+              ">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
               </button>
             </div>
             <button class="ac ac-primary" @click="openAdd">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="16" />
                 <line x1="8" y1="12" x2="16" y2="12" />
@@ -617,15 +378,8 @@
           <p>{{ i18n.t.loading }}</p>
         </div>
         <div v-else-if="!foods.foods.length" class="empty">
-          <svg
-            width="40"
-            height="40"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1"
-            opacity=".3"
-          >
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
+            opacity=".3">
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.3-4.3" />
           </svg>
@@ -635,18 +389,11 @@
           </button>
         </div>
         <div v-else class="grid">
-          <FoodCard
-            v-for="food in foods.foods"
-            :key="food.id"
-            :food="food"
-            is-admin
-            @delete="confirmDel($event)"
-            @toggle-status="foods.toggleStatus($event)"
-            @detail="
+          <FoodCard v-for="food in foods.foods" :key="food.id" :food="food" is-admin @delete="confirmDel($event)"
+            @toggle-status="foods.toggleStatus($event)" @detail="
               editingFood = $event;
-              showForm = true;
-            "
-          />
+            showForm = true;
+            " />
         </div>
       </template>
 
@@ -655,14 +402,7 @@
         <div class="bar">
           <div class="bar-acts">
             <button class="ac ac-primary" @click="openCatForm()">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <circle cx="12" cy="12" r="10" />
                 <line x1="12" y1="8" x2="12" y2="16" />
                 <line x1="8" y1="12" x2="16" y2="12" />
@@ -672,18 +412,9 @@
           </div>
         </div>
         <div v-if="!foods.categories.length" class="empty">
-          <svg
-            width="40"
-            height="40"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1"
-            opacity=".3"
-          >
-            <path
-              d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z"
-            />
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
+            opacity=".3">
+            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z" />
           </svg>
           <p>{{ i18n.t.no_data }}</p>
         </div>
@@ -691,44 +422,16 @@
           <div v-for="cat in foods.categories" :key="cat.id" class="cat-c">
             <span class="cat-n">{{ cat.label_km }}</span>
             <div class="cat-acts">
-              <button
-                class="ic ic-sm"
-                aria-label="Edit category"
-                @click="openCatForm(cat)"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
-                  <path
-                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                  />
-                  <path
-                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                  />
+              <button class="ic ic-sm" aria-label="Edit category" @click="openCatForm(cat)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                 </svg>
               </button>
-              <button
-                class="ic ic-sm ic-red"
-                aria-label="Delete category"
-                @click="confirmDelCat(cat)"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+              <button class="ic ic-sm ic-red" aria-label="Delete category" @click="confirmDelCat(cat)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <polyline points="3 6 5 6 21 6" />
-                  <path
-                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                  />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                 </svg>
               </button>
             </div>
@@ -741,25 +444,15 @@
         <div class="bar orders-bar">
           <div class="bar-acts">
             <span class="ods-label">
-                <svg
-                  width="13"
-                  height="13"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
-                  <circle cx="11" cy="11" r="8" />
-                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
-                </svg>
-                {{ i18n.t.orders_search_date }}:
-              </span>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+              </svg>
+              {{ i18n.t.orders_search_date }}:
+            </span>
             <!-- Search by date: pick any date to see that day's orders -->
             <label class="orders-date-search">
-              <AppDatePicker
-                v-model="searchDate"
-                :placeholder="i18n.t.report_today"
-              />
+              <AppDatePicker v-model="searchDate" :placeholder="i18n.t.report_today" />
             </label>
             <!-- <button
               v-if="searchActive"
@@ -769,19 +462,8 @@
               <AppIcon name="x" :size="12" />
               {{ i18n.t.cancel || "Clear" }}
             </button> -->
-            <button
-              class="ac ac-ghost bar-refresh"
-              :disabled="ordersLoading"
-              @click="fetchOrders"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
+            <button class="ac ac-ghost bar-refresh" :disabled="ordersLoading" @click="fetchOrders">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <circle cx="12" cy="12" r="10" />
                 <polyline points="12 6 12 12 16 14" />
               </svg>
@@ -800,32 +482,22 @@
               <AppIcon name="calendar" :size="14" />
               {{ dayLabel(searchDate) }}
             </span>
-            <span class="search-count"
-              >{{ searchDateOrders.length }} {{ i18n.t.orders }}</span
-            >
+            <span class="search-count">{{ searchDateOrders.length }} {{ i18n.t.orders }}</span>
           </header>
           <div v-if="searchDateOrders.length" class="order-grid">
             <div v-for="order in searchDateOrders" :key="order.id" class="order-c">
               <div class="order-h">
                 <div class="order-hl">
-                  <span class="order-id"
-                    ><AppIcon name="clipboard" :size="12" />#{{ order.id }}</span
-                  >
-                  <span class="order-t"
-                    ><svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
+                  <span class="order-id">
+                    <AppIcon name="clipboard" :size="12" />#{{ order.id }}
+                  </span>
+                  <span class="order-t"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="1.5">
                       <rect x="3" y="3" width="18" height="18" rx="2" />
                       <line x1="3" y1="9" x2="21" y2="9" />
                       <line x1="9" y1="3" x2="9" y2="9" />
                     </svg>
-                    {{ i18n.t.table }} {{ order.table_no }}</span
-                  >
+                    {{ i18n.t.table }} {{ order.table_no }}</span>
                 </div>
                 <div class="order-m">
                   <span class="order-st" :class="order.status">
@@ -834,34 +506,19 @@
                   </span>
                   <span class="order-time">{{
                     formatDate(order.created_at)
-                  }}</span>
+                    }}</span>
                 </div>
               </div>
               <div class="order-items">
-                <div
-                  v-for="(item, idx) in parseItems(order.items)"
-                  :key="idx"
-                  class="order-i"
-                >
+                <div v-for="(item, idx) in parseItems(order.items)" :key="idx" class="order-i">
                   <span>{{ item.name }}</span>
-                  <span class="order-p"
-                    >{{ item.qty }} ×
-                    {{ currencyStore.fmt(item.price) }}</span
-                  >
+                  <span class="order-p">{{ item.qty }} ×
+                    {{ currencyStore.fmt(item.price) }}</span>
                 </div>
               </div>
               <div v-if="order.note" class="order-n">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
-                  <path
-                    d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                  />
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                   <polyline points="14 2 14 8 20 8" />
                   <line x1="16" y1="13" x2="8" y2="13" />
                   <line x1="16" y1="17" x2="8" y2="17" />
@@ -875,13 +532,8 @@
               <div v-if="getStatusOptions(order.status).length" class="order-status-actions">
                 <span class="order-status-label">{{ i18n.t.change_status || "ប្តូរស្ថានភាព" }}:</span>
                 <div class="order-status-btns">
-                  <button
-                    v-for="s in getStatusOptions(order.status)"
-                    :key="s"
-                    class="order-status-btn"
-                    :class="'st-' + s"
-                    @click="updateOrderStatus(order.id, s)"
-                  >
+                  <button v-for="s in getStatusOptions(order.status)" :key="s" class="order-status-btn"
+                    :class="'st-' + s" @click="updateOrderStatus(order.id, s)">
                     <AppIcon :name="statusIcon(s)" :size="11" />
                     {{ statusLabel(s) }}
                   </button>
@@ -895,18 +547,9 @@
         </div>
         <!-- ─── NORMAL VIEW: today + date-grouped history ─── -->
         <div v-else-if="!orders.length" class="empty">
-          <svg
-            width="40"
-            height="40"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1"
-            opacity=".3"
-          >
-            <path
-              d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
-            />
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
+            opacity=".3">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
             <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
           </svg>
           <!-- No orders at all (e.g. fresh new day) — show the same
@@ -914,73 +557,41 @@
           <p>{{ i18n.t.no_orders_today }}</p>
         </div>
         <div v-else class="order-days">
-          <div
-            v-for="sec in orderSections"
-            :key="sec.key"
-            class="day-section"
-            :class="{ 'day-today': sec.today }"
-          >
+          <div v-for="sec in orderSections" :key="sec.key" class="day-section" :class="{ 'day-today': sec.today }">
             <!-- Section header: "Today" for the active list, the order's date
                  for history groups. Previous days start collapsed — their
                  orders were "cleared" out of the active view at midnight. -->
-            <header
-              class="day-head"
-              :class="{
-                clickable: sec.collapsible,
-                open: sec.collapsible && expandedDays[sec.key],
-              }"
-              @click="sec.collapsible && toggleDay(sec.key)"
-            >
+            <header class="day-head" :class="{
+              clickable: sec.collapsible,
+              open: sec.collapsible && expandedDays[sec.key],
+            }" @click="sec.collapsible && toggleDay(sec.key)">
               <span class="day-title">
                 <AppIcon :name="sec.today ? 'sun' : 'orders'" :size="14" />
                 {{ sec.today ? i18n.t.report_today : dayLabel(sec.day) }}
               </span>
               <span class="day-meta">
-                <span class="day-count"
-                  >{{ sec.orders.length }} {{ i18n.t.orders }}</span
-                >
-                <svg
-                  v-if="sec.collapsible"
-                  class="day-chev"
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                >
+                <span class="day-count">{{ sec.orders.length }} {{ i18n.t.orders }}</span>
+                <svg v-if="sec.collapsible" class="day-chev" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </span>
             </header>
 
-            <div
-              v-if="!sec.collapsible || expandedDays[sec.key]"
-              class="order-grid"
-            >
+            <div v-if="!sec.collapsible || expandedDays[sec.key]" class="order-grid">
               <div v-for="order in sec.orders" :key="order.id" class="order-c">
                 <div class="order-h">
                   <div class="order-hl">
-                    <span class="order-id"
-                      ><AppIcon name="clipboard" :size="12" />#{{ order.id }}</span
-                    >
-                    <span class="order-t"
-                      ><svg
-                        width="12"
-                        height="12"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.5"
-                      >
+                    <span class="order-id">
+                      <AppIcon name="clipboard" :size="12" />#{{ order.id }}
+                    </span>
+                    <span class="order-t"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="1.5">
                         <rect x="3" y="3" width="18" height="18" rx="2" />
                         <line x1="3" y1="9" x2="21" y2="9" />
                         <line x1="9" y1="3" x2="9" y2="9" />
                       </svg>
-                      {{ i18n.t.table }} {{ order.table_no }}</span
-                    >
+                      {{ i18n.t.table }} {{ order.table_no }}</span>
                   </div>
                   <div class="order-m">
                     <span class="order-st" :class="order.status">
@@ -989,34 +600,19 @@
                     </span>
                     <span class="order-time">{{
                       formatDate(order.created_at)
-                    }}</span>
+                      }}</span>
                   </div>
                 </div>
                 <div class="order-items">
-                  <div
-                    v-for="(item, idx) in parseItems(order.items)"
-                    :key="idx"
-                    class="order-i"
-                  >
+                  <div v-for="(item, idx) in parseItems(order.items)" :key="idx" class="order-i">
                     <span>{{ item.name }}</span>
-                    <span class="order-p"
-                      >{{ item.qty }} ×
-                      {{ currencyStore.fmt(item.price) }}</span
-                    >
+                    <span class="order-p">{{ item.qty }} ×
+                      {{ currencyStore.fmt(item.price) }}</span>
                   </div>
                 </div>
                 <div v-if="order.note" class="order-n">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  >
-                    <path
-                      d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"
-                    />
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
                     <polyline points="14 2 14 8 20 8" />
                     <line x1="16" y1="13" x2="8" y2="13" />
                     <line x1="16" y1="17" x2="8" y2="17" />
@@ -1030,13 +626,8 @@
                 <div v-if="getStatusOptions(order.status).length" class="order-status-actions">
                   <span class="order-status-label">{{ i18n.t.change_status || "ប្តូរស្ថានភាព" }}:</span>
                   <div class="order-status-btns">
-                    <button
-                      v-for="s in getStatusOptions(order.status)"
-                      :key="s"
-                      class="order-status-btn"
-                      :class="'st-' + s"
-                      @click="updateOrderStatus(order.id, s)"
-                    >
+                    <button v-for="s in getStatusOptions(order.status)" :key="s" class="order-status-btn"
+                      :class="'st-' + s" @click="updateOrderStatus(order.id, s)">
                       <AppIcon :name="statusIcon(s)" :size="11" />
                       {{ statusLabel(s) }}
                     </button>
@@ -1054,322 +645,246 @@
       <template v-if="adminTab === 'reports'">
         <!-- Filter panel (left) + summary cards (right) -->
         <div class="rep-top">
-        <div class="rep-side">
-        <!-- Filters: presets / range / grouping / export -->
-        <div class="bar rep-bar">
-          <div class="rep-presets">
-            <button
-              v-for="p in reportPresets"
-              :key="p.key"
-              class="chip"
-              :class="{ active: reportPreset === p.key }"
-              @click="applyReportPreset(p.key)"
-            >
-              {{ p.label }}
-            </button>
-          </div>
-          <div class="rep-controls">
-            <label class="rep-date">
-              <span>{{ i18n.t.report_from }}</span>
-              <AppDatePicker
-                v-model="reportStartDate"
-                :max="reportEndDate"
-                @change="
-                  reportPreset = 'custom';
+          <div class="rep-side">
+            <!-- Filters: presets / range / grouping / export -->
+            <div class="bar rep-bar">
+              <div class="rep-presets">
+                <button v-for="p in reportPresets" :key="p.key" class="chip" :class="{ active: reportPreset === p.key }"
+                  @click="applyReportPreset(p.key)">
+                  {{ p.label }}
+                </button>
+              </div>
+              <div class="rep-controls">
+                <label class="rep-date">
+                  <span>{{ i18n.t.report_from }}</span>
+                  <AppDatePicker v-model="reportStartDate" :max="reportEndDate" @change="
+                    reportPreset = 'custom';
                   fetchReport();
-                "
-              />
-            </label>
-            <label class="rep-date">
-              <span>{{ i18n.t.report_to }}</span>
-              <AppDatePicker
-                v-model="reportEndDate"
-                :min="reportStartDate"
-                @change="
-                  reportPreset = 'custom';
+                  " />
+                </label>
+                <label class="rep-date">
+                  <span>{{ i18n.t.report_to }}</span>
+                  <AppDatePicker v-model="reportEndDate" :min="reportStartDate" @change="
+                    reportPreset = 'custom';
                   fetchReport();
-                "
-              />
-            </label>
-            <div class="rep-groups">
-              <button
-                v-for="g in reportGroups"
-                :key="g.key"
-                class="chip"
-                :class="{ active: reportGroup === g.key }"
-                @click="
-                  reportGroup = g.key;
-                  fetchReport();
-                "
-              >
-                {{ g.label }}
-              </button>
-            </div>
-          </div>
-          <div class="rep-export">
-            <AppSelect
-              v-model="reportDataset"
-              :options="reportDatasets"
-              size="md"
-              tone="soft"
-              variant="teal"
-            />
-            <button
-              class="ac ac-primary"
-              :disabled="reportExporting"
-              @click="exportReport"
-            >
-              <AppIcon name="download" :size="14" />
-              {{ reportExporting ? i18n.t.report_exporting : i18n.t.report_export }}
-            </button>
-          </div>
-        </div>
-        <div
-          v-if="reportExportMsg"
-          class="msg rep-msg"
-          :class="reportExportError ? 'msg-e' : 'msg-s'"
-        >
-          <AppIcon
-            :name="reportExportError ? 'alert-circle' : 'check-circle'"
-            :size="14"
-          />
-          {{ reportExportMsg }}
-        </div>
-        </div>
-
-        <div class="rep-main-col">
-        <div v-if="reportLoading" class="empty">
-          <div class="spinner"></div>
-          <p>{{ i18n.t.loading }}</p>
-        </div>
-        <div v-else-if="reportError" class="empty">
-          <AppIcon name="alert-circle" :size="34" />
-          <p>{{ reportError }}</p>
-        </div>
-        <template v-else>
-          <!-- Summary cards -->
-          <div class="rep-cards">
-            <div class="rep-card">
-              <div class="rep-card-i rep-i-teal"><AppIcon name="money" :size="18" /></div>
-              <div class="metric-b">
-                <span class="metric-v">{{ currencyStore.fmt(report.summary?.revenue) }}</span>
-                <span class="metric-l">{{ i18n.t.revenue }}</span>
-              </div>
-            </div>
-            <div class="rep-card">
-              <div class="rep-card-i rep-i-green"><AppIcon name="orders" :size="18" /></div>
-              <div class="metric-b">
-                <span class="metric-v">{{ report.summary?.orders ?? 0 }}</span>
-                <span class="metric-l">{{ i18n.t.orders }}</span>
-              </div>
-            </div>
-            <div class="rep-card">
-              <div class="rep-card-i rep-i-blue"><AppIcon name="chart" :size="18" /></div>
-              <div class="metric-b">
-                <span class="metric-v">{{ currencyStore.fmt(report.summary?.avgOrderValue) }}</span>
-                <span class="metric-l">{{ i18n.t.report_avg_order }}</span>
-              </div>
-            </div>
-            <div class="rep-card">
-              <div class="rep-card-i rep-i-amber"><AppIcon name="food" :size="18" /></div>
-              <div class="metric-b">
-                <span class="metric-v">{{ report.summary?.itemsSold ?? 0 }}</span>
-                <span class="metric-l">{{ i18n.t.report_items_sold }}</span>
-              </div>
-            </div>
-            <div class="rep-card" :class="{ 'rep-card-dim': !report.summary?.cancelledOrders }">
-              <div class="rep-card-i rep-i-red"><AppIcon name="x-circle" :size="18" /></div>
-              <div class="metric-b">
-                <span class="metric-v">{{ report.summary?.cancelledOrders ?? 0 }}</span>
-                <span class="metric-l">{{ i18n.t.cancelled }} · {{ currencyStore.fmt(report.summary?.cancelledRevenue) }}</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Revenue chart -->
-          <div class="rep-panel">
-            <div class="rep-panel-h">
-              <span><AppIcon name="chart" :size="15" /> {{ i18n.t.report_chart_title }}</span>
-              <span v-if="report.summary?.bestPeriod" class="rep-panel-sub">
-                {{ i18n.t.report_best_period }}: {{ report.summary.bestPeriod.label }} ·
-                {{ currencyStore.fmt(report.summary.bestPeriod.revenue) }}
-              </span>
-            </div>
-            <SalesChart
-              :points="reportSeriesPoints"
-              :color="chartColor"
-              :format-value="(v) => currencyStore.fmt(v)"
-              :format-axis="fmtAxis"
-              :aria-label="i18n.t.report_chart_title"
-              :empty-text="i18n.t.no_data"
-            />
-          </div>
-          <div class="rep-two">
-            <!-- Top-selling dishes -->
-            <div class="rep-panel">
-              <div class="rep-panel-h">
-                <span><AppIcon name="food" :size="15" /> {{ i18n.t.report_top_title }}</span>
-              </div>
-              <div v-if="!report.topItems?.length" class="rep-empty">{{ i18n.t.no_data }}</div>
-              <div v-else class="rep-rows">
-                <div
-                  v-for="(item, i) in report.topItems"
-                  :key="item.name"
-                  class="rep-row"
-                >
-                  <span class="rep-rank">{{ i + 1 }}</span>
-                  <div class="rep-row-b">
-                    <span class="rep-row-l">{{ item.name }}</span>
-                    <div class="rep-row-bar">
-                      <span
-                        :style="{ width: topItemWidth(item) }"
-                        :title="currencyStore.fmt(item.revenue)"
-                      ></span>
-                    </div>
-                  </div>
-                  <span class="rep-row-v">
-                    <strong>{{ item.qty }}</strong>
-                    <em>{{ i18n.t.report_qty }}</em>
-                    <b>{{ currencyStore.fmt(item.revenue) }}</b>
-                  </span>
+                  " />
+                </label>
+                <div class="rep-groups">
+                  <button v-for="g in reportGroups" :key="g.key" class="chip" :class="{ active: reportGroup === g.key }"
+                    @click="
+                      reportGroup = g.key;
+                    fetchReport();
+                    ">
+                    {{ g.label }}
+                  </button>
                 </div>
               </div>
-            </div>
-
-            <!-- Orders by hour -->
-            <div class="rep-panel">
-              <div class="rep-panel-h">
-                <span><AppIcon name="clock" :size="15" /> {{ i18n.t.report_hours_title }}</span>
+              <div class="rep-export">
+                <AppSelect v-model="reportDataset" :options="reportDatasets" size="md" tone="soft" variant="teal" />
+                <button class="ac ac-primary" :disabled="reportExporting" @click="exportReport">
+                  <AppIcon name="download" :size="14" />
+                  {{ reportExporting ? i18n.t.report_exporting : i18n.t.report_export }}
+                </button>
               </div>
-              <SalesChart
-                :points="reportHourPoints"
-                :color="chartColor"
-                :format-value="(v) => `${v} ${i18n.t.orders}`"
-                :format-axis="(v) => v"
-                :aria-label="i18n.t.report_hours_title"
-                :empty-text="i18n.t.no_data"
-              />
+            </div>
+            <div v-if="reportExportMsg" class="msg rep-msg" :class="reportExportError ? 'msg-e' : 'msg-s'">
+              <AppIcon :name="reportExportError ? 'alert-circle' : 'check-circle'" :size="14" />
+              {{ reportExportMsg }}
             </div>
           </div>
 
-          <div class="rep-two">
-            <!-- Orders by table -->
-            <div class="rep-panel">
-              <div class="rep-panel-h">
-                <span><AppIcon name="table" :size="15" /> {{ i18n.t.report_tables_title }}</span>
-              </div>
-              <div v-if="!report.byTable?.length" class="rep-empty">{{ i18n.t.no_data }}</div>
-              <div v-else class="rep-rows">
-                <div
-                  v-for="row in report.byTable"
-                  :key="row.table_no"
-                  class="rep-row"
-                >
-                  <div class="rep-row-b">
-                    <span class="rep-row-l">{{ i18n.t.table }} {{ row.table_no }}</span>
-                    <div class="rep-row-bar">
-                      <span
-                        :style="{ width: tableBarWidth(row) }"
-                        :title="currencyStore.fmt(row.revenue)"
-                      ></span>
-                    </div>
+          <div class="rep-main-col">
+            <div v-if="reportLoading" class="empty">
+              <div class="spinner"></div>
+              <p>{{ i18n.t.loading }}</p>
+            </div>
+            <div v-else-if="reportError" class="empty">
+              <AppIcon name="alert-circle" :size="34" />
+              <p>{{ reportError }}</p>
+            </div>
+            <template v-else>
+              <!-- Summary cards -->
+              <div class="rep-cards">
+                <div class="rep-card">
+                  <div class="rep-card-i rep-i-teal">
+                    <AppIcon name="money" :size="18" />
                   </div>
-                  <span class="rep-row-v">
-                    <strong>{{ row.orders }}</strong>
-                    <b>{{ currencyStore.fmt(row.revenue) }}</b>
-                  </span>
+                  <div class="metric-b">
+                    <span class="metric-v">{{ currencyStore.fmt(report.summary?.revenue) }}</span>
+                    <span class="metric-l">{{ i18n.t.revenue }}</span>
+                  </div>
+                </div>
+                <div class="rep-card">
+                  <div class="rep-card-i rep-i-green">
+                    <AppIcon name="orders" :size="18" />
+                  </div>
+                  <div class="metric-b">
+                    <span class="metric-v">{{ report.summary?.orders ?? 0 }}</span>
+                    <span class="metric-l">{{ i18n.t.orders }}</span>
+                  </div>
+                </div>
+                <div class="rep-card">
+                  <div class="rep-card-i rep-i-blue">
+                    <AppIcon name="chart" :size="18" />
+                  </div>
+                  <div class="metric-b">
+                    <span class="metric-v">{{ currencyStore.fmt(report.summary?.avgOrderValue) }}</span>
+                    <span class="metric-l">{{ i18n.t.report_avg_order }}</span>
+                  </div>
+                </div>
+                <div class="rep-card">
+                  <div class="rep-card-i rep-i-amber">
+                    <AppIcon name="food" :size="18" />
+                  </div>
+                  <div class="metric-b">
+                    <span class="metric-v">{{ report.summary?.itemsSold ?? 0 }}</span>
+                    <span class="metric-l">{{ i18n.t.report_items_sold }}</span>
+                  </div>
+                </div>
+                <div class="rep-card" :class="{ 'rep-card-dim': !report.summary?.cancelledOrders }">
+                  <div class="rep-card-i rep-i-red">
+                    <AppIcon name="x-circle" :size="18" />
+                  </div>
+                  <div class="metric-b">
+                    <span class="metric-v">{{ report.summary?.cancelledOrders ?? 0 }}</span>
+                    <span class="metric-l">{{ i18n.t.cancelled }} · {{
+                      currencyStore.fmt(report.summary?.cancelledRevenue) }}</span>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- Status breakdown -->
-            <div class="rep-panel">
-              <div class="rep-panel-h">
-                <span><AppIcon name="orders" :size="15" /> {{ i18n.t.report_status_title }}</span>
-              </div>
-              <div v-if="!report.byStatus?.length" class="rep-empty">{{ i18n.t.no_data }}</div>
-              <div v-else class="rep-rows">
-                <div
-                  v-for="row in report.byStatus"
-                  :key="row.status"
-                  class="rep-row"
-                >
-                  <span class="order-st" :class="row.status">
-                    <AppIcon :name="statusIcon(row.status)" :size="11" />
-                    {{ statusLabel(row.status) }}
+              <!-- Revenue chart -->
+              <div class="rep-panel">
+                <div class="rep-panel-h">
+                  <span>
+                    <AppIcon name="chart" :size="15" /> {{ i18n.t.report_chart_title }}
                   </span>
-                  <div class="rep-row-b">
-                    <div class="rep-row-bar">
-                      <span
-                        :style="{ width: statusBarWidth(row) }"
-                        :title="currencyStore.fmt(row.revenue)"
-                      ></span>
-                    </div>
-                  </div>
-                  <span class="rep-row-v">
-                    <strong>{{ row.orders }}</strong>
-                    <b>{{ currencyStore.fmt(row.revenue) }}</b>
+                  <span v-if="report.summary?.bestPeriod" class="rep-panel-sub">
+                    {{ i18n.t.report_best_period }}: {{ report.summary.bestPeriod.label }} ·
+                    {{ currencyStore.fmt(report.summary.bestPeriod.revenue) }}
                   </span>
                 </div>
+                <SalesChart :points="reportSeriesPoints" :color="chartColor" :format-value="(v) => currencyStore.fmt(v)"
+                  :format-axis="fmtAxis" :aria-label="i18n.t.report_chart_title" :empty-text="i18n.t.no_data" />
               </div>
-            </div>
+              <div class="rep-two">
+                <!-- Top-selling dishes -->
+                <div class="rep-panel">
+                  <div class="rep-panel-h">
+                    <span>
+                      <AppIcon name="food" :size="15" /> {{ i18n.t.report_top_title }}
+                    </span>
+                  </div>
+                  <div v-if="!report.topItems?.length" class="rep-empty">{{ i18n.t.no_data }}</div>
+                  <div v-else class="rep-rows">
+                    <div v-for="(item, i) in report.topItems" :key="item.name" class="rep-row">
+                      <span class="rep-rank">{{ i + 1 }}</span>
+                      <div class="rep-row-b">
+                        <span class="rep-row-l">{{ item.name }}</span>
+                        <div class="rep-row-bar">
+                          <span :style="{ width: topItemWidth(item) }" :title="currencyStore.fmt(item.revenue)"></span>
+                        </div>
+                      </div>
+                      <span class="rep-row-v">
+                        <strong>{{ item.qty }}</strong>
+                        <em>{{ i18n.t.report_qty }}</em>
+                        <b>{{ currencyStore.fmt(item.revenue) }}</b>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Orders by hour -->
+                <div class="rep-panel">
+                  <div class="rep-panel-h">
+                    <span>
+                      <AppIcon name="clock" :size="15" /> {{ i18n.t.report_hours_title }}
+                    </span>
+                  </div>
+                  <SalesChart :points="reportHourPoints" :color="chartColor"
+                    :format-value="(v) => `${v} ${i18n.t.orders}`" :format-axis="(v) => v"
+                    :aria-label="i18n.t.report_hours_title" :empty-text="i18n.t.no_data" />
+                </div>
+              </div>
+
+              <div class="rep-two">
+                <!-- Orders by table -->
+                <div class="rep-panel">
+                  <div class="rep-panel-h">
+                    <span>
+                      <AppIcon name="table" :size="15" /> {{ i18n.t.report_tables_title }}
+                    </span>
+                  </div>
+                  <div v-if="!report.byTable?.length" class="rep-empty">{{ i18n.t.no_data }}</div>
+                  <div v-else class="rep-rows">
+                    <div v-for="row in report.byTable" :key="row.table_no" class="rep-row">
+                      <div class="rep-row-b">
+                        <span class="rep-row-l">{{ i18n.t.table }} {{ row.table_no }}</span>
+                        <div class="rep-row-bar">
+                          <span :style="{ width: tableBarWidth(row) }" :title="currencyStore.fmt(row.revenue)"></span>
+                        </div>
+                      </div>
+                      <span class="rep-row-v">
+                        <strong>{{ row.orders }}</strong>
+                        <b>{{ currencyStore.fmt(row.revenue) }}</b>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Status breakdown -->
+                <div class="rep-panel">
+                  <div class="rep-panel-h">
+                    <span>
+                      <AppIcon name="orders" :size="15" /> {{ i18n.t.report_status_title }}
+                    </span>
+                  </div>
+                  <div v-if="!report.byStatus?.length" class="rep-empty">{{ i18n.t.no_data }}</div>
+                  <div v-else class="rep-rows">
+                    <div v-for="row in report.byStatus" :key="row.status" class="rep-row">
+                      <span class="order-st" :class="row.status">
+                        <AppIcon :name="statusIcon(row.status)" :size="11" />
+                        {{ statusLabel(row.status) }}
+                      </span>
+                      <div class="rep-row-b">
+                        <div class="rep-row-bar">
+                          <span :style="{ width: statusBarWidth(row) }" :title="currencyStore.fmt(row.revenue)"></span>
+                        </div>
+                      </div>
+                      <span class="rep-row-v">
+                        <strong>{{ row.orders }}</strong>
+                        <b>{{ currencyStore.fmt(row.revenue) }}</b>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
           </div>
-        </template>
-        </div>
         </div>
       </template>
     </main>
 
     <!-- ═══════ MODALS ═══════ -->
 
-    <FoodFormModal
-      :show="showForm"
-      :edit-food="editingFood"
-      :categories="foods.categories"
-      @close="
-        showForm = false;
-        editingFood = null;
-      "
-      @saved="load()"
-    />
+    <FoodFormModal :show="showForm" :edit-food="editingFood" :categories="foods.categories" @close="
+      showForm = false;
+    editingFood = null;
+    " @saved="load()" />
 
     <!-- Add Restaurant (one account → many restaurants) -->
-    <Teleport to="body"
-      ><Transition name="fade">
-        <div
-          v-if="showAddRestaurant"
-          class="overlay"
-          @click.self="showAddRestaurant = false"
-        >
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showAddRestaurant" class="overlay" @click.self="showAddRestaurant = false">
           <div class="sheet">
             <div class="sheet-h">
-              <span
-                ><svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
-                  <path
-                    d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4M9 11h.01M15 11h.01M9 15h.01M15 15h.01"
-                  />
+              <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.5">
+                  <path d="M3 21h18M5 21V7l7-4 7 4v14M9 21v-4h6v4M9 11h.01M15 11h.01M9 15h.01M15 15h.01" />
                 </svg>
-                {{ i18n.t.create_restaurant || "New Restaurant" }}</span
-              ><button
-                class="ic"
-                aria-label="Close"
-                @click="showAddRestaurant = false"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+                {{ i18n.t.create_restaurant || "New Restaurant" }}</span><button class="ic" aria-label="Close"
+                @click="showAddRestaurant = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -1383,21 +898,11 @@
                 {{ addRestaurantError }}
               </div>
               <div class="fld">
-                <label class="fld-l"
-                  >{{ i18n.t.restaurant_name }} *</label
-                >
-                <input
-                  v-model="addRestaurantName"
-                  class="fld-i"
-                  :placeholder="i18n.t.restaurant_name_ph || ''"
-                  @keyup.enter="submitAddRestaurant"
-                />
+                <label class="fld-l">{{ i18n.t.restaurant_name }} *</label>
+                <input v-model="addRestaurantName" class="fld-i" :placeholder="i18n.t.restaurant_name_ph || ''"
+                  @keyup.enter="submitAddRestaurant" />
               </div>
-              <button
-                class="btn btn-primary btn-b"
-                :disabled="addRestaurantSubmitting"
-                @click="submitAddRestaurant"
-              >
+              <button class="btn btn-primary btn-b" :disabled="addRestaurantSubmitting" @click="submitAddRestaurant">
                 {{
                   addRestaurantSubmitting
                     ? i18n.t.loading
@@ -1407,99 +912,64 @@
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- Delete Food -->
-    <Teleport to="body"
-      ><Transition name="fade">
-        <div
-          v-if="deletingFood"
-          class="overlay"
-          @click.self="deletingFood = null"
-        >
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="deletingFood" class="overlay" @click.self="deletingFood = null">
           <div class="dlg">
             <div class="dlg-i">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <polyline points="3 6 5 6 21 6" />
-                <path
-                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
               </svg>
             </div>
             <div class="dlg-t">លុបម្ហូបនេះ?</div>
             <div class="dlg-d">{{ deletingFood.name }}</div>
             <div class="dlg-acts">
               <button class="btn btn-g" @click="deletingFood = null">
-                {{ i18n.t.cancel }}</button
-              ><button class="btn btn-r" @click="doDelete">
+                {{ i18n.t.cancel }}</button><button class="btn btn-r" @click="doDelete">
                 {{ i18n.t.delete }}
               </button>
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- Delete Category -->
-    <Teleport to="body"
-      ><Transition name="fade">
-        <div
-          v-if="deletingCat"
-          class="overlay"
-          @click.self="deletingCat = null"
-        >
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="deletingCat" class="overlay" @click.self="deletingCat = null">
           <div class="dlg">
             <div class="dlg-i">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <polyline points="3 6 5 6 21 6" />
-                <path
-                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
               </svg>
             </div>
             <div class="dlg-t">លុបប្រភេទនេះ?</div>
             <div class="dlg-d">{{ deletingCat.label_km }}</div>
             <div class="dlg-acts">
               <button class="btn btn-g" @click="deletingCat = null">
-                {{ i18n.t.cancel }}</button
-              ><button class="btn btn-r" @click="doDeleteCat">
+                {{ i18n.t.cancel }}</button><button class="btn btn-r" @click="doDeleteCat">
                 {{ i18n.t.delete }}
               </button>
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- Logout -->
-    <Teleport to="body"
-      ><Transition name="fade">
+    <Teleport to="body">
+      <Transition name="fade">
         <div v-if="loggingOut" class="overlay" @click.self="loggingOut = false">
           <div class="dlg">
             <div class="dlg-i dlg-i-r">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
                 <path d="M7 11V7a5 5 0 0 1 10 0v4" />
               </svg>
@@ -1508,46 +978,30 @@
             <div class="dlg-d">{{ i18n.t.confirm_logout }}</div>
             <div class="dlg-acts">
               <button class="btn btn-g" @click="loggingOut = false">
-                {{ i18n.t.cancel }}</button
-              ><button class="btn btn-r" @click="confirmLogout">
+                {{ i18n.t.cancel }}</button><button class="btn btn-r" @click="confirmLogout">
                 {{ i18n.t.logout }}
               </button>
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- QR -->
-    <Teleport to="body"
-      ><Transition name="fade">
+    <Teleport to="body">
+      <Transition name="fade">
         <div v-if="showQR" class="overlay" @click.self="showQR = false">
           <div class="sheet">
             <div class="sheet-h">
-              <span
-                ><svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+              <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.5">
                   <rect x="3" y="3" width="7" height="7" />
                   <rect x="14" y="3" width="7" height="7" />
                   <rect x="3" y="14" width="7" height="7" />
                   <rect x="14" y="14" width="7" height="7" />
                 </svg>
-                {{ i18n.t.generate_qr }}</span
-              ><button class="ic" aria-label="Close" @click="showQR = false">
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+                {{ i18n.t.generate_qr }}</span><button class="ic" aria-label="Close" @click="showQR = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -1555,30 +1009,13 @@
             </div>
             <div class="sheet-b">
               <div class="qr-r">
-                <input
-                  v-model="qrTableNumber"
-                  type="number"
-                  min="1"
-                  :placeholder="i18n.t.table_no"
-                  class="qr-inp"
-                  @keyup.enter="generateQR"
-                /><button
-                  class="btn btn-primary"
-                  :disabled="qrLoading"
-                  @click="generateQR"
-                >
+                <input v-model="qrTableNumber" type="number" min="1" :placeholder="i18n.t.table_no" class="qr-inp"
+                  @keyup.enter="generateQR" /><button class="btn btn-primary" :disabled="qrLoading" @click="generateQR">
                   {{ qrLoading ? i18n.t.generating : i18n.t.generate || "Generate" }}
                 </button>
               </div>
               <div v-if="qrError" class="msg msg-e">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <circle cx="12" cy="12" r="10" />
                   <line x1="12" y1="8" x2="12" y2="12" />
                   <line x1="12" y1="16" x2="12.01" y2="16" />
@@ -1586,24 +1023,15 @@
                 {{ qrError }}
               </div>
               <div v-if="qrInfo" class="msg msg-i">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                   <polyline points="22 4 12 14.01 9 11.01" />
                 </svg>
                 {{ qrInfo }}
               </div>
               <div v-if="qrCodeDataUrl" class="qr-p">
-                <img :src="qrCodeDataUrl" :alt="'QR ' + qrTableNumber" /><span
-                  class="qr-l"
-                  >{{ i18n.t.table }} {{ qrTableNumber }}</span
-                ><button class="btn btn-primary" @click="downloadQR">
+                <img :src="qrCodeDataUrl" :alt="'QR ' + qrTableNumber" /><span class="qr-l">{{ i18n.t.table }} {{
+                  qrTableNumber }}</span><button class="btn btn-primary" @click="downloadQR">
                   {{ i18n.t.download_qr || "Download" }}
                 </button>
               </div>
@@ -1612,45 +1040,18 @@
               <div class="qr-saved">
                 <div class="qr-saved-h">
                   <span>{{ i18n.t.saved_qr_list || "Saved QR codes" }}</span>
-                  <span
-                    v-if="!qrListLoading && savedQrs.length"
-                    class="qr-saved-count"
-                    >{{ savedQrs.length }}</span
-                  >
+                  <span v-if="!qrListLoading && savedQrs.length" class="qr-saved-count">{{ savedQrs.length }}</span>
                 </div>
                 <div class="srch qr-srch">
-                  <svg
-                    class="srch-i"
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  >
+                  <svg class="srch-i" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.5">
                     <circle cx="11" cy="11" r="8" />
                     <path d="m21 21-4.3-4.3" />
                   </svg>
-                  <input
-                    v-model="qrSearch"
-                    :placeholder="
-                      i18n.t.search_table || 'Search table number...'
-                    "
-                  />
-                  <button
-                    v-if="qrSearch"
-                    class="srch-x"
-                    aria-label="Clear table search"
-                    @click="qrSearch = ''"
-                  >
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                    >
+                  <input v-model="qrSearch" :placeholder="i18n.t.search_table || 'Search table number...'
+                    " />
+                  <button v-if="qrSearch" class="srch-x" aria-label="Clear table search" @click="qrSearch = ''">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                       <line x1="18" y1="6" x2="6" y2="18" />
                       <line x1="6" y1="6" x2="18" y2="18" />
                     </svg>
@@ -1662,10 +1063,7 @@
                 <div v-else-if="qrListError" class="msg msg-e">
                   {{ qrListError }}
                 </div>
-                <div
-                  v-else-if="!filteredSavedQrs.length"
-                  class="qr-saved-empty"
-                >
+                <div v-else-if="!filteredSavedQrs.length" class="qr-saved-empty">
                   {{
                     qrSearch
                       ? i18n.t.no_search_result || "No results"
@@ -1673,97 +1071,46 @@
                   }}
                 </div>
                 <div v-else class="qr-saved-grid">
-                  <div
-                    v-for="qr in filteredSavedQrs"
-                    :key="qr.id"
-                    class="qr-item"
-                    :class="{ active: selectedSavedNo === qr.table_no }"
-                  >
+                  <div v-for="qr in filteredSavedQrs" :key="qr.id" class="qr-item"
+                    :class="{ active: selectedSavedNo === qr.table_no }">
                     <div class="qr-item-thumb" @click="previewSavedQr(qr)">
-                      <img
-                        v-if="qr._dataUrl"
-                        :src="qr._dataUrl"
-                        :alt="'QR ' + qr.table_no"
-                      />
-                      <svg
-                        v-else
-                        width="26"
-                        height="26"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="1.5"
-                      >
+                      <img v-if="qr._dataUrl" :src="qr._dataUrl" :alt="'QR ' + qr.table_no" />
+                      <svg v-else width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.5">
                         <rect x="3" y="3" width="7" height="7" />
                         <rect x="14" y="3" width="7" height="7" />
                         <rect x="3" y="14" width="7" height="7" />
                         <rect x="14" y="14" width="7" height="7" />
                       </svg>
                     </div>
-                    <span class="qr-item-no"
-                      >{{ i18n.t.table }} {{ qr.table_no }}</span
-                    >
+                    <span class="qr-item-no">{{ i18n.t.table }} {{ qr.table_no }}</span>
                     <span class="qr-item-date">{{
                       formatQrDate(qr.created_at)
-                    }}</span>
+                      }}</span>
                     <div class="qr-item-acts">
-                      <button
-                        class="ic ic-sm"
-                        :title="i18n.t.preview || 'Preview'"
-                        :aria-label="'Preview QR ' + qr.table_no"
-                        @click="previewSavedQr(qr)"
-                      >
-                        <svg
-                          width="13"
-                          height="13"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.5"
-                        >
-                          <path
-                            d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"
-                          />
+                      <button class="ic ic-sm" :title="i18n.t.preview || 'Preview'"
+                        :aria-label="'Preview QR ' + qr.table_no" @click="previewSavedQr(qr)">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="1.5">
+                          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
                           <circle cx="12" cy="12" r="3" />
                         </svg>
                       </button>
-                      <button
-                        class="ic ic-sm"
-                        :title="i18n.t.download_qr || 'Download'"
-                        :aria-label="'Download QR ' + qr.table_no"
-                        @click="downloadSavedQr(qr)"
-                      >
-                        <svg
-                          width="13"
-                          height="13"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.5"
-                        >
+                      <button class="ic ic-sm" :title="i18n.t.download_qr || 'Download'"
+                        :aria-label="'Download QR ' + qr.table_no" @click="downloadSavedQr(qr)">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="1.5">
                           <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                           <polyline points="7 10 12 15 17 10" />
                           <line x1="12" y1="15" x2="12" y2="3" />
                         </svg>
                       </button>
-                      <button
-                        class="ic ic-sm ic-red"
-                        :title="i18n.t.delete || 'Delete'"
-                        :aria-label="'Delete QR ' + qr.table_no"
-                        @click="confirmDelQr(qr)"
-                      >
-                        <svg
-                          width="13"
-                          height="13"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          stroke-width="1.5"
-                        >
+                      <button class="ic ic-sm ic-red" :title="i18n.t.delete || 'Delete'"
+                        :aria-label="'Delete QR ' + qr.table_no" @click="confirmDelQr(qr)">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                          stroke-width="1.5">
                           <polyline points="3 6 5 6 21 6" />
-                          <path
-                            d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                          />
+                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
                         </svg>
                       </button>
                     </div>
@@ -1773,60 +1120,40 @@
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- ─── SHARE MENU · Facebook, Messenger, Telegram, WhatsApp, Instagram,
          WeChat, LINE, Viber, LinkedIn, X, Reddit, Pinterest, Email, SMS ─── -->
-    <Teleport to="body"
-      ><Transition name="fade">
+    <Teleport to="body">
+      <Transition name="fade">
         <div v-if="showShare" class="overlay" @click.self="showShare = false">
           <div class="sheet">
             <div class="sheet-h">
-              <span
-                ><AppIcon name="share" :size="16" />{{ i18n.t.share_title }}</span
-              ><button
-                class="ic"
-                :aria-label="i18n.t.close"
-                @click="showShare = false"
-              >
+              <span>
+                <AppIcon name="share" :size="16" />{{ i18n.t.share_title }}
+              </span><button class="ic" :aria-label="i18n.t.close" @click="showShare = false">
                 <AppIcon name="x" :size="16" />
               </button>
             </div>
             <div class="sheet-b">
-              <ShareGrid
-                :show-header="false"
-                :url="shareLinks.shareUrl"
-                :qr-url="shareLinks.spaUrl"
-                :text="shareText"
-                :image="shareImage"
-                :accent="theme.primary"
-                @shared="showShare = false"
-              />
+              <ShareGrid :show-header="false" :url="shareLinks.shareUrl" :qr-url="shareLinks.spaUrl" :text="shareText"
+                :image="shareImage" :accent="theme.primary" @shared="showShare = false" />
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- Delete QR -->
-    <Teleport to="body"
-      ><Transition name="fade">
+    <Teleport to="body">
+      <Transition name="fade">
         <div v-if="deletingQr" class="overlay" @click.self="deletingQr = null">
           <div class="dlg">
             <div class="dlg-i">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <polyline points="3 6 5 6 21 6" />
-                <path
-                  d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"
-                />
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
               </svg>
             </div>
             <div class="dlg-t">
@@ -1837,51 +1164,28 @@
             </div>
             <div class="dlg-acts">
               <button class="btn btn-g" @click="deletingQr = null">
-                {{ i18n.t.cancel }}</button
-              ><button class="btn btn-r" @click="doDeleteQr">
+                {{ i18n.t.cancel }}</button><button class="btn btn-r" @click="doDeleteQr">
                 {{ i18n.t.delete }}
               </button>
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- Telegram -->
-    <Teleport to="body"
-      ><Transition name="fade">
-        <div
-          v-if="showTelegramSettings"
-          class="overlay"
-          @click.self="showTelegramSettings = false"
-        >
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showTelegramSettings" class="overlay" @click.self="showTelegramSettings = false">
           <div class="sheet">
             <div class="sheet-h">
-              <span
-                ><svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+              <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.5">
                   <path d="m21 4-4.5 16-5.2-5.1L7 19l1.2-6L3 10.8 21 4Z" />
                 </svg>
-                {{ i18n.t.telegram_settings }}</span
-              ><button
-                class="ic"
-                aria-label="Close"
-                @click="showTelegramSettings = false"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+                {{ i18n.t.telegram_settings }}</span><button class="ic" aria-label="Close"
+                @click="showTelegramSettings = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -1891,14 +1195,7 @@
               <div v-if="tgSuccess" class="msg msg-s">{{ tgSuccess }}</div>
               <div v-if="tgError" class="msg msg-e">{{ tgError }}</div>
               <div class="tg-c">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
                   <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
@@ -1907,21 +1204,12 @@
               <div class="tg-code">
                 <span class="tg-lbl">{{
                   i18n.t.link_code || "Link Code"
-                }}</span>
+                  }}</span>
                 <div class="tg-box" @click="copyLinkCode">
-                  <code class="tg-val">{{ displayLinkCode }}</code
-                  ><button class="ic" aria-label="Copy link code">
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <path
-                        d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"
-                      />
+                  <code class="tg-val">{{ displayLinkCode }}</code><button class="ic" aria-label="Copy link code">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="1.5">
+                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
                       <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
                     </svg>
                   </button>
@@ -1954,67 +1242,39 @@
                 </div>
               </details>
               <div v-if="isLinked" class="tg-linked">
-                <span
-                  ><svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  >
+                <span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.5">
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                     <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
-                  {{ i18n.t.connected }}</span
-                ><button class="btn btn-g" @click="unlinkTelegram">
+                  {{ i18n.t.connected }}</span><button class="btn btn-g" @click="unlinkTelegram">
                   {{ i18n.t.unlink || "Unlink" }}
                 </button>
               </div>
-              <div v-else class="tg-warn"><AppIcon name="alert-circle" :size="14" /> {{ i18n.t.not_connected_yet }}</div>
+              <div v-else class="tg-warn">
+                <AppIcon name="alert-circle" :size="14" /> {{ i18n.t.not_connected_yet }}
+              </div>
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- Devices (access log) -->
-    <Teleport to="body"
-      ><Transition name="fade">
-        <div
-          v-if="showDevices"
-          class="overlay"
-          @click.self="showDevices = false"
-        >
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showDevices" class="overlay" @click.self="showDevices = false">
           <div class="sheet">
             <div class="sheet-h">
-              <span
-                ><svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+              <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.5">
                   <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
                   <line x1="8" y1="21" x2="16" y2="21" />
                   <line x1="12" y1="17" x2="12" y2="21" />
                 </svg>
-                {{ i18n.t.device_list || "Devices with access" }}</span
-              ><button
-                class="ic"
-                aria-label="Close"
-                @click="showDevices = false"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+                {{ i18n.t.device_list || "Devices with access" }}</span><button class="ic" aria-label="Close"
+                @click="showDevices = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -2028,15 +1288,10 @@
                 {{ devicesError }}
               </div>
               <div class="dev-top">
-                <span class="dev-count"
-                  >{{ activeDevicesCount }}
-                  {{ i18n.t.devices || "Devices" }}</span
-                >
-                <button
-                  class="btn btn-g btn-sm"
-                  :disabled="devicesLoading || activeDevicesCount <= 1"
-                  @click="revokeAllOthers"
-                >
+                <span class="dev-count">{{ activeDevicesCount }}
+                  {{ i18n.t.devices || "Devices" }}</span>
+                <button class="btn btn-g btn-sm" :disabled="devicesLoading || activeDevicesCount <= 1"
+                  @click="revokeAllOthers">
                   {{ i18n.t.sign_out_others || "Sign out other devices" }}
                 </button>
               </div>
@@ -2050,38 +1305,19 @@
                 }}
               </div>
               <div v-else class="dev-list">
-                <div
-                  v-for="device in devicesList"
-                  :key="device.id"
-                  class="dev-c"
-                  :class="{
-                    current: device.isCurrent && !device.revoked,
-                    revoked: device.revoked,
-                  }"
-                >
+                <div v-for="device in devicesList" :key="device.id" class="dev-c" :class="{
+                  current: device.isCurrent && !device.revoked,
+                  revoked: device.revoked,
+                }">
                   <div class="dev-icon">
                     <!-- smartphone for mobile, monitor for desktop/tablet -->
-                    <svg
-                      v-if="device.deviceType === 'mobile'"
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
+                    <svg v-if="device.deviceType === 'mobile'" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                      stroke="currentColor" stroke-width="1.5">
                       <rect x="7" y="2" width="10" height="20" rx="2" ry="2" />
                       <line x1="11" y1="18" x2="13" y2="18" />
                     </svg>
-                    <svg
-                      v-else
-                      width="16"
-                      height="16"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
+                    <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="1.5">
                       <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
                       <line x1="8" y1="21" x2="16" y2="21" />
                       <line x1="12" y1="17" x2="12" y2="21" />
@@ -2091,50 +1327,36 @@
                     <div class="dev-name">
                       <span class="dev-n">{{
                         device.deviceName || i18n.t.device_unknown
-                      }}</span>
-                      <span
-                        v-if="device.isCurrent && !device.revoked"
-                        class="dev-badge dev-badge-cur"
-                        >{{ i18n.t.current_device }}</span
-                      >
-                      <span
-                        v-else-if="device.revoked"
-                        class="dev-badge dev-badge-rev"
-                        >{{ i18n.t.device_revoked_badge }}</span
-                      >
+                        }}</span>
+                      <span v-if="device.isCurrent && !device.revoked" class="dev-badge dev-badge-cur">{{
+                        i18n.t.current_device }}</span>
+                      <span v-else-if="device.revoked" class="dev-badge dev-badge-rev">{{ i18n.t.device_revoked_badge
+                        }}</span>
                     </div>
                     <div class="dev-meta">
                       <span class="dev-kv">
-                        <strong
-                          >{{ device.browser
-                          }}{{
+                        <strong>{{ device.browser
+                        }}{{
                             device.browserVersion
                               ? " " + device.browserVersion.split(".")[0]
                               : ""
-                          }}</strong
-                        >
+                          }}</strong>
                         · {{ device.os
                         }}{{ device.osVersion ? " " + device.osVersion : "" }}
-                        <template v-if="device.screen"
-                          >· {{ device.screen }}</template
-                        >
+                        <template v-if="device.screen">· {{ device.screen }}</template>
                       </span>
                       <span class="dev-kv">
                         {{ i18n.t.device_ip }}:
                         <strong>{{
                           device.ipAddress || i18n.t.device_unknown
-                        }}</strong>
-                        <template
-                          v-if="device.city || device.region || device.country"
-                        >
+                          }}</strong>
+                        <template v-if="device.city || device.region || device.country">
                           · {{ i18n.t.device_location }}:
-                          <strong
-                            >{{
-                              [device.city, device.region, device.country]
-                                .filter(Boolean)
-                                .join(", ")
-                            }}</strong
-                          >
+                          <strong>{{
+                            [device.city, device.region, device.country]
+                              .filter(Boolean)
+                              .join(", ")
+                          }}</strong>
                         </template>
                         <template v-if="device.isp">· {{ device.isp }}</template>
                       </span>
@@ -2166,51 +1388,34 @@
                         {{ i18n.t.device_revoked_note }}:
                         {{ formatDate(device.revokedAt) }}
                       </span>
-                      <span
-                        v-if="device.isProxy || device.isHosting"
-                        class="dev-flags"
-                      >
+                      <span v-if="device.isProxy || device.isHosting" class="dev-flags">
                         <span v-if="device.isProxy" class="dev-flag">
                           <AppIcon name="alert-circle" :size="11" />
                           {{
                             i18n.t.device_vpn_flag || "VPN / Proxy"
-                          }}</span
-                        >
+                          }}
+                        </span>
                         <span v-if="device.isHosting" class="dev-flag">
                           <AppIcon name="alert-circle" :size="11" />
                           {{
                             i18n.t.device_hosting_flag || "Server / Hosting IP"
-                          }}</span
-                        >
+                          }}
+                        </span>
                       </span>
                     </div>
-                    <button
-                      type="button"
-                      class="dev-details-btn"
-                      :aria-expanded="expandedDeviceId === device.id"
-                      @click="toggleDeviceDetails(device.id)"
-                    >
+                    <button type="button" class="dev-details-btn" :aria-expanded="expandedDeviceId === device.id"
+                      @click="toggleDeviceDetails(device.id)">
                       {{
                         expandedDeviceId === device.id
                           ? i18n.t.device_hide_details || "Hide details"
                           : i18n.t.device_more_details || "More details"
                       }}
-                      <svg
-                        width="11"
-                        height="11"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        stroke-width="2"
-                        :class="{ flip: expandedDeviceId === device.id }"
-                      >
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        :class="{ flip: expandedDeviceId === device.id }">
                         <polyline points="6 9 12 15 18 9" />
                       </svg>
                     </button>
-                    <div
-                      v-if="expandedDeviceId === device.id"
-                      class="dev-details"
-                    >
+                    <div v-if="expandedDeviceId === device.id" class="dev-details">
                       <span v-if="device.platform" class="dev-kv">
                         {{ i18n.t.device_platform }}:
                         <strong>{{ device.platform }}</strong>
@@ -2219,40 +1424,23 @@
                         {{ i18n.t.device_hardware }}:
                         <strong>{{ device.hardware }}</strong>
                       </span>
-                      <span
-                        v-if="device.timezone || device.language"
-                        class="dev-kv"
-                      >
-                        <template v-if="device.timezone"
-                          >{{ i18n.t.device_timezone }}:
-                          <strong>{{ device.timezone }}</strong></template
-                        >
+                      <span v-if="device.timezone || device.language" class="dev-kv">
+                        <template v-if="device.timezone">{{ i18n.t.device_timezone }}:
+                          <strong>{{ device.timezone }}</strong></template>
                         <template v-if="device.timezone && device.language">
-                          · </template
-                        ><template v-if="device.language"
-                          >{{ i18n.t.device_language }}:
-                          <strong>{{ device.language }}</strong></template
-                        >
+                          · </template><template v-if="device.language">{{ i18n.t.device_language }}:
+                          <strong>{{ device.language }}</strong></template>
                       </span>
-                      <span
-                        v-if="device.latitude != null && device.longitude"
-                        class="dev-kv"
-                      >
+                      <span v-if="device.latitude != null && device.longitude" class="dev-kv">
                         {{ i18n.t.device_coords }}:
-                        <strong
-                          >{{ Number(device.latitude).toFixed(4) }},
-                          {{ Number(device.longitude).toFixed(4) }}</strong
-                        >
+                        <strong>{{ Number(device.latitude).toFixed(4) }},
+                          {{ Number(device.longitude).toFixed(4) }}</strong>
                       </span>
                       <span v-if="device.asn || device.org" class="dev-kv">
-                        <template v-if="device.asn"
-                          >{{ i18n.t.device_asn }}:
-                          <strong>{{ device.asn }}</strong></template
-                        >
-                        <template v-if="device.asn && device.org"> · </template
-                        ><template v-if="device.org"
-                          ><strong>{{ device.org }}</strong></template
-                        >
+                        <template v-if="device.asn">{{ i18n.t.device_asn }}:
+                          <strong>{{ device.asn }}</strong></template>
+                        <template v-if="device.asn && device.org"> · </template><template v-if="device.org"><strong>{{
+                            device.org }}</strong></template>
                       </span>
                       <span class="dev-kv dev-kv-ua">
                         {{ i18n.t.device_user_agent }}:
@@ -2260,26 +1448,13 @@
                       </span>
                     </div>
                   </div>
-                  <button
-                    v-if="!device.revoked"
-                    class="ic ic-sm ic-red"
-                    :title="i18n.t.sign_out_device || 'Sign out device'"
-                    :aria-label="
-                      (i18n.t.sign_out_device || 'Sign out device') +
+                  <button v-if="!device.revoked" class="ic ic-sm ic-red"
+                    :title="i18n.t.sign_out_device || 'Sign out device'" :aria-label="(i18n.t.sign_out_device || 'Sign out device') +
                       ' — ' +
                       (device.deviceName || device.id)
-                    "
-                    :disabled="revokingDeviceId === device.id"
-                    @click="confirmRevokeDevice(device)"
-                  >
-                    <svg
-                      width="13"
-                      height="13"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
+                      " :disabled="revokingDeviceId === device.id" @click="confirmRevokeDevice(device)">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="1.5">
                       <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
                       <line x1="12" y1="2" x2="12" y2="12" />
                     </svg>
@@ -2291,24 +1466,12 @@
               <div class="dev-hist">
                 <div class="dev-hist-h">
                   <span>{{ i18n.t.login_history || "Login history" }}</span>
-                  <button
-                    class="ic ic-sm"
-                    :title="i18n.t.refresh || 'Refresh'"
-                    :aria-label="i18n.t.refresh || 'Refresh'"
-                    @click="fetchLoginHistory"
-                  >
-                    <svg
-                      width="13"
-                      height="13"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
+                  <button class="ic ic-sm" :title="i18n.t.refresh || 'Refresh'"
+                    :aria-label="i18n.t.refresh || 'Refresh'" @click="fetchLoginHistory">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="1.5">
                       <polyline points="23 4 23 10 17 10" />
-                      <path
-                        d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"
-                      />
+                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
                     </svg>
                   </button>
                 </div>
@@ -2322,27 +1485,20 @@
                   {{ i18n.t.history_empty || "No login events recorded yet" }}
                 </div>
                 <div v-else class="dev-hist-list">
-                  <div
-                    v-for="h in loginHistory"
-                    :key="h.id"
-                    class="dev-hist-i"
-                  >
-                    <span
-                      class="dev-hist-dot"
-                      :class="'m-' + (h.method || 'email')"
-                    ></span>
+                  <div v-for="h in loginHistory" :key="h.id" class="dev-hist-i">
+                    <span class="dev-hist-dot" :class="'m-' + (h.method || 'email')"></span>
                     <div class="dev-hist-b">
                       <span class="dev-hist-l1">
                         <strong>{{
                           h.deviceName || i18n.t.device_unknown
-                        }}</strong>
+                          }}</strong>
                         · {{ deviceMethodLabel(h.method) }}
                       </span>
                       <span class="dev-hist-l2">
                         {{ i18n.t.device_ip }}:
                         <strong>{{
                           h.ipAddress || i18n.t.device_unknown
-                        }}</strong>
+                          }}</strong>
                         <template v-if="h.city || h.country">
                           ·
                           {{
@@ -2352,10 +1508,8 @@
                           }}
                         </template>
                       </span>
-                      <span class="dev-hist-l3"
-                        >{{ h.browser || "" }}{{ h.os ? " · " + h.os : "" }} ·
-                        {{ formatDate(h.at) }}</span
-                      >
+                      <span class="dev-hist-l3">{{ h.browser || "" }}{{ h.os ? " · " + h.os : "" }} ·
+                        {{ formatDate(h.at) }}</span>
                     </div>
                   </div>
                 </div>
@@ -2363,27 +1517,16 @@
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- Sign out device (confirm) -->
-    <Teleport to="body"
-      ><Transition name="fade">
-        <div
-          v-if="deletingDevice"
-          class="overlay"
-          @click.self="deletingDevice = null"
-        >
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="deletingDevice" class="overlay" @click.self="deletingDevice = null">
           <div class="dlg">
             <div class="dlg-i dlg-i-r">
-              <svg
-                width="28"
-                height="28"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-              >
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <path d="M18.36 6.64a9 9 0 1 1-12.73 0" />
                 <line x1="12" y1="2" x2="12" y2="12" />
               </svg>
@@ -2406,44 +1549,25 @@
             </div>
             <div class="dlg-acts">
               <button class="btn btn-g" @click="deletingDevice = null">
-                {{ i18n.t.cancel }}</button
-              ><button
-                class="btn btn-r"
-                :disabled="revokingDeviceId"
-                @click="doRevokeDevice"
-              >
+                {{ i18n.t.cancel }}</button><button class="btn btn-r" :disabled="revokingDeviceId"
+                @click="doRevokeDevice">
                 {{ revokingDeviceId ? i18n.t.loading : i18n.t.logout }}
               </button>
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- Category Form -->
-    <Teleport to="body"
-      ><Transition name="fade">
-        <div
-          v-if="showCatForm"
-          class="overlay"
-          @click.self="showCatForm = false"
-        >
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showCatForm" class="overlay" @click.self="showCatForm = false">
           <div class="sheet">
             <div class="sheet-h">
-              <span>{{ editingCat ? "កែប្រែប្រភេទ" : "បន្ថែមប្រភេទ" }}</span
-              ><button
-                class="ic"
-                aria-label="Close"
-                @click="showCatForm = false"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+              <span>{{ editingCat ? "កែប្រែប្រភេទ" : "បន្ថែមប្រភេទ" }}</span><button class="ic" aria-label="Close"
+                @click="showCatForm = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -2452,73 +1576,40 @@
             <div class="sheet-b">
               <div v-if="catSuccess" class="msg msg-s">{{ catSuccess }}</div>
               <div class="fld">
-                <label class="fld-l"
-                  >{{ i18n.t.add_category || "Category Name" }} *</label
-                >
-                <input
-                  v-model="catLabelKm"
-                  class="fld-i"
-                  :class="{ err: catErrors }"
-                  :placeholder="i18n.t.category"
-                  @input="catErrors = ''"
-                />
+                <label class="fld-l">{{ i18n.t.add_category || "Category Name" }} *</label>
+                <input v-model="catLabelKm" class="fld-i" :class="{ err: catErrors }" :placeholder="i18n.t.category"
+                  @input="catErrors = ''" />
                 <div v-if="catErrors" class="fld-e">{{ catErrors }}</div>
               </div>
-              <button
-                class="btn btn-primary btn-b"
-                :disabled="catSubmitting"
-                @click="submitCategory"
-              >
+              <button class="btn btn-primary btn-b" :disabled="catSubmitting" @click="submitCategory">
                 {{
                   catSubmitting
                     ? i18n.t.loading
                     : editingCat
-                    ? i18n.t.save
-                    : i18n.t.add
+                      ? i18n.t.save
+                      : i18n.t.add
                 }}
               </button>
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- Profile -->
-    <Teleport to="body"
-      ><Transition name="fade">
-        <div
-          v-if="showProfile"
-          class="overlay"
-          @click.self="showProfile = false"
-        >
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showProfile" class="overlay" @click.self="showProfile = false">
           <div class="sheet">
             <div class="sheet-h">
-              <span
-                ><svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+              <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.5">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                   <circle cx="12" cy="7" r="4" />
                 </svg>
-                {{ i18n.t.profile || "Profile" }}</span
-              ><button
-                class="ic"
-                aria-label="Close"
-                @click="showProfile = false"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+                {{ i18n.t.profile || "Profile" }}</span><button class="ic" aria-label="Close"
+                @click="showProfile = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -2533,98 +1624,48 @@
               </div>
               <div class="prof-l">
                 <div class="prof-p">
-                  <img
-                    v-if="profileLogoPreview"
-                    :src="profileLogoPreview"
-                    alt=""
-                  />
-                  <svg
-                    v-else
-                    width="26"
-                    height="26"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  >
+                  <img v-if="profileLogoPreview" :src="profileLogoPreview" alt="" />
+                  <svg v-else width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.5">
                     <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                     <circle cx="12" cy="7" r="4" />
                   </svg>
                 </div>
-                <label class="prof-up"
-                  ><svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="1.5"
-                  >
-                    <path
-                      d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
-                    />
-                    <path
-                      d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
-                    />
+                <label class="prof-up"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="1.5">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
                   </svg>
                   {{ i18n.t.change_logo || "Change" }}
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
-                    @change="onLogoChange"
-                /></label>
+                  <input type="file" accept="image/*" hidden @change="onLogoChange" /></label>
               </div>
               <div class="fld">
                 <label class="fld-l">{{ i18n.t.restaurant_name }} *</label>
-                <input
-                  v-model="profileName"
-                  class="fld-i"
-                  :placeholder="i18n.t.restaurant_name"
-                />
+                <input v-model="profileName" class="fld-i" :placeholder="i18n.t.restaurant_name" />
               </div>
 
-              <button
-                class="btn btn-primary btn-b"
-                :disabled="profileSubmitting"
-                @click="submitProfile"
-              >
+              <button class="btn btn-primary btn-b" :disabled="profileSubmitting" @click="submitProfile">
                 {{ profileSubmitting ? i18n.t.loading : i18n.t.save }}
               </button>
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- ═══ SETTINGS (account email / password) ═══
          Moved out of the Profile modal — opened from the avatar
          dropdown's "Settings" item. -->
-    <Teleport to="body"
-      ><Transition name="fade">
-        <div
-          v-if="showSettings"
-          class="overlay"
-          @click.self="showSettings = false"
-        >
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showSettings" class="overlay" @click.self="showSettings = false">
           <div class="sheet">
             <div class="sheet-h">
-              <span
-                ><AppIcon name="settings" :size="16" />
-                {{ i18n.t.settings || "Settings" }}</span
-              ><button
-                class="ic"
-                aria-label="Close"
-                @click="showSettings = false"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+              <span>
+                <AppIcon name="settings" :size="16" />
+                {{ i18n.t.settings || "Settings" }}
+              </span><button class="ic" aria-label="Close" @click="showSettings = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -2633,23 +1674,19 @@
             <div class="sheet-b">
               <!-- ─── SETTINGS CATEGORY TABS ─── -->
               <div class="st-tabs">
-                <button type="button" class="st-tab"
-                  :class="{ active: settingsTab === 'appearance' }"
+                <button type="button" class="st-tab" :class="{ active: settingsTab === 'appearance' }"
                   @click="settingsTab = 'appearance'">
                   {{ i18n.t.settings_tab_appearance || "Appearance" }}
                 </button>
-                <button type="button" class="st-tab"
-                  :class="{ active: settingsTab === 'currency' }"
+                <button type="button" class="st-tab" :class="{ active: settingsTab === 'currency' }"
                   @click="settingsTab = 'currency'">
                   {{ i18n.t.currency || "Currency" }}
                 </button>
-                <button type="button" class="st-tab"
-                  :class="{ active: settingsTab === 'notify' }"
+                <button type="button" class="st-tab" :class="{ active: settingsTab === 'notify' }"
                   @click="settingsTab = 'notify'">
                   {{ i18n.t.settings_tab_notify || "Notifications" }}
                 </button>
-                <button type="button" class="st-tab"
-                  :class="{ active: settingsTab === 'account' }"
+                <button type="button" class="st-tab" :class="{ active: settingsTab === 'account' }"
                   @click="settingsTab = 'account'">
                   {{ i18n.t.settings_tab_account || "Account" }}
                 </button>
@@ -2657,122 +1694,70 @@
 
               <!-- ─── APPEARANCE ─── -->
               <template v-if="settingsTab === 'appearance'">
-<!-- ─── THEME COLOR ─── -->
-              <div class="fld">
-                <label class="fld-l">{{ i18n.t.theme_color || "Theme color" }}</label>
-                <div class="swatches">
-                  <button
-                    v-for="c in theme.presets"
-                    :key="c.value"
-                    type="button"
-                    class="swatch"
-                    :class="{ active: theme.primary === c.value }"
-                    :style="{ background: c.value }"
-                    :title="c.name"
-                    :aria-label="c.name"
-                    @click="onPresetColor(c.value)"
-                  >
-                    <svg
-                      v-if="theme.primary === c.value"
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="3"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    >
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </button>
-                  <label
-                    class="swatch swatch-custom"
-                    :title="i18n.t.theme_custom || 'Pick any color'"
-                  >
-                    <svg
-                      width="14"
-                      height="14"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                    >
-                      <circle cx="12" cy="12" r="10" />
-                      <path
-                        d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2v-1c0-1.1.9-2 2-2h1a4 4 0 0 0 4-4c0-6.08-4.92-11-9-11z"
-                      />
-                      <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
-                      <circle cx="12" cy="7.5" r="1" fill="currentColor" />
-                      <circle cx="16.5" cy="10.5" r="1" fill="currentColor" />
-                    </svg>
-                    <input
-                      type="color"
-                      class="swatch-input"
-                      :value="theme.primary"
-                      @input="onCustomColor"
-                    />
-                  </label>
+                <!-- ─── THEME COLOR ─── -->
+                <div class="fld">
+                  <label class="fld-l">{{ i18n.t.theme_color || "Theme color" }}</label>
+                  <div class="swatches">
+                    <button v-for="c in theme.presets" :key="c.value" type="button" class="swatch"
+                      :class="{ active: theme.primary === c.value }" :style="{ background: c.value }" :title="c.name"
+                      :aria-label="c.name" @click="onPresetColor(c.value)">
+                      <svg v-if="theme.primary === c.value" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    </button>
+                    <label class="swatch swatch-custom" :title="i18n.t.theme_custom || 'Pick any color'">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.5">
+                        <circle cx="12" cy="12" r="10" />
+                        <path
+                          d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2v-1c0-1.1.9-2 2-2h1a4 4 0 0 0 4-4c0-6.08-4.92-11-9-11z" />
+                        <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
+                        <circle cx="12" cy="7.5" r="1" fill="currentColor" />
+                        <circle cx="16.5" cy="10.5" r="1" fill="currentColor" />
+                      </svg>
+                      <input type="color" class="swatch-input" :value="theme.primary" @input="onCustomColor" />
+                    </label>
+                  </div>
+                  <div class="swatch-meta">
+                    <input class="fld-i hex-in" :value="theme.primary" maxlength="7" spellcheck="false"
+                      placeholder="#0f766e" @change="applyHexInput" @keyup.enter="$event.target.blur()" />
+                    <button type="button" class="btn btn-g btn-sm" @click="resetTheme">
+                      {{ i18n.t.theme_reset || "Reset" }}
+                    </button>
+                  </div>
                 </div>
-                <div class="swatch-meta">
-                  <input
-                    class="fld-i hex-in"
-                    :value="theme.primary"
-                    maxlength="7"
-                    spellcheck="false"
-                    placeholder="#0f766e"
-                    @change="applyHexInput"
-                    @keyup.enter="$event.target.blur()"
-                  />
-                  <button type="button" class="btn btn-g btn-sm" @click="resetTheme">
-                    {{ i18n.t.theme_reset || "Reset" }}
-                  </button>
-                </div>
-              </div>
 
-<!-- ─── SIDEBAR POSITION ─── -->
-              <div class="fld">
-                <label class="fld-l">{{ i18n.t.sidebar_position || "Sidebar position" }}</label>
-                <div class="layout-options">
-                  <button
-                    v-for="pos in ['left', 'right', 'top', 'bottom']"
-                    :key="pos"
-                    type="button"
-                    class="layout-opt"
-                    :class="{ active: sidebarPosition === pos }"
-                    :title="i18n.t['sb_' + pos] || pos"
-                    @click="applySidebarPosition(pos)"
-                  >
-                    <svg
-                      width="20"
-                      height="20"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="1.5"
-                      stroke-linejoin="round"
-                    >
-                      <template v-if="pos === 'left'">
-                        <rect x="3" y="4" width="5" height="16" rx="1.5" />
-                        <rect x="10" y="4" width="11" height="16" rx="1.5" />
-                      </template>
-                      <template v-else-if="pos === 'right'">
-                        <rect x="3" y="4" width="11" height="16" rx="1.5" />
-                        <rect x="16" y="4" width="5" height="16" rx="1.5" />
-                      </template>
-                      <template v-else-if="pos === 'top'">
-                        <rect x="4" y="3" width="16" height="5" rx="1.5" />
-                        <rect x="4" y="10" width="16" height="11" rx="1.5" />
-                      </template>
-                      <template v-else>
-                        <rect x="4" y="3" width="16" height="11" rx="1.5" />
-                        <rect x="4" y="16" width="16" height="5" rx="1.5" />
-                      </template>
-                    </svg>
-                    <span>{{ i18n.t['sb_' + pos] || pos }}</span>
-                  </button>
+                <!-- ─── SIDEBAR POSITION ─── -->
+                <div class="fld">
+                  <label class="fld-l">{{ i18n.t.sidebar_position || "Sidebar position" }}</label>
+                  <div class="layout-options">
+                    <button v-for="pos in ['left', 'right', 'top', 'bottom']" :key="pos" type="button"
+                      class="layout-opt" :class="{ active: sidebarPosition === pos }"
+                      :title="i18n.t['sb_' + pos] || pos" @click="applySidebarPosition(pos)">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="1.5" stroke-linejoin="round">
+                        <template v-if="pos === 'left'">
+                          <rect x="3" y="4" width="5" height="16" rx="1.5" />
+                          <rect x="10" y="4" width="11" height="16" rx="1.5" />
+                        </template>
+                        <template v-else-if="pos === 'right'">
+                          <rect x="3" y="4" width="11" height="16" rx="1.5" />
+                          <rect x="16" y="4" width="5" height="16" rx="1.5" />
+                        </template>
+                        <template v-else-if="pos === 'top'">
+                          <rect x="4" y="3" width="16" height="5" rx="1.5" />
+                          <rect x="4" y="10" width="16" height="11" rx="1.5" />
+                        </template>
+                        <template v-else>
+                          <rect x="4" y="3" width="16" height="11" rx="1.5" />
+                          <rect x="4" y="16" width="16" height="5" rx="1.5" />
+                        </template>
+                      </svg>
+                      <span>{{ i18n.t['sb_' + pos] || pos }}</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
               </template>
 
               <!-- ─── CURRENCY ─── -->
@@ -2781,177 +1766,116 @@
                 <div v-if="settingsCurrencyError" class="msg msg-e">{{ settingsCurrencyError }}</div>
                 <div class="fld">
                   <label class="fld-l">{{ i18n.t.currency || "Currency" }}</label>
-                  <AppSelect
-                    block
-                    size="sm"
-                    tone="soft"
-                    variant="teal"
-                    :model-value="profileCurrency"
-                    :options="currencyOptions"
-                    option-value="value"
-                    option-label="label"
-                    @update:model-value="profileCurrency = $event"
-                  />
+                  <AppSelect block size="sm" tone="soft" variant="teal" :model-value="profileCurrency"
+                    :options="currencyOptions" option-value="value" option-label="label"
+                    @update:model-value="profileCurrency = $event" />
                 </div>
                 <div v-if="profileCurrency === 'USD'" class="fld">
                   <label class="fld-l">{{ i18n.t.exchange_rate || "Exchange rate" }}</label>
-                  <input v-model.number="profileRate" type="number" min="1" step="50" class="fld-i" placeholder="4100" />
+                  <input v-model.number="profileRate" type="number" min="1" step="50" class="fld-i"
+                    placeholder="4100" />
                 </div>
-                <button
-                  class="btn btn-primary btn-b"
-                  :disabled="currencySubmitting"
-                  @click="saveCurrency"
-                >
+                <button class="btn btn-primary btn-b" :disabled="currencySubmitting" @click="saveCurrency">
                   {{ currencySubmitting ? i18n.t.loading : i18n.t.save }}
                 </button>
               </template>
 
               <!-- ─── NOTIFICATIONS ─── -->
               <template v-else-if="settingsTab === 'notify'">
-              <!-- ─── PUSH NOTIFICATIONS (this device) ─── -->
-              <div class="fld push-fld">
-                <label class="fld-l">{{
-                  i18n.t.push_notifications || "Push notifications"
-                }}</label>
-                <p class="push-desc">
-                  {{
-                    i18n.t.push_notifications_desc ||
-                    "Get an alert on this device when a new order arrives — even when the dashboard tab is closed."
-                  }}
-                </p>
-                <div class="push-row">
-                  <span class="push-state" :class="'push-st-' + pushState">
-                    <AppIcon
-                      v-if="pushState === 'enabled'"
-                      name="bell"
-                      :size="12"
-                    />
-                    {{ pushStateLabel }}
-                  </span>
-                  <button
-                    type="button"
-                    class="btn btn-sm"
-                    :class="pushState === 'enabled' ? 'btn-ghost' : 'btn-g'"
-                    :disabled="
-                      pushBusy ||
-                      pushState === 'unsupported' ||
-                      pushState === 'blocked'
-                    "
-                    @click="togglePush"
-                  >
+                <!-- ─── PUSH NOTIFICATIONS (this device) ─── -->
+                <div class="fld push-fld">
+                  <label class="fld-l">{{
+                    i18n.t.push_notifications || "Push notifications"
+                    }}</label>
+                  <p class="push-desc">
                     {{
-                      pushBusy
-                        ? i18n.t.loading
-                        : pushState === "enabled"
-                          ? i18n.t.push_disable || "Turn off"
-                          : i18n.t.push_enable || "Turn on"
+                      i18n.t.push_notifications_desc ||
+                      "Get an alert on this device when a new order arrives — even when the dashboard tab is closed."
                     }}
-                  </button>
+                  </p>
+                  <div class="push-row">
+                    <span class="push-state" :class="'push-st-' + pushState">
+                      <AppIcon v-if="pushState === 'enabled'" name="bell" :size="12" />
+                      {{ pushStateLabel }}
+                    </span>
+                    <button type="button" class="btn btn-sm" :class="pushState === 'enabled' ? 'btn-ghost' : 'btn-g'"
+                      :disabled="pushBusy ||
+                        pushState === 'unsupported' ||
+                        pushState === 'blocked'
+                        " @click="togglePush">
+                      {{
+                        pushBusy
+                          ? i18n.t.loading
+                          : pushState === "enabled"
+                            ? i18n.t.push_disable || "Turn off"
+                            : i18n.t.push_enable || "Turn on"
+                      }}
+                    </button>
+                  </div>
+                  <div v-if="pushError" class="msg msg-e">{{ pushError }}</div>
                 </div>
-                <div v-if="pushError" class="msg msg-e">{{ pushError }}</div>
-              </div>
 
               </template>
 
               <!-- ─── ACCOUNT ─── -->
               <template v-else>
-              <div v-if="accountSuccess" class="msg msg-s">
-                {{ accountSuccess }}
-              </div>
-              <div v-if="accountError" class="msg msg-e">
-                {{ accountError }}
-              </div>
-              <div class="fld">
-                <label class="fld-l"
-                  >{{ i18n.t.email_address || "Email address" }}</label
-                >
-                <input
-                  v-model="accountEmail"
-                  type="email"
-                  class="fld-i"
-                  autocomplete="email"
-                  :placeholder="i18n.t.email_address || 'Email address'"
-                />
-              </div>
-              <div class="fld">
-                <label class="fld-l"
-                  >{{ i18n.t.current_password || "Current password" }}</label
-                >
-                <input
-                  v-model="accountCurrentPassword"
-                  type="password"
-                  class="fld-i"
-                  autocomplete="current-password"
-                  :placeholder="i18n.t.current_password || 'Current password'"
-                />
-                <!-- Google-created accounts have no password yet: the backend
+                <div v-if="accountSuccess" class="msg msg-s">
+                  {{ accountSuccess }}
+                </div>
+                <div v-if="accountError" class="msg msg-e">
+                  {{ accountError }}
+                </div>
+                <div class="fld">
+                  <label class="fld-l">{{ i18n.t.email_address || "Email address" }}</label>
+                  <input v-model="accountEmail" type="email" class="fld-i" autocomplete="email"
+                    :placeholder="i18n.t.email_address || 'Email address'" />
+                </div>
+                <div class="fld">
+                  <label class="fld-l">{{ i18n.t.current_password || "Current password" }}</label>
+                  <input v-model="accountCurrentPassword" type="password" class="fld-i" autocomplete="current-password"
+                    :placeholder="i18n.t.current_password || 'Current password'" />
+                  <!-- Google-created accounts have no password yet: the backend
                      accepts a new password without the current one, so tell the
                      owner they can leave this field empty. -->
-                <p v-if="auth.user?.hasPassword === false" class="fld-hint">
+                  <p v-if="auth.user?.hasPassword === false" class="fld-hint">
+                    {{
+                      i18n.t.google_no_password_hint ||
+                      "This account was created with Google — leave “Current password” empty to set your first password."
+                    }}
+                  </p>
+                </div>
+                <div class="fld">
+                  <label class="fld-l">{{ i18n.t.new_password || "New password" }}</label>
+                  <input v-model="accountNewPassword" type="password" class="fld-i" autocomplete="new-password"
+                    :placeholder="i18n.t.new_password || 'New password'" />
+                </div>
+                <button class="btn btn-primary btn-b" :disabled="accountSubmitting" @click="saveAccount">
                   {{
-                    i18n.t.google_no_password_hint ||
-                    "This account was created with Google — leave “Current password” empty to set your first password."
+                    accountSubmitting
+                      ? i18n.t.loading
+                      : i18n.t.update_account || "Update email / password"
                   }}
-                </p>
-              </div>
-              <div class="fld">
-                <label class="fld-l"
-                  >{{ i18n.t.new_password || "New password" }}</label
-                >
-                <input
-                  v-model="accountNewPassword"
-                  type="password"
-                  class="fld-i"
-                  autocomplete="new-password"
-                  :placeholder="i18n.t.new_password || 'New password'"
-                />
-              </div>
-              <button
-                class="btn btn-primary btn-b"
-                :disabled="accountSubmitting"
-                @click="saveAccount"
-              >
-                {{
-                  accountSubmitting
-                    ? i18n.t.loading
-                    : i18n.t.update_account || "Update email / password"
-                }}
-              </button>
-                          </template>
-</div>
+                </button>
+              </template>
+            </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
 
     <!-- ═══ INSTALL APP (PWA download for owners) ═══
          Android / desktop: fires the native install dialog.
          iOS Safari: shows Add-to-Home-Screen steps. -->
-    <Teleport to="body"
-      ><Transition name="fade">
-        <div
-          v-if="showInstallModal"
-          class="overlay"
-          @click.self="showInstallModal = false"
-        >
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showInstallModal" class="overlay" @click.self="showInstallModal = false">
           <div class="sheet">
             <div class="sheet-h">
-              <span
-                ><AppIcon name="download" :size="16" />
-                {{ i18n.t.install_app }}</span
-              ><button
-                class="ic"
-                aria-label="Close"
-                @click="showInstallModal = false"
-              >
-                <svg
-                  width="16"
-                  height="16"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                >
+              <span>
+                <AppIcon name="download" :size="16" />
+                {{ i18n.t.install_app }}
+              </span><button class="ic" aria-label="Close" @click="showInstallModal = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                   <line x1="18" y1="6" x2="6" y2="18" />
                   <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
@@ -2978,11 +1902,7 @@
                 </div>
                 <p class="ins-desc">{{ i18n.t.install_installed_hint }}</p>
 
-                <button
-                  v-if="canNativeInstall"
-                  class="btn btn-primary btn-b"
-                  @click="installApp"
-                >
+                <button v-if="canNativeInstall" class="btn btn-primary btn-b" @click="installApp">
                   <AppIcon name="download" :size="15" />
                   {{ i18n.t.install_again }}
                 </button>
@@ -3049,19 +1969,15 @@
                    “Add to Dock…”, iOS → Share sheet, Chrome/Edge → ⋮ menu.
                    Shown in every state except the brief Chromium wait. -->
               <div v-if="showInstallSteps" class="ins-steps">
-                <div
-                  v-for="(step, index) in manualInstallSteps"
-                  :key="index"
-                  class="tg-step"
-                >
+                <div v-for="(step, index) in manualInstallSteps" :key="index" class="tg-step">
                   <span class="step-n">{{ index + 1 }}</span> {{ step }}
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </Transition></Teleport
-    >
+      </Transition>
+    </Teleport>
   </div>
 </template>
 
@@ -3112,7 +2028,7 @@ const adminTab = ref(
 watch(adminTab, (tab) => {
   router
     .replace({ query: { ...route.query, tab } })
-    .catch(() => {}); // duplicate navigation is harmless
+    .catch(() => { }); // duplicate navigation is harmless
 });
 const curCat = ref("");
 const searchQ = ref("");
@@ -3181,9 +2097,8 @@ const statsEndDate = ref(new Date().toISOString().slice(0, 10));
 const previewLinkCopied = ref(false);
 const previewMenuUrl = computed(() => {
   if (!auth.restaurantId) return "#";
-  return `${window?.location?.origin || ""}/menu?restaurant_id=${
-    auth.restaurantId
-  }`;
+  return `${window?.location?.origin || ""}/menu?restaurant_id=${auth.restaurantId
+    }`;
 });
 // Restaurant logo URL — empty when unset (templates show a default
 // SVG icon) or when the current URL failed to load (logoLoadError).
@@ -4006,9 +2921,9 @@ async function generateQR() {
     });
     qrInfo.value = res.data.alreadyExists
       ? (
-          i18n.t.qr_already_saved ||
-          "តុលេខ {n} ត្រូវបានធ្វើរួចហើយ — បង្ហាញ QR ដែលបានរក្សាទុក"
-        ).replace("{n}", res.data.tableNumber)
+        i18n.t.qr_already_saved ||
+        "តុលេខ {n} ត្រូវបានធ្វើរួចហើយ — បង្ហាញ QR ដែលបានរក្សាទុក"
+      ).replace("{n}", res.data.tableNumber)
       : i18n.t.qr_created_success || "បង្កើត QR បានជោគជ័យ!";
   } catch (e) {
     qrError.value =
@@ -5118,9 +4033,7 @@ onUnmounted(() => {
 </style>
 
 <style scoped>
-/* ═══════════════════════════════════════════════════════════
-   ADMIN VIEW v3.3 — Fully Responsive
-   ═══════════════════════════════════════════════════════════ */
+/* Responsive layout */
 .root {
   --sidebar: 240px;
   display: grid;
@@ -5153,6 +4066,7 @@ onUnmounted(() => {
   .root.layout-right {
     grid-template-columns: 1fr var(--sidebar);
   }
+
   .root.layout-right .side {
     order: 2;
     min-width: 0;
@@ -5184,6 +4098,7 @@ onUnmounted(() => {
     border-right: none;
     border-bottom: 1px solid var(--border);
   }
+
   .root.layout-top .main {
     padding-top: calc(var(--hbar-h) + 0px);
   }
@@ -5204,6 +4119,7 @@ onUnmounted(() => {
     border-right: none;
     border-top: 1px solid var(--border);
   }
+
   .root.layout-bottom .main {
     padding-bottom: calc(var(--hbar-h) + 24px);
   }
@@ -5227,11 +4143,13 @@ onUnmounted(() => {
     flex: 0 0 auto;
     min-width: 0;
   }
+
   .root.layout-top .side-rest,
   .root.layout-bottom .side-rest {
     margin-top: 0;
     min-width: 150px;
   }
+
   .root.layout-top .side-add-rest,
   .root.layout-bottom .side-add-rest {
     width: auto;
@@ -5240,6 +4158,7 @@ onUnmounted(() => {
     padding: 4px 12px;
     white-space: nowrap;
   }
+
   .root.layout-top .side-nav,
   .root.layout-bottom .side-nav {
     flex-direction: row;
@@ -5252,12 +4171,14 @@ onUnmounted(() => {
     overflow-x: auto;
     overflow-y: hidden;
   }
+
   .root.layout-top .side-nav .nav-i,
   .root.layout-bottom .side-nav .nav-i {
     min-height: 32px;
     padding: 6px 12px;
     white-space: nowrap;
   }
+
   .root.layout-top .side-foot,
   .root.layout-bottom .side-foot {
     display: flex;
@@ -5270,6 +4191,7 @@ onUnmounted(() => {
     padding: 0 10px;
     flex: 0 0 auto;
   }
+
   .root.layout-top .side-foot .lang,
   .root.layout-top .side-foot .logout,
   .root.layout-bottom .side-foot .lang,
@@ -5291,19 +4213,20 @@ onUnmounted(() => {
   z-index: 100;
   transition: transform 0.3s ease;
 }
+
 .side-top {
   padding: 24px 20px 16px;
   border-bottom: 1px solid var(--border);
-  background: linear-gradient(
-    135deg,
-    var(--surface-green) 0%,
-    var(--surface) 100%
-  );
+  background: linear-gradient(135deg,
+      var(--surface-green) 0%,
+      var(--surface) 100%);
 }
+
 /* Restaurant switcher (one account → many restaurants) */
 .side-rest {
   margin-top: 14px;
 }
+
 .rest-switch {
   width: 100%;
   min-height: 36px;
@@ -5321,10 +4244,12 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
 .rest-switch:focus {
   border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
+
 /* ── Restaurant-switcher options (the dropdown list) ──────────
    Built on top of the shared .app-select option design, tuned
    for the sidebar. Chrome/Edge/Safari render these; Firefox
@@ -5338,22 +4263,26 @@ onUnmounted(() => {
   padding: 9px 12px;
   line-height: 1.45;
 }
+
 .rest-switch option:hover,
 .rest-switch option:active,
 .rest-switch option:focus {
   background-color: var(--surface-green);
   color: var(--primary-strong, var(--primary));
 }
+
 .rest-switch option:checked {
   background: linear-gradient(135deg, var(--primary), var(--primary-light));
   color: var(--on-primary, #fff);
   font-weight: 600;
 }
+
 .rest-switch option:disabled,
 .rest-switch option[value=""] {
   color: var(--muted-light);
   font-style: italic;
 }
+
 .side-add-rest {
   width: 100%;
   margin-top: 10px;
@@ -5369,6 +4298,7 @@ onUnmounted(() => {
   cursor: pointer;
   transition: all 0.2s ease;
 }
+
 .side-add-rest:hover {
   background: var(--surface-green);
   border-color: var(--primary-dark);
@@ -5376,11 +4306,13 @@ onUnmounted(() => {
   transform: translateY(-1px);
   box-shadow: 0 2px 8px var(--primary-glow);
 }
+
 .side-brand {
   display: flex;
   align-items: center;
   gap: 12px;
 }
+
 .side-icon {
   width: 40px;
   height: 40px;
@@ -5394,16 +4326,19 @@ onUnmounted(() => {
   border: 2px solid var(--border-green);
   color: var(--primary);
 }
+
 .side-icon img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
 .side-meta {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
+
 .side-name {
   font-size: 14px;
   font-weight: 700;
@@ -5413,11 +4348,13 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .side-role {
   font-size: 10.5px;
   color: var(--primary-strong, var(--primary));
   font-weight: 600;
 }
+
 .side-nav {
   display: flex;
   flex-direction: column;
@@ -5426,6 +4363,7 @@ onUnmounted(() => {
   flex: 1;
   overflow-y: auto;
 }
+
 .nav-i {
   display: flex;
   align-items: center;
@@ -5444,22 +4382,27 @@ onUnmounted(() => {
   min-height: 42px;
   flex-shrink: 0;
 }
+
 .nav-i:hover {
   background: var(--surface-green);
   color: var(--text);
 }
+
 .nav-i.active {
   background: var(--surface-green);
   color: var(--primary-strong, var(--primary));
   font-weight: 600;
   box-shadow: inset 3px 0 0 var(--primary-strong, var(--primary));
 }
+
 .nav-i svg {
   flex-shrink: 0;
 }
+
 .nav-i.active svg {
   color: var(--primary-strong, var(--primary));
 }
+
 .nav-badge {
   margin-left: auto;
   background: var(--primary);
@@ -5471,15 +4414,19 @@ onUnmounted(() => {
   flex-shrink: 0;
   animation: pulse-badge 2s ease-in-out infinite;
 }
+
 @keyframes pulse-badge {
+
   0%,
   100% {
     transform: scale(1);
   }
+
   50% {
     transform: scale(1.05);
   }
 }
+
 .side-foot {
   display: flex;
   gap: 8px;
@@ -5487,6 +4434,7 @@ onUnmounted(() => {
   border-top: 1px solid var(--border);
   flex-shrink: 0;
 }
+
 .lang,
 .logout {
   flex: 1;
@@ -5504,23 +4452,27 @@ onUnmounted(() => {
   justify-content: center;
   gap: 6px;
 }
+
 .lang {
   background: var(--surface-green);
   color: var(--ink);
   border: 1px solid var(--border-green);
 }
+
 .lang:hover {
   border-color: var(--primary-strong, var(--primary));
   background: var(--tint-hover, #dcfce7);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(15, 118, 110, 0.1);
 }
+
 .logout {
   background: none;
   border: 1px solid transparent;
   color: var(--red);
   background: #fef2f2;
 }
+
 .logout:hover {
   background: #fef2f2;
   border-color: #fecaca;
@@ -5531,6 +4483,7 @@ onUnmounted(() => {
 .mob {
   display: none;
 }
+
 .scrim {
   display: none;
   opacity: 0;
@@ -5568,27 +4521,32 @@ onUnmounted(() => {
 .hdr {
   position: sticky;
   top: var(--hdr-stick-top, 0px);
-  z-index: 60; /* above the tab content, below .side (100) and the modals */
+  z-index: 60;
+  /* above the tab content, below .side (100) and the modals */
   background: #f8fafc;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 0;
-  padding-bottom: 16px; /* 20px visual gap + the former 24px margin */
+  padding-bottom: 16px;
+  /* 20px visual gap + the former 24px margin */
   border-bottom: none;
   flex-wrap: wrap;
   padding-top: 20px;
   gap: 10px;
 }
+
 .hdr::before {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0px; /* leaves 24px of header background below the rule */
+  bottom: 0px;
+  /* leaves 24px of header background below the rule */
   height: 2px;
   background: var(--border-green);
 }
+
 .hdr-l {
   display: flex;
   flex-direction: column;
@@ -5596,6 +4554,7 @@ onUnmounted(() => {
   flex: 1;
   min-width: 150px;
 }
+
 .hdr-title {
   display: flex;
   align-items: center;
@@ -5606,22 +4565,26 @@ onUnmounted(() => {
   margin: 0;
   letter-spacing: -0.3px;
 }
+
 /* Header title glyph — SVG <AppIcon name="sparkle"> (replaces the old
    glyph drawn with a CSS `content:` pseudo-element) */
 .hdr-title-i {
   color: var(--primary-strong, var(--primary));
 }
+
 .hdr-sub {
   font-size: 12px;
   color: var(--muted-light);
   margin-top: 2px;
 }
+
 .hdr-r {
   display: flex;
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
 }
+
 .hdr-dot {
   position: absolute;
   top: 0px;
@@ -5633,15 +4596,19 @@ onUnmounted(() => {
   border: 2px solid var(--surface);
   animation: blink-dot 1.5s ease-in-out infinite;
 }
+
 @keyframes blink-dot {
+
   0%,
   100% {
     opacity: 1;
   }
+
   50% {
     opacity: 0.3;
   }
 }
+
 .hdr-hide {
   display: inline;
 }
@@ -5667,28 +4634,33 @@ onUnmounted(() => {
   line-height: 1.2;
   border: none;
 }
+
 .ac-ghost {
   background: var(--surface);
   color: var(--text);
   border: 1px solid var(--border);
 }
+
 .ac-ghost:hover {
   border-color: var(--primary-strong, var(--primary));
   background: var(--surface-green);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px var(--primary-glow);
 }
+
 .ac-primary {
   background: var(--primary);
   color: var(--on-primary, #fff);
   border: 1px solid var(--primary-strong, var(--primary));
 }
+
 .ac-primary:hover {
   background: var(--primary-dark);
   border-color: var(--primary-dark);
   transform: translateY(-1px);
   box-shadow: 0 4px 16px var(--primary-glow-strong);
 }
+
 .ac-avatar {
   padding: 8px;
   border-radius: 50%;
@@ -5697,13 +4669,16 @@ onUnmounted(() => {
   justify-content: center;
   min-width: 36px;
 }
+
 .ac-icon-only {
   padding: 8px 10px;
 }
+
 .ac:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
 .ac span {
   display: inline-block;
   max-width: 120px;
@@ -5717,6 +4692,7 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
 }
+
 .profile-menu {
   position: absolute;
   top: calc(100% + 8px);
@@ -5726,20 +4702,24 @@ onUnmounted(() => {
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.18);
-  z-index: 120; /* above sidebar (90-100), below modals (200+) */
+  z-index: 120;
+  /* above sidebar (90-100), below modals (200+) */
   overflow: hidden;
   animation: pm-pop 0.16s ease;
 }
+
 @keyframes pm-pop {
   from {
     opacity: 0;
     transform: translateY(-4px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
 }
+
 .pm-head {
   display: flex;
   align-items: center;
@@ -5748,6 +4728,7 @@ onUnmounted(() => {
   border-bottom: 1px solid var(--border);
   background: var(--surface-green);
 }
+
 .pm-avatar {
   width: 38px;
   height: 38px;
@@ -5761,11 +4742,13 @@ onUnmounted(() => {
   color: var(--on-primary, #fff);
   font-weight: 700;
 }
+
 .pm-info {
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
+
 .pm-info strong {
   font-size: 13px;
   color: var(--text);
@@ -5773,6 +4756,7 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .pm-info span {
   font-size: 11px;
   color: var(--muted);
@@ -5780,12 +4764,14 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .pm-body {
   padding: 6px;
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
+
 .pm-item {
   display: flex;
   align-items: center;
@@ -5803,10 +4789,12 @@ onUnmounted(() => {
   text-align: left;
   transition: background 0.15s ease, color 0.15s ease;
 }
+
 .pm-item:hover {
   background: var(--surface-green);
   color: var(--primary-strong, var(--primary));
 }
+
 /* "Install app" row once the app is installed: the label stays fully clickable
    ("Install again") with a small "already installed" note underneath */
 .pm-label {
@@ -5815,6 +4803,7 @@ onUnmounted(() => {
   gap: 1px;
   min-width: 0;
 }
+
 .pm-note {
   font-size: 10px;
   font-style: normal;
@@ -5824,12 +4813,15 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .pm-item svg {
   flex-shrink: 0;
 }
-.pm-item > span:not(.pm-dot) {
+
+.pm-item>span:not(.pm-dot) {
   flex: 1;
 }
+
 .pm-dot {
   width: 8px;
   height: 8px;
@@ -5838,14 +4830,17 @@ onUnmounted(() => {
   animation: blink-dot 1.5s ease-in-out infinite;
   flex-shrink: 0;
 }
+
 .pm-sep {
   height: 1px;
   background: var(--border);
   margin: 6px 8px;
 }
+
 .pm-danger {
   color: var(--red);
 }
+
 .pm-danger:hover {
   background: rgba(198, 40, 40, 0.08);
   color: var(--red-dark);
@@ -5859,6 +4854,7 @@ onUnmounted(() => {
   flex-wrap: wrap;
   padding-bottom: 2px;
 }
+
 .st-tab {
   padding: 7px 13px;
   border: 1px solid var(--border);
@@ -5872,11 +4868,13 @@ onUnmounted(() => {
   white-space: nowrap;
   transition: all 0.15s ease;
 }
+
 .st-tab:hover {
   border-color: var(--primary-strong, var(--primary));
   color: var(--primary-strong, var(--primary));
   background: var(--surface-green);
 }
+
 .st-tab.active {
   background: var(--primary);
   border-color: var(--primary-strong, var(--primary));
@@ -5892,6 +4890,7 @@ onUnmounted(() => {
   margin-top: 20px;
   margin-bottom: 28px;
 }
+
 .metric {
   display: flex;
   align-items: center;
@@ -5904,6 +4903,7 @@ onUnmounted(() => {
   position: relative;
   overflow: hidden;
 }
+
 .metric::before {
   content: "";
   position: absolute;
@@ -5915,22 +4915,28 @@ onUnmounted(() => {
   opacity: 0;
   transition: opacity 0.25s ease;
 }
+
 .metric:hover::before {
   opacity: 1;
 }
+
 .metric:hover {
   /* no translateY: the metric cards must stay level with each other */
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
 }
+
 .metric-teal::before {
   background: var(--primary);
 }
+
 .metric-green::before {
   background: var(--green);
 }
+
 .metric-amber::before {
   background: var(--amber);
 }
+
 .metric-glow {
   position: absolute;
   top: -50%;
@@ -5942,19 +4948,24 @@ onUnmounted(() => {
   pointer-events: none;
   transition: all 0.25s ease;
 }
+
 .metric-teal .metric-glow {
   background: var(--primary);
 }
+
 .metric-green .metric-glow {
   background: var(--green);
 }
+
 .metric-amber .metric-glow {
   background: var(--amber);
 }
+
 .metric:hover .metric-glow {
   opacity: 0.1;
   transform: scale(1.2);
 }
+
 .metric-icon {
   width: 40px;
   height: 40px;
@@ -5964,24 +4975,30 @@ onUnmounted(() => {
   justify-content: center;
   flex-shrink: 0;
 }
+
 .mi-teal {
   background: var(--tint-hover, #ccfbf1);
   color: var(--primary-strong, var(--primary));
 }
+
 .mi-green {
   background: var(--tint-hover, #dcfce7);
   color: var(--green-dark);
 }
+
 .mi-amber {
   background: #fef3c7;
   color: var(--amber);
 }
+
 .metric-b {
   display: flex;
   flex-direction: column;
-  gap: 4px; /* value → label breathing room */
+  gap: 4px;
+  /* value → label breathing room */
   min-width: 0;
 }
+
 .metric-v {
   font-size: 20px;
   font-weight: 700;
@@ -5993,6 +5010,7 @@ onUnmounted(() => {
   text-overflow: ellipsis;
   max-width: 100%;
 }
+
 .metric-l {
   font-size: 11px;
   line-height: 1.35;
@@ -6014,6 +5032,7 @@ onUnmounted(() => {
   border: 1px solid var(--border);
   border-radius: 12px;
 }
+
 .menustrip-label {
   font-size: 11px;
   font-weight: 700;
@@ -6024,6 +5043,7 @@ onUnmounted(() => {
   padding-right: 10px;
   border-right: 1px solid var(--border);
 }
+
 .menustrip-empty {
   display: flex;
   align-items: center;
@@ -6032,6 +5052,7 @@ onUnmounted(() => {
   font-size: 12px;
   color: var(--muted);
 }
+
 .menustrip-tabs {
   display: flex;
   align-items: center;
@@ -6039,12 +5060,14 @@ onUnmounted(() => {
   gap: 6px;
   flex: 1;
 }
+
 .menu-single {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   flex: 1;
 }
+
 .menu-single-name {
   display: inline-flex;
   align-items: center;
@@ -6058,6 +5081,7 @@ onUnmounted(() => {
   font-weight: 600;
   min-height: 28px;
 }
+
 .menutab {
   padding: 6px 14px;
   border: 1px solid var(--border-green);
@@ -6072,22 +5096,26 @@ onUnmounted(() => {
   min-height: 30px;
   transition: all 0.2s ease;
 }
+
 .menutab:hover {
   border-color: var(--primary-strong, var(--primary));
   transform: translateY(-1px);
   box-shadow: 0 2px 8px var(--primary-glow);
 }
+
 .menutab.active {
   background: var(--primary);
   border-color: var(--primary-strong, var(--primary));
   color: var(--on-primary, #fff);
   box-shadow: 0 4px 12px var(--primary-glow-strong);
 }
+
 .menutab-add {
   background: transparent;
   border: 1px dashed var(--primary-strong, var(--primary));
   color: var(--primary-strong, var(--primary));
 }
+
 .menutab-add:hover {
   background: var(--surface-green);
   border-style: solid;
@@ -6102,6 +5130,7 @@ onUnmounted(() => {
   margin-bottom: 18px;
   flex-wrap: wrap;
 }
+
 .bar-scroll {
   display: flex;
   gap: 6px;
@@ -6111,15 +5140,18 @@ onUnmounted(() => {
   padding: 2px 0;
   min-width: 100px;
 }
+
 .bar-scroll::-webkit-scrollbar {
   display: none;
 }
+
 .bar-acts {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
+
 .bar-count {
   font-size: 12px;
   font-weight: 600;
@@ -6142,11 +5174,13 @@ onUnmounted(() => {
   min-height: 30px;
   flex-shrink: 0;
 }
+
 .chip:hover {
   border-color: var(--primary-strong, var(--primary));
   color: var(--text);
   transform: translateY(-1px);
 }
+
 .chip.active {
   background: var(--primary);
   color: var(--on-primary, #fff);
@@ -6159,6 +5193,7 @@ onUnmounted(() => {
   flex: 1;
   max-width: 280px;
 }
+
 .srch input {
   width: 100%;
   padding: 6px 24px 6px 30px;
@@ -6172,10 +5207,12 @@ onUnmounted(() => {
   transition: all 0.2s ease;
   min-height: 32px;
 }
+
 .srch input:focus {
   border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
+
 .srch-i {
   position: absolute;
   left: 10px;
@@ -6184,6 +5221,7 @@ onUnmounted(() => {
   color: var(--muted-light);
   pointer-events: none;
 }
+
 .srch-x {
   position: absolute;
   right: 6px;
@@ -6202,6 +5240,7 @@ onUnmounted(() => {
   transition: all 0.2s ease;
   padding: 0;
 }
+
 .srch-x:hover {
   background: var(--border-green);
   color: var(--text);
@@ -6220,6 +5259,7 @@ onUnmounted(() => {
   grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
   gap: 10px;
 }
+
 .cat-c {
   display: flex;
   align-items: center;
@@ -6230,16 +5270,19 @@ onUnmounted(() => {
   padding: 12px 14px;
   transition: all 0.2s ease;
 }
+
 .cat-c:hover {
   /* no translateY: keeps every category card in line */
   border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 2px 12px var(--primary-glow);
 }
+
 .cat-n {
   font-size: 13px;
   font-weight: 600;
   color: var(--text);
 }
+
 .cat-acts {
   display: flex;
   gap: 4px;
@@ -6260,18 +5303,22 @@ onUnmounted(() => {
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
+
 .ic:hover {
   border-color: var(--primary-strong, var(--primary));
   background: var(--surface-green);
   color: var(--primary-strong, var(--primary));
 }
+
 .ic-sm {
   width: 26px;
   height: 26px;
 }
+
 .ic-red {
   color: var(--red);
 }
+
 .ic-red:hover {
   background: #fef2f2;
   border-color: #fecaca;
@@ -6292,11 +5339,13 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 16px;
 }
+
 .day-section {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
 .day-head {
   display: flex;
   align-items: center;
@@ -6311,6 +5360,7 @@ onUnmounted(() => {
   color: var(--primary);
   box-sizing: border-box;
 }
+
 .day-section:not(.day-today) .day-head {
   cursor: pointer;
   text-align: left;
@@ -6318,16 +5368,19 @@ onUnmounted(() => {
   width: 100%;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
+
 .day-section:not(.day-today) .day-head:hover {
   border-color: var(--primary);
   box-shadow: 0 2px 10px var(--primary-glow);
 }
+
 .day-title {
   display: inline-flex;
   align-items: center;
   gap: 7px;
   min-width: 0;
 }
+
 .day-meta {
   display: inline-flex;
   align-items: center;
@@ -6336,13 +5389,16 @@ onUnmounted(() => {
   font-size: 12px;
   font-weight: 700;
 }
+
 .day-chev {
   flex-shrink: 0;
   transition: transform 0.18s ease;
 }
+
 .day-head.open .day-chev {
   transform: rotate(180deg);
 }
+
 .day-empty-note {
   margin: 0;
   padding: 18px 14px;
@@ -6361,12 +5417,16 @@ onUnmounted(() => {
 .orders-bar {
   --ob-h: 36px;
 }
+
 .orders-bar .bar-acts {
   width: 100%;
 }
+
 .orders-bar .bar-refresh {
-  margin-left: auto; /* Refresh pinned to the end (right side) */
+  margin-left: auto;
+  /* Refresh pinned to the end (right side) */
 }
+
 .ods-label {
   display: inline-flex;
   align-items: center;
@@ -6376,14 +5436,17 @@ onUnmounted(() => {
   color: var(--muted, #6b7280);
   white-space: nowrap;
 }
+
 .orders-date-search {
   display: inline-flex;
   align-items: center;
 }
+
 .orders-date-search .dp {
   width: auto;
   height: var(--ob-h);
 }
+
 .orders-date-search :deep(.dp-field) {
   width: auto;
   min-width: 160px;
@@ -6391,6 +5454,7 @@ onUnmounted(() => {
   min-height: var(--ob-h);
   box-sizing: border-box;
 }
+
 /* Clear + Refresh: identical boxes in both languages */
 .orders-bar .ac {
   width: 120px;
@@ -6400,33 +5464,40 @@ onUnmounted(() => {
   box-sizing: border-box;
   justify-content: center;
 }
+
 .ods-clear {
   padding: 0 12px;
 }
+
 @media (max-width: 900px) {
   .orders-bar {
     --ob-h: 32px;
   }
+
   /* small screens: Refresh joins the group on the left
      (margin-left:auto only makes sense on one desktop row) */
   .orders-bar .bar-refresh {
     margin-left: 0;
   }
 }
+
 @media (max-width: 480px) {
   .orders-bar {
     --ob-h: 30px;
   }
+
   .ods-label {
     width: 100%;
   }
 }
+
 /* Search results panel — same header style as day sections */
 .order-search {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
 .search-head {
   display: flex;
   align-items: center;
@@ -6441,11 +5512,13 @@ onUnmounted(() => {
   color: var(--primary);
   box-sizing: border-box;
 }
+
 .search-count {
   opacity: 0.75;
   font-size: 12px;
   font-weight: 700;
 }
+
 .order-c {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -6453,11 +5526,13 @@ onUnmounted(() => {
   padding: 14px;
   transition: all 0.25s ease;
 }
+
 .order-c:hover {
   /* no translateY: keeps every order card in line */
   border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 4px 16px var(--primary-glow);
 }
+
 .order-h {
   display: flex;
   justify-content: space-between;
@@ -6466,11 +5541,13 @@ onUnmounted(() => {
   margin-bottom: 15px;
   flex-wrap: wrap;
 }
+
 .order-hl {
   display: flex;
   align-items: center;
   gap: 6px;
 }
+
 .order-id {
   font-size: 14px;
   font-weight: 700;
@@ -6480,6 +5557,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 4px;
 }
+
 .order-t {
   font-size: 11px;
   color: var(--muted);
@@ -6487,6 +5565,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 4px;
 }
+
 .order-m {
   display: flex;
   align-items: center;
@@ -6494,11 +5573,13 @@ onUnmounted(() => {
   gap: 8px;
   flex-wrap: wrap;
 }
+
 .order-time {
   font-size: 10px;
   color: var(--muted-light);
   white-space: nowrap;
 }
+
 .order-st {
   font-size: 10px;
   font-weight: 700;
@@ -6512,44 +5593,54 @@ onUnmounted(() => {
   align-items: center;
   gap: 4px;
 }
+
 .order-st.pending {
   background: #fef3c7;
   color: #92400e;
 }
+
 .order-st.confirmed {
   background: #dbeafe;
   color: #1e40af;
 }
+
 .order-st.preparing {
   background: #fce7f3;
   color: #9d174d;
 }
+
 .order-st.ready {
   background: var(--tint-hover, #dcfce7);
   color: var(--green-dark);
 }
+
 .order-st.served {
   background: #d1fae5;
   color: #065f46;
 }
+
 .order-st.cancelled {
   background: #fbe9e7;
   color: var(--red);
 }
+
 .order-items {
   border-top: 1px solid var(--border-green);
   padding-top: 6px;
 }
+
 .order-i {
   display: flex;
   justify-content: space-between;
   padding: 3px 0;
   font-size: 11px;
 }
+
 .order-p {
   color: var(--muted);
   font-weight: 600;
 }
+
 .order-n {
   margin-top: 4px;
   font-size: 10px;
@@ -6559,16 +5650,19 @@ onUnmounted(() => {
   align-items: center;
   gap: 4px;
 }
+
 .order-total {
   margin-top: 6px;
   font-size: 12px;
   color: var(--ink);
 }
+
 .order-status-actions {
   margin-top: 10px;
   padding-top: 10px;
   border-top: 1px dashed var(--border);
 }
+
 .order-status-label {
   display: block;
   font-size: 10px;
@@ -6578,11 +5672,13 @@ onUnmounted(() => {
   text-transform: uppercase;
   letter-spacing: 0.3px;
 }
+
 .order-status-btns {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
+
 .order-status-btn {
   flex: 1;
   min-width: 0;
@@ -6604,42 +5700,51 @@ onUnmounted(() => {
   justify-content: center;
   gap: 4px;
 }
+
 .order-status-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
+
 .order-status-btn.st-preparing {
   background: #fce7f3;
   color: #9d174d;
   border-color: #fbcfe8;
 }
+
 .order-status-btn.st-preparing:hover {
   background: #fbcfe8;
   border-color: #f9a8d4;
 }
+
 .order-status-btn.st-ready {
   background: var(--tint-hover, #dcfce7);
   color: var(--green-dark);
   border-color: var(--border-green, #bbf7d0);
 }
+
 .order-status-btn.st-ready:hover {
   background: var(--border-green, #bbf7d0);
   border-color: #86efac;
 }
+
 .order-status-btn.st-served {
   background: #d1fae5;
   color: #065f46;
   border-color: #a7f3d0;
 }
+
 .order-status-btn.st-served:hover {
   background: #a7f3d0;
   border-color: #6ee7b7;
 }
+
 .order-status-btn.st-cancelled {
   background: #fbe9e7;
   color: var(--red);
   border-color: #fecaca;
 }
+
 .order-status-btn.st-cancelled:hover {
   background: #fecaca;
   border-color: #fca5a5;
@@ -6654,12 +5759,14 @@ onUnmounted(() => {
   align-items: start;
   margin-bottom: 16px;
 }
+
 .rep-side {
   display: flex;
   flex-direction: column;
   gap: 10px;
   min-width: 0;
 }
+
 /* Keep the filter panel pinned in place while the reports column scrolls.
    Desktop-only (the 2-column layout): below 1281px .rep-top stacks into one
    column, and a stuck panel would end up covering the cards underneath.
@@ -6674,14 +5781,13 @@ onUnmounted(() => {
        sidebar is a fixed top/bottom bar, that bar as well (--hdr-stick-top) */
     top: calc(var(--hdr-stick-top, 0px) + var(--hdr-h, 0px) + 16px);
     align-self: start;
-    max-height: calc(
-      100vh - var(--hdr-stick-top, 0px) - var(--hdr-h, 0px) - 32px
-    );
+    max-height: calc(100vh - var(--hdr-stick-top, 0px) - var(--hdr-h, 0px) - 32px);
     overflow-y: auto;
     overscroll-behavior: contain;
     /* room for the scrollbar so the panel border is never overlapped */
     scrollbar-gutter: stable;
   }
+
   /* pinned filter panel: surface the card border so the sticky panel reads
      as a self-contained card even when it's flush with the viewport top */
   .rep-side .bar {
@@ -6691,14 +5797,17 @@ onUnmounted(() => {
     border: 1px solid var(--border);
     border-radius: 14px;
   }
+
   /* tighter gap inside the pinned panel */
   .rep-side .rep-controls {
     gap: 12px;
   }
 }
+
 .rep-main-col {
   min-width: 0;
 }
+
 /* panel card (applies to the .bar inside .rep-side at every breakpoint) */
 .rep-side .bar {
   flex-direction: column;
@@ -6710,6 +5819,7 @@ onUnmounted(() => {
   border: 1px solid var(--border);
   border-radius: 14px;
 }
+
 /* segmented controls (presets + groups) */
 .rep-presets,
 .rep-groups {
@@ -6720,6 +5830,7 @@ onUnmounted(() => {
   padding: 4px;
   border-radius: 12px;
 }
+
 .rep-presets .chip,
 .rep-groups .chip {
   border: none;
@@ -6732,57 +5843,69 @@ onUnmounted(() => {
   color: var(--muted);
   text-align: center;
 }
+
 .rep-presets .chip:hover,
 .rep-groups .chip:hover {
   transform: none;
   box-shadow: none;
   color: var(--text);
 }
+
 .rep-presets .chip.active {
   background: var(--primary);
   border-color: transparent;
   color: #fff;
 }
+
 .rep-groups .chip.active {
   background: var(--primary);
   border-color: transparent;
   color: #fff;
 }
+
 .rep-controls {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 10px;
 }
+
 .rep-date {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
+
 .rep-date span {
   font-size: 10.5px;
   font-weight: 600;
   color: var(--muted);
   text-transform: uppercase;
-  letter-spacing: 0; /* keeps Khmer labels tight (no visible gaps) */
+  letter-spacing: 0;
+  /* keeps Khmer labels tight (no visible gaps) */
 }
+
 .rep-date .dp {
   width: 100%;
 }
+
 .rep-export {
   display: flex;
   flex-direction: column;
   align-items: stretch;
   gap: 8px;
 }
+
 .rep-export .as-root {
   min-width: 0;
   width: 100%;
 }
+
 .rep-export .ac {
   width: 100%;
   justify-content: center;
 }
+
 .rep-msg {
   margin: 0;
 }
@@ -6796,29 +5919,35 @@ onUnmounted(() => {
      card visually collides with the "ចំណូលតាមរយៈពេល" panel. */
   margin-bottom: 16px;
 }
+
 /* the cancelled card spans the full row */
 .rep-cards .rep-card:last-child {
   grid-column: 1 / -1;
 }
+
 .rep-card {
   display: flex;
   align-items: center;
   gap: 12px;
-  height: 100%; /* equal height with the sibling card in the row */
+  height: 100%;
+  /* equal height with the sibling card in the row */
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 14px 16px;
   transition: all 0.25s ease;
 }
+
 .rep-card:hover {
   /* no translateY: hovering must not shift the card out of line */
   border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 4px 16px var(--primary-glow);
 }
+
 .rep-card-dim {
   opacity: 0.75;
 }
+
 .rep-card-i {
   width: 38px;
   height: 38px;
@@ -6828,22 +5957,27 @@ onUnmounted(() => {
   justify-content: center;
   flex-shrink: 0;
 }
+
 .rep-i-teal {
   background: var(--tint-hover, #ccfbf1);
   color: var(--primary-strong, var(--primary));
 }
+
 .rep-i-green {
   background: var(--tint-hover, #dcfce7);
   color: var(--green-dark);
 }
+
 .rep-i-blue {
   background: #dbeafe;
   color: #1d4ed8;
 }
+
 .rep-i-amber {
   background: #fef3c7;
   color: var(--amber);
 }
+
 .rep-i-red {
   background: #fee2e2;
   color: var(--red);
@@ -6857,6 +5991,7 @@ onUnmounted(() => {
   margin-bottom: 16px;
   min-width: 0;
 }
+
 .rep-panel-h {
   display: flex;
   align-items: center;
@@ -6865,7 +6000,8 @@ onUnmounted(() => {
   margin-bottom: 12px;
   flex-wrap: wrap;
 }
-.rep-panel-h > span:first-child {
+
+.rep-panel-h>span:first-child {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -6873,18 +6009,22 @@ onUnmounted(() => {
   font-weight: 700;
   color: var(--ink);
 }
+
 .rep-panel-sub {
   font-size: 10.5px;
   color: var(--muted);
 }
+
 .rep-two {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
+
 .rep-two .rep-panel {
   margin-bottom: 16px;
 }
+
 .rep-empty {
   font-size: 12px;
   color: var(--muted);
@@ -6897,12 +6037,14 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 10px;
 }
+
 .rep-row {
   display: flex;
   align-items: center;
   gap: 10px;
   min-width: 0;
 }
+
 .rep-rank {
   width: 22px;
   height: 22px;
@@ -6917,6 +6059,7 @@ onUnmounted(() => {
   justify-content: center;
   flex-shrink: 0;
 }
+
 .rep-row-b {
   flex: 1;
   min-width: 0;
@@ -6924,6 +6067,7 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 4px;
 }
+
 .rep-row-l {
   font-size: 12px;
   font-weight: 600;
@@ -6932,24 +6076,25 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .rep-row-bar {
   height: 6px;
   border-radius: 999px;
   background: var(--surface-green);
   overflow: hidden;
 }
+
 .rep-row-bar span {
   display: block;
   height: 100%;
   min-width: 2px;
   border-radius: 999px;
-  background: linear-gradient(
-    90deg,
-    var(--primary-strong, var(--primary)),
-    var(--primary-light, #14b8a6)
-  );
+  background: linear-gradient(90deg,
+      var(--primary-strong, var(--primary)),
+      var(--primary-light, #14b8a6));
   transition: width 0.4s ease;
 }
+
 .rep-row-v {
   display: flex;
   align-items: baseline;
@@ -6957,16 +6102,19 @@ onUnmounted(() => {
   flex-shrink: 0;
   justify-content: flex-end;
 }
+
 .rep-row-v strong {
   font-size: 12.5px;
   color: var(--ink);
 }
+
 .rep-row-v em {
   font-size: 9px;
   font-style: normal;
   color: var(--muted-light);
   text-transform: uppercase;
 }
+
 .rep-row-v b {
   font-size: 11px;
   font-weight: 600;
@@ -6984,10 +6132,12 @@ onUnmounted(() => {
   align-items: center;
   gap: 10px;
 }
+
 .empty p {
   margin: 0;
   font-size: 13px;
 }
+
 .spinner {
   width: 24px;
   height: 24px;
@@ -6997,6 +6147,7 @@ onUnmounted(() => {
   animation: spin 0.6s linear infinite;
   display: inline-block;
 }
+
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -7016,6 +6167,7 @@ onUnmounted(() => {
   justify-content: center;
   padding: 20px;
 }
+
 .dlg {
   background: white;
   border-radius: 16px;
@@ -7026,6 +6178,7 @@ onUnmounted(() => {
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--border-green);
 }
+
 .sheet {
   background: var(--surface);
   border-radius: 16px;
@@ -7037,6 +6190,7 @@ onUnmounted(() => {
   max-height: 90vh;
   overflow-y: auto;
 }
+
 .sheet-h {
   display: flex;
   align-items: center;
@@ -7051,43 +6205,51 @@ onUnmounted(() => {
   top: 0;
   z-index: 1;
 }
+
 .sheet-h span {
   display: flex;
   align-items: center;
   gap: 8px;
   color: var(--primary-strong, var(--primary));
 }
+
 .sheet-b {
   padding: 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
+
 .dlg-i {
   color: var(--red);
   margin-bottom: 8px;
   display: flex;
   justify-content: center;
 }
+
 .dlg-i-r {
   color: var(--red-dark);
 }
+
 .dlg-t {
   font-size: 15px;
   font-weight: 700;
   color: var(--red);
   margin-bottom: 4px;
 }
+
 .dlg-d {
   font-size: 12px;
   color: #374151;
   margin-bottom: 16px;
   line-height: 1.5;
 }
+
 .dlg-acts {
   display: flex;
   gap: 8px;
 }
+
 .dlg-acts .btn {
   flex: 1;
   justify-content: center;
@@ -7109,47 +6271,58 @@ onUnmounted(() => {
   min-height: 36px;
   min-width: 70px;
 }
+
 .btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
+
 /* Disabled buttons (e.g. "Installed" in the install-app modal) — clearly not
    clickable, identical treatment to the .ac buttons */
 .btn:disabled {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
 .btn:disabled:hover {
   transform: none;
   box-shadow: none;
 }
+
 .btn-g {
   background: var(--surface-green);
   color: var(--ink);
   border: 1px solid var(--border-green);
 }
+
 .btn-g:hover {
   background: var(--tint-hover, #dcfce7);
 }
+
 .btn-r {
   background: var(--red);
   color: white;
 }
+
 .btn-r:hover {
   background: var(--red-dark);
 }
+
 .btn-primary {
   background: var(--primary);
   color: var(--on-primary, #fff);
 }
+
 .btn-primary:hover {
   background: var(--primary-dark);
   box-shadow: 0 4px 16px var(--primary-glow-strong);
 }
+
 .btn-b {
   width: 100%;
   justify-content: center;
 }
+
 .btn-sm {
   min-height: 28px;
   min-width: 0;
@@ -7164,11 +6337,13 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 4px;
 }
+
 .fld-l {
   font-size: 11px;
   font-weight: 600;
   color: var(--muted);
 }
+
 .fld-i {
   width: 100%;
   padding: 8px 10px;
@@ -7183,20 +6358,24 @@ onUnmounted(() => {
   box-sizing: border-box;
   min-height: 36px;
 }
+
 .fld-i:focus {
   border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
+
 .fld-i.err {
   border-color: var(--red);
   background: #fff8f8;
 }
+
 .fld-hint {
   font-size: 11px;
   line-height: 1.5;
   color: var(--muted);
   margin: 6px 0 0;
 }
+
 .fld-e {
   font-size: 10px;
   color: var(--red);
@@ -7211,11 +6390,13 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
 }
+
 .msg-s {
   background: var(--surface-green);
   color: var(--green-dark);
   border: 1px solid var(--border-green);
 }
+
 .msg-e {
   background: #fef2f2;
   color: var(--red);
@@ -7227,6 +6408,7 @@ onUnmounted(() => {
   display: flex;
   gap: 8px;
 }
+
 .qr-inp {
   flex: 1;
   padding: 8px 12px;
@@ -7239,16 +6421,19 @@ onUnmounted(() => {
   transition: all 0.2s ease;
   min-height: 36px;
 }
+
 .qr-inp:focus {
   border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
+
 .qr-p {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 8px;
 }
+
 .qr-p img {
   width: 160px;
   height: 160px;
@@ -7256,11 +6441,13 @@ onUnmounted(() => {
   border: 2px solid var(--border-green);
   object-fit: contain;
 }
+
 .qr-l {
   font-size: 13px;
   font-weight: 700;
   color: var(--ink);
 }
+
 .msg-i {
   background: #eff6ff;
   color: var(--blue);
@@ -7275,6 +6462,7 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 10px;
 }
+
 .qr-saved-h {
   display: flex;
   align-items: center;
@@ -7285,6 +6473,7 @@ onUnmounted(() => {
   letter-spacing: 0.4px;
   color: var(--muted);
 }
+
 .qr-saved-count {
   background: var(--surface-green);
   border: 1px solid var(--border-green);
@@ -7294,14 +6483,17 @@ onUnmounted(() => {
   font-size: 10px;
   line-height: 18px;
 }
+
 .qr-srch {
   max-width: none;
 }
+
 .qr-saved-loading {
   display: flex;
   justify-content: center;
   padding: 14px 0;
 }
+
 .qr-saved-empty {
   font-size: 11px;
   color: var(--muted);
@@ -7311,6 +6503,7 @@ onUnmounted(() => {
   border: 1px dashed var(--border);
   border-radius: 8px;
 }
+
 .qr-saved-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
@@ -7318,6 +6511,7 @@ onUnmounted(() => {
   max-height: 264px;
   overflow-y: auto;
 }
+
 .qr-item {
   display: flex;
   flex-direction: column;
@@ -7329,15 +6523,18 @@ onUnmounted(() => {
   border-radius: 10px;
   transition: all 0.2s ease;
 }
+
 .qr-item:hover {
   border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 2px 8px var(--primary-glow);
   transform: scale(0.95);
 }
+
 .qr-item.active {
   border-color: var(--primary-strong, var(--primary));
   background: var(--surface-green);
 }
+
 .qr-item-thumb {
   width: 100%;
   aspect-ratio: 1 / 1;
@@ -7352,22 +6549,26 @@ onUnmounted(() => {
   cursor: pointer;
   color: var(--primary-strong, var(--primary));
 }
+
 .qr-item-thumb img {
   width: 100%;
   height: 100%;
   object-fit: contain;
 }
+
 .qr-item-no {
   font-size: 11px;
   font-weight: 700;
   color: var(--ink);
   white-space: nowrap;
 }
+
 .qr-item-date {
   font-size: 9px;
   color: var(--muted-light);
   white-space: nowrap;
 }
+
 .qr-item-acts {
   display: flex;
   gap: 4px;
@@ -7380,6 +6581,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
 }
+
 .prof-p {
   width: 64px;
   height: 64px;
@@ -7392,11 +6594,13 @@ onUnmounted(() => {
   justify-content: center;
   color: var(--primary);
 }
+
 .prof-p img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
+
 .prof-up {
   display: inline-flex;
   align-items: center;
@@ -7412,6 +6616,7 @@ onUnmounted(() => {
   transition: all 0.2s ease;
   min-height: 28px;
 }
+
 .prof-up:hover {
   background: var(--tint-hover, #dcfce7);
   transform: translateY(-1px);
@@ -7424,10 +6629,12 @@ onUnmounted(() => {
   gap: 8px;
   flex-wrap: wrap;
 }
+
 .layout-options {
   display: flex;
   gap: 8px;
 }
+
 .layout-opt {
   flex: 1;
   min-width: 0;
@@ -7446,23 +6653,28 @@ onUnmounted(() => {
   font-weight: 600;
   transition: all 0.15s ease;
 }
+
 .layout-opt:hover {
   border-color: var(--primary-strong, var(--primary));
   color: var(--primary-strong, var(--primary));
   transform: translateY(-1px);
 }
+
 .layout-opt.active {
   border-color: var(--primary-strong, var(--primary));
   background: var(--surface-green);
   color: var(--primary-strong, var(--primary));
   box-shadow: 0 0 0 3px var(--primary-glow);
 }
+
 .layout-opt svg {
   flex-shrink: 0;
 }
+
 .layout-opt span {
   white-space: nowrap;
 }
+
 .swatch {
   width: 30px;
   height: 30px;
@@ -7477,29 +6689,31 @@ onUnmounted(() => {
   flex-shrink: 0;
   color: #fff;
 }
+
 .swatch:hover {
   transform: scale(1.12);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
 }
+
 .swatch.active {
   border-color: var(--ink);
   box-shadow: 0 0 0 3px var(--primary-glow-strong);
   color: var(--on-primary, #fff);
 }
+
 .swatch-custom {
   position: relative;
-  background: conic-gradient(
-    #ef4444,
-    #f59e0b,
-    #22c55e,
-    #06b6d4,
-    #6366f1,
-    #ec4899,
-    #ef4444
-  );
+  background: conic-gradient(#ef4444,
+      #f59e0b,
+      #22c55e,
+      #06b6d4,
+      #6366f1,
+      #ec4899,
+      #ef4444);
   color: #fff;
   overflow: hidden;
 }
+
 .swatch-input {
   position: absolute;
   inset: 0;
@@ -7508,11 +6722,13 @@ onUnmounted(() => {
   opacity: 0;
   cursor: pointer;
 }
+
 .swatch-meta {
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
 .hex-in {
   max-width: 110px;
   font-family: "SFMono-Regular", Consolas, monospace;
@@ -7532,9 +6748,11 @@ onUnmounted(() => {
   align-items: center;
   gap: 6px;
 }
+
 .tg-code {
   text-align: center;
 }
+
 .tg-lbl {
   font-size: 10px;
   font-weight: 600;
@@ -7542,6 +6760,7 @@ onUnmounted(() => {
   margin-bottom: 4px;
   display: block;
 }
+
 .tg-box {
   display: inline-flex;
   align-items: center;
@@ -7553,11 +6772,13 @@ onUnmounted(() => {
   cursor: pointer;
   transition: all 0.2s ease;
 }
+
 .tg-box:hover {
   background: var(--tint-hover, #dcfce7);
   border-color: var(--primary-dark);
   transform: scale(1.02);
 }
+
 .tg-val {
   font-size: 18px;
   font-weight: 800;
@@ -7565,18 +6786,22 @@ onUnmounted(() => {
   letter-spacing: 2px;
   font-family: "SFMono-Regular", Consolas, monospace;
 }
+
 .tg-guide {
   font-size: 11px;
   color: var(--primary-strong, var(--primary));
 }
+
 .tg-guide summary {
   cursor: pointer;
   font-weight: 600;
   padding: 3px 0;
 }
+
 .tg-guide summary:hover {
   color: var(--primary-dark);
 }
+
 .tg-steps {
   background: var(--surface-green);
   border: 1px solid var(--border-green);
@@ -7584,6 +6809,7 @@ onUnmounted(() => {
   padding: 10px;
   margin-top: 4px;
 }
+
 .tg-step {
   display: flex;
   align-items: center;
@@ -7592,9 +6818,11 @@ onUnmounted(() => {
   font-size: 11px;
   color: var(--text);
 }
+
 .tg-step:last-child {
   margin-bottom: 0;
 }
+
 .step-n {
   width: 18px;
   height: 18px;
@@ -7608,12 +6836,14 @@ onUnmounted(() => {
   justify-content: center;
   flex-shrink: 0;
 }
+
 .tg-step code {
   background: var(--surface-green);
   padding: 1px 4px;
   border-radius: 4px;
   color: var(--primary-strong, var(--primary));
 }
+
 .tg-linked {
   display: flex;
   align-items: center;
@@ -7627,11 +6857,13 @@ onUnmounted(() => {
   flex-wrap: wrap;
   gap: 8px;
 }
+
 .tg-linked span {
   display: flex;
   align-items: center;
   gap: 6px;
 }
+
 .tg-warn {
   background: #fefce8;
   border: 1px solid #fde68a;
@@ -7650,16 +6882,19 @@ onUnmounted(() => {
   gap: 8px;
   flex-wrap: wrap;
 }
+
 .dev-count {
   font-size: 12px;
   font-weight: 700;
   color: var(--ink);
 }
+
 .dev-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
+
 .dev-c {
   display: flex;
   gap: 10px;
@@ -7670,17 +6905,21 @@ onUnmounted(() => {
   border-radius: 10px;
   transition: all 0.2s ease;
 }
+
 .dev-c:hover {
   border-color: var(--primary-strong, var(--primary));
   box-shadow: 0 2px 8px var(--primary-glow);
 }
+
 .dev-c.current {
   border-color: var(--border-green);
   background: var(--surface-green);
 }
+
 .dev-c.revoked {
   opacity: 0.6;
 }
+
 .dev-icon {
   width: 34px;
   height: 34px;
@@ -7692,6 +6931,7 @@ onUnmounted(() => {
   justify-content: center;
   flex-shrink: 0;
 }
+
 .dev-b {
   flex: 1;
   min-width: 0;
@@ -7699,17 +6939,20 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 4px;
 }
+
 .dev-name {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
 }
+
 .dev-n {
   font-size: 12.5px;
   font-weight: 700;
   color: var(--ink);
 }
+
 .dev-badge {
   font-size: 9px;
   font-weight: 700;
@@ -7717,42 +6960,51 @@ onUnmounted(() => {
   border-radius: 999px;
   flex-shrink: 0;
 }
+
 .dev-badge-cur {
   background: var(--primary);
   color: var(--on-primary, #fff);
 }
+
 .dev-badge-rev {
   background: #fef2f2;
   color: var(--red);
   border: 1px solid #fecaca;
 }
+
 .dev-meta {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
+
 .dev-kv {
   font-size: 10.5px;
   color: var(--muted);
   line-height: 1.5;
   word-break: break-word;
 }
+
 .dev-kv strong {
   color: var(--text);
   font-weight: 600;
 }
+
 .dev-kv-rev {
   color: var(--red);
 }
+
 .dev-c .ic {
   flex-shrink: 0;
 }
+
 /* Security flags (VPN / hosting IP) */
 .dev-flags {
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
 }
+
 .dev-flag {
   font-size: 9px;
   font-weight: 700;
@@ -7767,6 +7019,7 @@ onUnmounted(() => {
   align-items: center;
   gap: 3px;
 }
+
 /* Details toggle + expanded forensic details */
 .dev-details-btn {
   display: inline-flex;
@@ -7784,15 +7037,19 @@ onUnmounted(() => {
   cursor: pointer;
   transition: all 0.15s ease;
 }
+
 .dev-details-btn:hover {
   background: var(--tint-hover, #dcfce7);
 }
+
 .dev-details-btn svg {
   transition: transform 0.2s ease;
 }
+
 .dev-details-btn svg.flip {
   transform: rotate(180deg);
 }
+
 .dev-details {
   display: flex;
   flex-direction: column;
@@ -7802,11 +7059,13 @@ onUnmounted(() => {
   border-radius: 8px;
   padding: 8px 10px;
 }
+
 .dev-kv-ua strong {
   font-family: "SFMono-Regular", Consolas, monospace;
   font-weight: 500;
   font-size: 9px;
 }
+
 /* Login history (audit trail) */
 .dev-hist {
   border-top: 1px dashed var(--border);
@@ -7815,6 +7074,7 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 8px;
 }
+
 .dev-hist-h {
   display: flex;
   align-items: center;
@@ -7825,6 +7085,7 @@ onUnmounted(() => {
   letter-spacing: 0.4px;
   color: var(--muted);
 }
+
 .dev-hist-list {
   display: flex;
   flex-direction: column;
@@ -7832,6 +7093,7 @@ onUnmounted(() => {
   max-height: 220px;
   overflow-y: auto;
 }
+
 .dev-hist-i {
   display: flex;
   gap: 8px;
@@ -7841,6 +7103,7 @@ onUnmounted(() => {
   border: 1px solid var(--border);
   border-radius: 8px;
 }
+
 .dev-hist-dot {
   width: 8px;
   height: 8px;
@@ -7849,24 +7112,29 @@ onUnmounted(() => {
   flex-shrink: 0;
   background: var(--primary);
 }
+
 .dev-hist-dot.m-google {
   background: #db4437;
 }
+
 .dev-hist-b {
   display: flex;
   flex-direction: column;
   gap: 1px;
   min-width: 0;
 }
+
 .dev-hist-l1 {
   font-size: 11px;
   color: var(--text);
 }
+
 .dev-hist-l2,
 .dev-hist-l3 {
   font-size: 10px;
   color: var(--muted);
 }
+
 .dev-hist-l3 {
   color: var(--muted-light);
 }
@@ -7876,6 +7144,7 @@ onUnmounted(() => {
 .fade-leave-active {
   transition: opacity 0.15s ease;
 }
+
 .fade-enter-from,
 .fade-leave-to {
   opacity: 0;
@@ -7898,9 +7167,11 @@ onUnmounted(() => {
   .grid {
     grid-template-columns: repeat(4, 1fr);
   }
+
   .metrics {
     gap: 10px;
   }
+
   .main {
     padding: 0px 24px 50px;
   }
@@ -7910,7 +7181,8 @@ onUnmounted(() => {
 @media (max-width: 900px) {
   .root {
     grid-template-columns: 1fr;
-    --mob-h: 48px; /* reduced from 53px for tighter mobile header */
+    --mob-h: 48px;
+    /* reduced from 53px for tighter mobile header */
     /* the sticky page header parks right below the mobile bar */
     --hdr-stick-top: var(--mob-h);
   }
@@ -7920,20 +7192,26 @@ onUnmounted(() => {
   .mob {
     display: flex;
     align-items: center;
-    gap: 8px; /* reduced from 10px */
+    gap: 8px;
+    /* reduced from 10px */
     box-sizing: border-box;
     height: var(--mob-h);
-    padding: 0 12px; /* reduced from 14px */
+    padding: 0 12px;
+    /* reduced from 14px */
     background: var(--surface);
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
     z-index: 90;
   }
+
   .mob-btn {
-    width: 28px; /* reduced from 32px */
-    height: 28px; /* reduced from 32px */
-    border-radius: 6px; /* reduced from 8px */
+    width: 28px;
+    /* reduced from 32px */
+    height: 28px;
+    /* reduced from 32px */
+    border-radius: 6px;
+    /* reduced from 8px */
     border: 1px solid var(--border);
     background: var(--surface);
     display: flex;
@@ -7944,20 +7222,27 @@ onUnmounted(() => {
     position: relative;
     flex-shrink: 0;
   }
+
   .mob-btn:hover {
     border-color: var(--primary-strong, var(--primary));
   }
+
   .mob-info {
     display: flex;
     align-items: center;
-    gap: 8px; /* reduced from 10px */
+    gap: 8px;
+    /* reduced from 10px */
     flex: 1;
     min-width: 0;
   }
+
   .mob-av {
-    width: 24px; /* reduced from 28px */
-    height: 24px; /* reduced from 28px */
-    border-radius: 5px; /* reduced from 6px */
+    width: 24px;
+    /* reduced from 28px */
+    height: 24px;
+    /* reduced from 28px */
+    border-radius: 5px;
+    /* reduced from 6px */
     overflow: hidden;
     border: 1px solid var(--border-green);
     flex-shrink: 0;
@@ -7967,19 +7252,23 @@ onUnmounted(() => {
     justify-content: center;
     color: var(--primary);
   }
+
   .mob-av img {
     width: 100%;
     height: 100%;
     object-fit: cover;
   }
+
   .mob-label {
-    font-size: 12px; /* reduced from 13px */
+    font-size: 12px;
+    /* reduced from 13px */
     font-weight: 700;
     color: var(--ink);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
   }
+
   .mob-alert {
     position: absolute;
     top: 4px;
@@ -7996,7 +7285,8 @@ onUnmounted(() => {
     position: fixed;
     left: 0;
     top: 0;
-    width: 260px; /* reduced from 280px */
+    width: 260px;
+    /* reduced from 280px */
     max-width: 85vw;
     z-index: 220;
     transform: translateX(-100%);
@@ -8005,9 +7295,11 @@ onUnmounted(() => {
     border-right: 1px solid var(--border);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.08);
   }
+
   .nav-open .side {
     transform: translateX(0);
   }
+
   .nav-open .scrim {
     display: block;
     opacity: 1;
@@ -8020,7 +7312,8 @@ onUnmounted(() => {
   }
 
   .main {
-    padding: 12px 14px 32px; /* reduced horizontal padding, tighter bottom */
+    padding: 12px 14px 32px;
+    /* reduced horizontal padding, tighter bottom */
   }
 
   /* Hide text on small screens */
@@ -8031,39 +7324,54 @@ onUnmounted(() => {
   /* Metrics - 2 columns with tighter spacing */
   .metrics {
     grid-template-columns: repeat(2, 1fr);
-    gap: 8px; /* reduced from 10px */
-    margin-bottom: 16px; /* reduced from 28px */
+    gap: 8px;
+    /* reduced from 10px */
+    margin-bottom: 16px;
+    /* reduced from 28px */
   }
+
   .metric {
-    padding: 12px 14px; /* reduced from 14px 16px */
+    padding: 12px 14px;
+    /* reduced from 14px 16px */
   }
+
   .metric-icon {
-    width: 32px; /* reduced from 36px */
-    height: 32px; /* reduced from 36px */
+    width: 32px;
+    /* reduced from 36px */
+    height: 32px;
+    /* reduced from 36px */
   }
+
   .metric-v {
-    font-size: 17px; /* reduced from 18px */
+    font-size: 17px;
+    /* reduced from 18px */
   }
 
   /* Grid - 3 columns */
   .grid {
     grid-template-columns: repeat(3, 1fr);
-    gap: 8px; /* reduced from 10px */
+    gap: 8px;
+    /* reduced from 10px */
   }
 
   /* Toolbar - stack with tighter gaps */
   .bar {
     flex-direction: column;
     align-items: stretch;
-    gap: 6px; /* reduced from 8px */
-    margin-bottom: 12px; /* reduced from 18px */
+    gap: 6px;
+    /* reduced from 8px */
+    margin-bottom: 12px;
+    /* reduced from 18px */
   }
+
   .bar-acts {
     flex-wrap: wrap;
   }
+
   .bar-scroll {
     order: 2;
   }
+
   .srch {
     min-width: 0;
     flex: 1;
@@ -8073,261 +7381,390 @@ onUnmounted(() => {
   /* Orders - 1 column */
   .order-grid {
     grid-template-columns: 1fr;
-    gap: 8px; /* reduced from 12px */
+    gap: 8px;
+    /* reduced from 12px */
   }
 
   /* Categories */
   .cat-grid {
-    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* reduced minmax */
-    gap: 8px; /* reduced from 10px */
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    /* reduced minmax */
+    gap: 8px;
+    /* reduced from 10px */
   }
 
   /* Buttons - smaller on mobile */
   .ac {
-    padding: 5px 10px; /* reduced from 6px 12px */
-    font-size: 10px; /* reduced from 11px */
-    min-height: 28px; /* reduced from 32px */
-    min-width: 28px; /* reduced from 32px */
+    padding: 5px 10px;
+    /* reduced from 6px 12px */
+    font-size: 10px;
+    /* reduced from 11px */
+    min-height: 28px;
+    /* reduced from 32px */
+    min-width: 28px;
+    /* reduced from 32px */
   }
+
   .hdr-r .ac {
-    padding: 5px 8px; /* reduced from 6px 10px */
+    padding: 5px 8px;
+    /* reduced from 6px 10px */
   }
+
   .ac span {
-    max-width: 70px; /* reduced from 80px */
+    max-width: 70px;
+    /* reduced from 80px */
   }
+
   .hdr-r .ac-avatar {
-    width: 28px; /* reduced from 32px */
-    height: 28px; /* reduced from 32px */
-    min-width: 28px; /* reduced from 32px */
-    padding: 5px; /* reduced from 6px */
+    width: 28px;
+    /* reduced from 32px */
+    height: 28px;
+    /* reduced from 32px */
+    min-width: 28px;
+    /* reduced from 32px */
+    padding: 5px;
+    /* reduced from 6px */
   }
+
   .ac-icon-only {
-    padding: 5px 6px; /* reduced from 6px 8px */
+    padding: 5px 6px;
+    /* reduced from 6px 8px */
   }
+
   .btn {
-    min-height: 30px; /* reduced from 34px */
-    min-width: 50px; /* reduced from 60px */
-    font-size: 10px; /* reduced from 11px */
-    padding: 5px 10px; /* reduced from 6px 12px */
+    min-height: 30px;
+    /* reduced from 34px */
+    min-width: 50px;
+    /* reduced from 60px */
+    font-size: 10px;
+    /* reduced from 11px */
+    padding: 5px 10px;
+    /* reduced from 6px 12px */
   }
 
   /* Header — tighter spacing to reduce top space */
   .hdr {
-    padding: 12px 0 16px; /* reduced from 14px 0px 40px */
-    margin-bottom: 12px; /* reduced from 16px */
-    align-items: flex-start; /* changed from stretch for better alignment */
-    gap: 6px; /* reduced from 8px */
+    padding: 12px 0 16px;
+    /* reduced from 14px 0px 40px */
+    margin-bottom: 12px;
+    /* reduced from 16px */
+    align-items: flex-start;
+    /* changed from stretch for better alignment */
+    gap: 6px;
+    /* reduced from 8px */
   }
+
   .hdr-title {
-    font-size: 18px; /* reduced from 20px */
+    font-size: 18px;
+    /* reduced from 20px */
   }
+
   .hdr-r {
     flex-wrap: wrap;
-    gap: 4px; /* reduced from 6px */
+    gap: 4px;
+    /* reduced from 6px */
   }
 
   /* Menu strip tighter on mobile */
   .menustrip {
-    padding: 8px 12px; /* reduced from 10px 14px */
-    margin-bottom: 12px; /* reduced from 18px */
+    padding: 8px 12px;
+    /* reduced from 10px 14px */
+    margin-bottom: 12px;
+    /* reduced from 18px */
   }
 }
 
 /* Small phones */
 @media (max-width: 480px) {
   .main {
-    padding: 10px 10px 24px; /* reduced from 12px 10px 32px */
+    padding: 10px 10px 24px;
+    /* reduced from 12px 10px 32px */
   }
 
   .hdr-title {
-    font-size: 16px; /* reduced from 18px */
+    font-size: 16px;
+    /* reduced from 18px */
   }
 
   .hdr {
-    padding: 10px 0 12px; /* reduced for very small screens */
-    margin-bottom: 10px; /* reduced from 12px */
+    padding: 10px 0 12px;
+    /* reduced for very small screens */
+    margin-bottom: 10px;
+    /* reduced from 12px */
   }
 
   /* Metrics - 1 column on very small screens */
   .metrics {
     grid-template-columns: 1fr;
-    gap: 6px; /* reduced from 8px */
-    margin-bottom: 12px; /* reduced from 16px */
+    gap: 6px;
+    /* reduced from 8px */
+    margin-bottom: 12px;
+    /* reduced from 16px */
   }
+
   .metric {
-    padding: 10px 12px; /* reduced from 12px 14px */
+    padding: 10px 12px;
+    /* reduced from 12px 14px */
   }
+
   .metric-v {
-    font-size: 16px; /* reduced from 17px */
+    font-size: 16px;
+    /* reduced from 17px */
   }
 
   /* Grid - 2 columns */
   .grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 6px; /* reduced from 8px */
+    gap: 6px;
+    /* reduced from 8px */
   }
 
   /* Categories - 1 column */
   .cat-grid {
     grid-template-columns: 1fr;
-    gap: 6px; /* reduced from 8px */
+    gap: 6px;
+    /* reduced from 8px */
   }
 
   /* Orders */
   .order-c {
-    padding: 10px; /* reduced from 12px */
+    padding: 10px;
+    /* reduced from 12px */
   }
 
   /* Modals - full width */
   .sheet {
     max-width: 100%;
-    margin: 6px; /* reduced from 8px */
-    border-radius: 10px; /* reduced from 12px */
+    margin: 6px;
+    /* reduced from 8px */
+    border-radius: 10px;
+    /* reduced from 12px */
   }
+
   .sheet-h {
-    padding: 12px 14px; /* reduced from 14px 16px */
-    font-size: 12px; /* reduced from 13px */
+    padding: 12px 14px;
+    /* reduced from 14px 16px */
+    font-size: 12px;
+    /* reduced from 13px */
   }
+
   .sheet-b {
-    padding: 12px; /* reduced from 14px */
-    gap: 10px; /* reduced from 12px */
+    padding: 12px;
+    /* reduced from 14px */
+    gap: 10px;
+    /* reduced from 12px */
   }
+
   .dlg {
-    padding: 16px 14px; /* reduced from 20px 16px */
+    padding: 16px 14px;
+    /* reduced from 20px 16px */
   }
 
   /* QR */
   .qr-r {
     flex-direction: column;
-    gap: 6px; /* reduced from 8px */
+    gap: 6px;
+    /* reduced from 8px */
   }
+
   .qr-p img {
-    width: 120px; /* reduced from 140px */
-    height: 120px; /* reduced from 140px */
+    width: 120px;
+    /* reduced from 140px */
+    height: 120px;
+    /* reduced from 140px */
   }
 
   /* Chips - wrap */
   .bar-scroll {
     gap: 4px;
   }
+
   .chip {
-    padding: 3px 8px; /* reduced from 4px 10px */
-    font-size: 9px; /* reduced from 10px */
-    min-height: 24px; /* reduced from 26px */
+    padding: 3px 8px;
+    /* reduced from 4px 10px */
+    font-size: 9px;
+    /* reduced from 10px */
+    min-height: 24px;
+    /* reduced from 26px */
   }
 
   /* Buttons - even smaller */
   .ac {
-    padding: 3px 8px; /* reduced from 4px 10px */
-    font-size: 9px; /* reduced from 10px */
-    min-height: 24px; /* reduced from 28px */
-    min-width: 24px; /* reduced from 28px */
+    padding: 3px 8px;
+    /* reduced from 4px 10px */
+    font-size: 9px;
+    /* reduced from 10px */
+    min-height: 24px;
+    /* reduced from 28px */
+    min-width: 24px;
+    /* reduced from 28px */
   }
+
   .ac span {
-    max-width: 50px; /* reduced from 60px */
+    max-width: 50px;
+    /* reduced from 60px */
   }
+
   .hdr-r .ac-avatar {
-    width: 24px; /* reduced from 28px */
-    height: 24px; /* reduced from 28px */
-    min-width: 24px; /* reduced from 28px */
-    padding: 3px; /* reduced from 4px */
+    width: 24px;
+    /* reduced from 28px */
+    height: 24px;
+    /* reduced from 28px */
+    min-width: 24px;
+    /* reduced from 28px */
+    padding: 3px;
+    /* reduced from 4px */
   }
+
   .ac-icon-only {
-    padding: 3px 4px; /* reduced from 4px 6px */
+    padding: 3px 4px;
+    /* reduced from 4px 6px */
   }
+
   .btn {
-    min-height: 26px; /* reduced from 30px */
-    min-width: 40px; /* reduced from 50px */
-    font-size: 9px; /* reduced from 10px */
-    padding: 3px 8px; /* reduced from 4px 10px */
+    min-height: 26px;
+    /* reduced from 30px */
+    min-width: 40px;
+    /* reduced from 50px */
+    font-size: 9px;
+    /* reduced from 10px */
+    padding: 3px 8px;
+    /* reduced from 4px 10px */
   }
 
   .fld-i {
-    min-height: 28px; /* reduced from 32px */
-    font-size: 10px; /* reduced from 11px */
-    padding: 5px 6px; /* reduced from 6px 8px */
+    min-height: 28px;
+    /* reduced from 32px */
+    font-size: 10px;
+    /* reduced from 11px */
+    padding: 5px 6px;
+    /* reduced from 6px 8px */
   }
+
   .qr-inp {
-    min-height: 28px; /* reduced from 32px */
-    font-size: 10px; /* reduced from 11px */
-    padding: 5px 8px; /* reduced from 6px 10px */
+    min-height: 28px;
+    /* reduced from 32px */
+    font-size: 10px;
+    /* reduced from 11px */
+    padding: 5px 8px;
+    /* reduced from 6px 10px */
   }
 
   /* Menu strip tighter on small phones */
   .menustrip {
-    padding: 6px 10px; /* reduced from 8px 12px */
-    margin-bottom: 8px; /* reduced from 12px */
+    padding: 6px 10px;
+    /* reduced from 8px 12px */
+    margin-bottom: 8px;
+    /* reduced from 12px */
   }
 }
 
 /* Very small phones */
 @media (max-width: 380px) {
   .main {
-    padding: 8px 6px 20px; /* reduced from 10px 10px 24px */
+    padding: 8px 6px 20px;
+    /* reduced from 10px 10px 24px */
   }
 
   .grid {
     grid-template-columns: 1fr;
-    gap: 4px; /* reduced from 6px */
+    gap: 4px;
+    /* reduced from 6px */
   }
+
   .hdr-r {
-    gap: 2px; /* reduced from 4px */
+    gap: 2px;
+    /* reduced from 4px */
   }
+
   .ac span {
-    max-width: 35px; /* reduced from 40px */
+    max-width: 35px;
+    /* reduced from 40px */
   }
 
   .metrics {
-    gap: 4px; /* reduced from 6px */
+    gap: 4px;
+    /* reduced from 6px */
   }
+
   .metric {
-    padding: 8px 10px; /* reduced from 10px 12px */
+    padding: 8px 10px;
+    /* reduced from 10px 12px */
   }
 }
 
 /* Landscape phones */
 @media (max-height: 600px) and (orientation: landscape) {
   .side {
-    padding-bottom: 6px; /* reduced from 10px */
+    padding-bottom: 6px;
+    /* reduced from 10px */
   }
+
   .side-top {
-    padding: 8px 12px 6px; /* reduced from 12px 16px 10px */
+    padding: 8px 12px 6px;
+    /* reduced from 12px 16px 10px */
   }
+
   .side-nav {
-    padding: 4px 6px; /* reduced from 6px 8px */
-    gap: 0px; /* reduced from 1px */
+    padding: 4px 6px;
+    /* reduced from 6px 8px */
+    gap: 0px;
+    /* reduced from 1px */
   }
+
   .nav-i {
-    padding: 4px 8px; /* reduced from 6px 10px */
-    min-height: 26px; /* reduced from 32px */
-    font-size: 11px; /* reduced from 12px */
+    padding: 4px 8px;
+    /* reduced from 6px 10px */
+    min-height: 26px;
+    /* reduced from 32px */
+    font-size: 11px;
+    /* reduced from 12px */
   }
+
   .side-foot {
-    padding: 6px 10px 8px; /* reduced from 8px 12px 12px */
+    padding: 6px 10px 8px;
+    /* reduced from 8px 12px 12px */
   }
+
   .main {
-    padding: 8px 12px 20px; /* reduced from 0px 16px 30px */
+    padding: 8px 12px 20px;
+    /* reduced from 0px 16px 30px */
   }
+
   .metrics {
-    gap: 4px; /* reduced from 6px */
-    margin-bottom: 10px; /* reduced from 16px */
+    gap: 4px;
+    /* reduced from 6px */
+    margin-bottom: 10px;
+    /* reduced from 16px */
   }
+
   .metric {
-    padding: 8px 10px; /* reduced from 10px 12px */
+    padding: 8px 10px;
+    /* reduced from 10px 12px */
   }
+
   .metric-icon {
-    width: 26px; /* reduced from 30px */
-    height: 26px; /* reduced from 30px */
+    width: 26px;
+    /* reduced from 30px */
+    height: 26px;
+    /* reduced from 30px */
   }
+
   .metric-v {
-    font-size: 14px; /* reduced from 16px */
+    font-size: 14px;
+    /* reduced from 16px */
   }
+
   .hdr {
-    padding: 8px 0 10px; /* tighter header for landscape */
-    margin-bottom: 8px; /* reduced from 12px */
+    padding: 8px 0 10px;
+    /* tighter header for landscape */
+    margin-bottom: 8px;
+    /* reduced from 12px */
   }
+
   .hdr-title {
-    font-size: 16px; /* reduced from 18px */
+    font-size: 16px;
+    /* reduced from 18px */
   }
 }
 
@@ -8335,12 +7772,14 @@ onUnmounted(() => {
 .mob-install {
   color: var(--primary-strong, var(--primary));
 }
+
 .ins-desc {
   font-size: 12.5px;
   line-height: 1.6;
   color: var(--muted);
   margin: 0;
 }
+
 .ins-steps {
   background: var(--surface-green);
   border: 1px solid var(--border-green);
@@ -8350,12 +7789,14 @@ onUnmounted(() => {
   flex-direction: column;
   gap: 6px;
 }
+
 /* waiting state while the browser readies beforeinstallprompt */
 .ins-spin {
   width: 14px;
   height: 14px;
   border-width: 2px;
 }
+
 .ins-wait {
   display: flex;
   align-items: center;
@@ -8365,6 +7806,7 @@ onUnmounted(() => {
   font-size: 11.5px;
   color: var(--muted);
 }
+
 .ins-hint {
   font-size: 11.5px;
   color: var(--muted);
@@ -8378,18 +7820,21 @@ onUnmounted(() => {
   border-bottom: 1px solid var(--border, #e2e8e2);
   margin-bottom: 14px;
 }
+
 .push-desc {
   font-size: 11.5px;
   color: var(--text-light, #6a8f6a);
   line-height: 1.5;
   margin: 4px 0 10px;
 }
+
 .push-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
 }
+
 .push-state {
   font-size: 12px;
   font-weight: 700;
@@ -8398,48 +7843,58 @@ onUnmounted(() => {
   align-items: center;
   gap: 5px;
 }
+
 .push-st-enabled {
   color: var(--green-mid, #2d7a2d);
 }
+
 .push-st-disabled,
 .push-st-unsupported,
 .push-st-not_configured {
   color: var(--text-light, #6a8f6a);
 }
+
 .push-st-blocked {
   color: var(--red, #ef4444);
 }
 
 /* ─── Reports tab: responsive ─── */
 @media (max-width: 1280px) {
+
   /* narrow: filters stack above the cards (like the resized mock) */
   .rep-top {
     grid-template-columns: 1fr;
   }
+
   .rep-main-col {
     border-top: 1px dashed var(--border);
     padding-top: 14px;
   }
 }
+
 @media (max-width: 900px) {
   .rep-two {
     grid-template-columns: 1fr;
     gap: 0;
   }
-      .main{
-        padding: 0px 16px 40px;
-    }
+
+  .main {
+    padding: 0px 16px 40px;
+  }
 
 
 }
+
 @media (max-width: 420px) {
   .rep-cards {
     grid-template-columns: 1fr;
     gap: 8px;
   }
+
   .rep-cards .rep-card:last-child {
     grid-column: auto;
   }
+
   .rep-panel {
     padding: 14px;
   }

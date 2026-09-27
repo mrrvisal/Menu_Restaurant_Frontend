@@ -1,37 +1,10 @@
-<!-- ═══════════════════════════════════════════════════════════
-   AppDatePicker — modern date picker (replaces native type="date")
-   ─────────────────────────────────────────────────────────────
-   • Pill field with a calendar icon and a localized, human-readable
-     value ("17 តុលា 2026" / "17 Sep 2026") instead of "2026-10-17"
-   • Custom dropdown calendar (teleported to <body>, like AppSelect):
-     month navigation, weekday row, today ring, selected fill
-   • Locale-aware labels via the i18n store (km-KH / en)
-   • v-model uses the SAME "YYYY-MM-DD" string as the old input, so
-     it's a drop-in replacement for <input type="date">
-   • Optional min / max props (YYYY-MM-DD) disable out-of-range days
-   ═══════════════════════════════════════════════════════════ -->
+<!-- AppDatePicker: Dropdown calendar input component returning YYYY-MM-DD -->
 <template>
   <div ref="rootEl" class="dp" @keydown.esc.stop="close">
-    <button
-      type="button"
-      class="dp-field"
-      :class="{ 'is-open': open, 'is-empty': !modelValue }"
-      aria-haspopup="dialog"
-      :aria-expanded="open"
-      :title="display || modelValue || placeholder"
-      @click="toggle"
-    >
-      <svg
-        class="dp-ico"
-        width="15"
-        height="15"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="1.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
+    <button type="button" class="dp-field" :class="{ 'is-open': open, 'is-empty': !modelValue }" aria-haspopup="dialog"
+      :aria-expanded="open" :title="display || modelValue || placeholder" @click="toggle">
+      <svg class="dp-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+        stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
         <line x1="16" y1="2" x2="16" y2="6" />
         <line x1="8" y1="2" x2="8" y2="6" />
@@ -40,49 +13,30 @@
       <span class="dp-value" :class="{ 'is-placeholder': !display }">{{
         display || placeholder
       }}</span>
-      <svg
-        class="dp-chev"
-        :class="{ flip: open }"
-        width="13"
-        height="13"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2.5"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      ><polyline points="6 9 12 15 18 9" /></svg>
+      <svg class="dp-chev" :class="{ flip: open }" width="13" height="13" viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="6 9 12 15 18 9" />
+      </svg>
     </button>
 
     <!-- Calendar popup (teleported so no parent can clip it) -->
     <Teleport to="body">
       <Transition name="dp-pop">
-        <div
-          v-if="open"
-          ref="popEl"
-          class="dp-pop"
-          role="dialog"
-          aria-label="Select date"
-          :style="popStyle"
-          @pointerdown.stop
-        >
+        <div v-if="open" ref="popEl" class="dp-pop" role="dialog" aria-label="Select date" :style="popStyle"
+          @pointerdown.stop>
           <div class="dp-head">
-            <button
-              type="button"
-              class="dp-nav"
-              aria-label="Previous month"
-              @click="shiftMonth(-1)"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6" /></svg>
+            <button type="button" class="dp-nav" aria-label="Previous month" @click="shiftMonth(-1)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6" />
+              </svg>
             </button>
             <span class="dp-title">{{ monthTitle }}</span>
-            <button
-              type="button"
-              class="dp-nav"
-              aria-label="Next month"
-              @click="shiftMonth(1)"
-            >
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6" /></svg>
+            <button type="button" class="dp-nav" aria-label="Next month" @click="shiftMonth(1)">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
             </button>
           </div>
 
@@ -92,19 +46,11 @@
 
           <div class="dp-grid">
             <span v-for="n in leadBlanks" :key="'b' + n" class="dp-day dp-blank"></span>
-            <button
-              v-for="d in daysInMonth"
-              :key="d"
-              type="button"
-              class="dp-day"
-              :class="{
-                'is-today': isToday(d),
-                'is-sel': isSelected(d),
-                'is-dis': isDisabled(d),
-              }"
-              :disabled="isDisabled(d)"
-              @click="select(d)"
-            >
+            <button v-for="d in daysInMonth" :key="d" type="button" class="dp-day" :class="{
+              'is-today': isToday(d),
+              'is-sel': isSelected(d),
+              'is-dis': isDisabled(d),
+            }" :disabled="isDisabled(d)" @click="select(d)">
               {{ d }}
             </button>
           </div>
@@ -113,12 +59,7 @@
             <button type="button" class="dp-act" @click="pickToday">
               {{ i18n.t.report_today || "Today" }}
             </button>
-            <button
-              v-if="modelValue"
-              type="button"
-              class="dp-act dp-act-ghost"
-              @click="clear"
-            >
+            <button v-if="modelValue" type="button" class="dp-act dp-act-ghost" @click="clear">
               {{ i18n.t.dp_clear || "Clear" }}
             </button>
           </div>
@@ -344,19 +285,23 @@ onUnmounted(() => {
   text-align: left;
   transition: all 0.2s ease;
 }
+
 .dp-field:hover {
   border-color: var(--primary-strong, var(--primary, #0f766e));
   transform: translateY(-1px);
   box-shadow: 0 2px 8px var(--primary-glow, rgba(15, 118, 110, 0.15));
 }
+
 .dp-field.is-open {
   border-color: var(--primary-strong, var(--primary, #0f766e));
   box-shadow: 0 0 0 3px var(--primary-glow, rgba(15, 118, 110, 0.15));
 }
+
 .dp-ico {
   color: var(--primary-strong, var(--primary, #0f766e));
   flex-shrink: 0;
 }
+
 .dp-value {
   flex: 1;
   min-width: 0;
@@ -364,15 +309,18 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .dp-value.is-placeholder {
   color: var(--muted-light, #9ca3af);
   font-weight: 500;
 }
+
 .dp-chev {
   color: var(--muted, #6b7280);
   flex-shrink: 0;
   transition: transform 0.2s ease;
 }
+
 .dp-chev.flip {
   transform: rotate(180deg);
 }
@@ -387,6 +335,7 @@ onUnmounted(() => {
   border-radius: 12px;
   box-shadow: 0 18px 44px rgba(0, 0, 0, 0.16);
 }
+
 .dp-head {
   display: flex;
   align-items: center;
@@ -394,6 +343,7 @@ onUnmounted(() => {
   gap: 6px;
   margin-bottom: 8px;
 }
+
 .dp-title {
   flex: 1;
   text-align: center;
@@ -404,6 +354,7 @@ onUnmounted(() => {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
 .dp-nav {
   width: 26px;
   height: 26px;
@@ -419,17 +370,20 @@ onUnmounted(() => {
   padding: 0;
   transition: all 0.15s ease;
 }
+
 .dp-nav:hover {
   border-color: var(--primary-strong, var(--primary, #0f766e));
   color: var(--primary-strong, var(--primary, #0f766e));
   background: var(--surface-green, #f0fdf4);
 }
+
 .dp-week {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
   margin-bottom: 4px;
 }
+
 .dp-week span {
   font-size: 9px;
   font-weight: 700;
@@ -438,11 +392,13 @@ onUnmounted(() => {
   padding: 3px 0;
   text-transform: uppercase;
 }
+
 .dp-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   gap: 2px;
 }
+
 .dp-day {
   aspect-ratio: 1 / 1;
   min-height: 30px;
@@ -460,30 +416,34 @@ onUnmounted(() => {
   padding: 0;
   transition: all 0.12s ease;
 }
+
 .dp-day:hover:not(.is-dis):not(.is-sel) {
   background: var(--surface-green, #f0fdf4);
   color: var(--primary-strong, var(--primary, #0f766e));
 }
+
 .dp-day.is-today {
   box-shadow: inset 0 0 0 1.5px var(--primary-strong, var(--primary, #0f766e));
   color: var(--primary-strong, var(--primary, #0f766e));
 }
+
 .dp-day.is-sel {
-  background: linear-gradient(
-    135deg,
-    var(--primary, #0f766e),
-    var(--primary-light, #14b8a6)
-  );
+  background: linear-gradient(135deg,
+      var(--primary, #0f766e),
+      var(--primary-light, #14b8a6));
   color: var(--on-primary, #fff);
   box-shadow: 0 2px 8px var(--primary-glow-strong, rgba(15, 118, 110, 0.25));
 }
+
 .dp-day.is-dis {
   opacity: 0.3;
   cursor: not-allowed;
 }
+
 .dp-blank {
   pointer-events: none;
 }
+
 .dp-foot {
   display: flex;
   justify-content: space-between;
@@ -492,6 +452,7 @@ onUnmounted(() => {
   padding-top: 8px;
   border-top: 1px solid var(--border, #e2e8f0);
 }
+
 .dp-act {
   border: 1px solid var(--border-green, #bbf7d0);
   background: var(--surface-green, #f0fdf4);
@@ -504,10 +465,12 @@ onUnmounted(() => {
   cursor: pointer;
   transition: all 0.15s ease;
 }
+
 .dp-act:hover {
   background: var(--tint-hover, #dcfce7);
   transform: translateY(-1px);
 }
+
 .dp-act-ghost {
   background: transparent;
   border-color: var(--border, #e2e8f0);
@@ -519,6 +482,7 @@ onUnmounted(() => {
 .dp-pop-leave-active {
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
+
 .dp-pop-enter-from,
 .dp-pop-leave-to {
   opacity: 0;
@@ -531,6 +495,7 @@ onUnmounted(() => {
     width: min(280px, calc(100vw - 24px));
     padding: 10px;
   }
+
   .dp-day {
     min-height: 28px;
   }

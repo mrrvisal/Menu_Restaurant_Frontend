@@ -1,6 +1,4 @@
-// frontend/src/utils/themePalette.mjs
-// Shared palette derivation for the public menu theme.
-// Given a restaurant's primary color, produces the tint tokens the menu uses.
+// Shared palette tokens derived from a restaurant's primary theme color
 import {
   normalizeHex,
   lighten,
@@ -27,11 +25,10 @@ export const THEME_VARS = [
   "--modal-overlay",
 ];
 
-// Returns a map of CSS custom-property → color, or null when the input is invalid
+// Returns a map of CSS custom-property → color, or null when input is invalid
 export function buildThemePalette(input) {
   const hex = normalizeHex(input);
   if (!hex) return null;
-  // Always-readable accent (price, icons, focus) — darkens light primaries
   const strong = strongColor(hex);
   return {
     "--green-mid": hex,
@@ -40,19 +37,13 @@ export function buildThemePalette(input) {
     "--green-soft": lighten(hex, 0.66),
     "--green-pale": lighten(hex, 0.93),
     "--green-strong": strong,
-    // Foreground to place on primary-colored buttons/tabs
     "--on-primary": onColor(hex),
-    // Foreground for the header (white on dark headers, dark on light ones)
     "--header-fg": onColor(hex),
     "--header-blob2": hexToRgba(darken(hex, 0.3), 0.25),
-    // Themed shadows/glows — tints derive from the theme color so shadows
-    // follow the restaurant color instead of staying hardcoded green.
     "--glow-soft": hexToRgba(strong, 0.16),
     "--glow-strong": hexToRgba(strong, 0.3),
     "--shadow-tint": hexToRgba(darken(hex, 0.3), 0.16),
     "--shadow-tint-soft": hexToRgba(darken(hex, 0.3), 0.08),
-    // Scrim for teleported modals (food detail + cart). Dark and tinted with
-    // the theme color; pushed to <html> so every modal picks it up.
     "--modal-overlay": hexToRgba(darken(hex, 0.55), 0.55),
   };
 }

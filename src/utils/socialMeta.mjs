@@ -1,14 +1,4 @@
-// frontend/src/utils/socialMeta.mjs
-// ─── RUNTIME SOCIAL META ───────────────────────────────────────────────────
-// index.html carries the app-level Open Graph / Twitter tags. When a page shows
-// ONE restaurant (the public menu, a shared table link…) those generic tags are
-// replaced with the restaurant's own name, logo and URL.
-//
-// Note: crawlers that do not execute JavaScript (Facebook, Messenger, WeChat,
-// LinkedIn, Pinterest…) never see these runtime values — that is what the
-// server share card (/s/menu) in the backend is for. This keeps the SPA itself
-// correct for browsers, JS-rendering crawlers (Google) and the browser's own
-// "Share page" dialogs.
+// Runtime social metadata helper — updates OpenGraph and Twitter tags dynamically for SPA views
 
 const PROPERTY_TAGS = [
   "og:type",
@@ -80,20 +70,7 @@ function setCanonical(url) {
   link.setAttribute("href", url);
 }
 
-/**
- * Rewrites the page's social metadata.
- *
- * @param {object} opts
- * @param {string} [opts.title]        document + og:title
- * @param {string} [opts.description]
- * @param {string} [opts.image]        absolute https image URL
- * @param {string} [opts.url]          canonical URL of this page
- * @param {string} [opts.type]         og:type (default "website")
- * @param {string} [opts.siteName]
- * @param {string} [opts.locale]       og:locale (default "km_KH")
- * @param {number} [opts.imageWidth]
- * @param {number} [opts.imageHeight]
- */
+// Rewrites page title and social metadata tags
 export function setSocialMeta(opts = {}) {
   if (typeof document === "undefined") return;
   takeSnapshot();
@@ -136,7 +113,7 @@ export function setSocialMeta(opts = {}) {
   setCanonical(url);
 }
 
-// Restore the values index.html shipped with (used when leaving the page).
+// Restores original metadata tags recorded at initial snapshot
 export function resetSocialMeta() {
   if (typeof document === "undefined" || !snapshot) return;
   document.title = snapshot.title;

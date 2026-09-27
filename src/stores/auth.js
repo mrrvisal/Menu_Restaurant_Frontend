@@ -1,4 +1,3 @@
-// frontend/src/stores/auth.js
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import axios from "axios";
@@ -8,39 +7,30 @@ import { getDeviceInfo, attachDeviceHeader } from "@/utils/device";
 const API_BASE_URL = import.meta.env.VITE_API_URL;
 
 export const useAuthStore = defineStore("auth", () => {
+  // ─── AUTH TOKENS & SESSION STATE ──────────────────────────
   const token = ref(localStorage.getItem("admin_token") || null);
   if (token.value) {
     axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
   }
-  // Identify THIS device on every request so the backend can track
-  // where/when the account is accessed (device sessions feature).
   attachDeviceHeader(axios);
 
-  // Set when the backend answers 401 device_revoked (the owner removed
-  // this device from the account) — forces a clean local logout.
   const sessionRevoked = ref(false);
-  // Set when the session could NOT be renewed (legacy login without a refresh
-  // token, revoked device, deleted account…). Persisted to localStorage so it
-  // survives the redirect/reload — the Login page shows a friendly notice
-  // instead of leaving the user staring at a broken dashboard.
-  const sessionExpired = ref(localStorage.getItem("admin_session_expired") === "1");
+  const sessionExpired = ref(
+    localStorage.getItem("admin_session_expired") === "1",
+  );
+  const refreshToken = ref(localStorage.getItem("admin_refresh_token") || null);
 
   function markSessionExpired() {
     sessionExpired.value = true;
     localStorage.setItem("admin_session_expired", "1");
   }
+
   function clearSessionExpired() {
     sessionExpired.value = false;
     localStorage.removeItem("admin_session_expired");
   }
 
-  // The long-lived token exchanged at POST /api/auth/refresh for a fresh
-  // access + refresh pair. Kept in localStorage (not just memory) so a page
-  // reload mid-session can still renew silently.
-  const refreshToken = ref(localStorage.getItem("admin_refresh_token") || null);
-
-  // Single-flight: parallel dashboard requests that all come back 401 must
-  // trigger exactly ONE refresh, whose result every caller awaits.
+  // ─── TOKEN REFRESH LOGIC ──────────────────────────────────
   let refreshPromise = null;
   function refreshSession() {
     if (!refreshPromise) {
@@ -52,11 +42,9 @@ export const useAuthStore = defineStore("auth", () => {
   }
 
   async function doRefresh() {
-    // Prefer localStorage: another tab may already have rotated the pair.
-    const rt = localStorage.getItem("admin_refresh_token") || refreshToken.value;
+    const rt =
+      localStorage.getItem("admin_refresh_token") || refreshToken.value;
     if (!rt) {
-      // Legacy session from before the refresh flow existed — renewing is
-      // impossible, so surface the same shape as a server rejection.
       const err = new Error("no refresh token");
       err.noRefreshToken = true;
       throw err;
@@ -72,8 +60,6 @@ export const useAuthStore = defineStore("auth", () => {
     return res.data;
   }
 
-  // The access token can't be renewed anymore — sign out cleanly and let the
-  // Login page explain why (session_expired banner).
   function endExpiredSession() {
     if (!token.value && !refreshToken.value) return;
     markSessionExpired();
@@ -83,6 +69,7 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
+  // ─── AXIOS RESPONSE INTERCEPTOR ───────────────────────────
   axios.interceptors.response.use(
     (res) => res,
     async (err) => {
@@ -97,8 +84,7 @@ export const useAuthStore = defineStore("auth", () => {
         return Promise.reject(err);
       }
 
-      // Access token expired → renew the pair and replay the failed request.
-      // `_retry` guarantees each request attempts this at most once (no loops).
+      // Renew expired token and retry request once
       if (
         status === 401 &&
         code === "token_expired" &&
@@ -114,17 +100,11 @@ export const useAuthStore = defineStore("auth", () => {
           };
           return axios(original);
         } catch (e) {
-          // Only a server ANSWER (invalid/revoked/expired refresh, or a
-          // legacy session with no refresh token) may end the session.
-          // A network blip must NOT sign the user out — fail this one
-          // request instead; the next one will try to refresh again.
           if (e?.response || e?.noRefreshToken) endExpiredSession();
           return Promise.reject(err);
         }
       }
 
-      // Token rejected for a reason refreshing can't fix (e.g. the server's
-      // JWT_SECRET changed) — end the session instead of a half-dead page.
       if (status === 401 && code === "token_invalid" && token.value) {
         endExpiredSession();
       }
@@ -132,6 +112,7 @@ export const useAuthStore = defineStore("auth", () => {
     },
   );
 
+  // ─── USER & RESTAURANT STATE ──────────────────────────────
   let savedUser = null;
   let savedRestaurants = null;
   try {
@@ -141,15 +122,17 @@ export const useAuthStore = defineStore("auth", () => {
     localStorage.removeItem("admin_user");
     localStorage.removeItem("admin_restaurants");
   }
+
   const user = ref(savedUser);
-  // ALL restaurants owned by this account
-  const restaurants = ref(Array.isArray(savedRestaurants) ? savedRestaurants : []);
-  // Currently selected restaurant id (persisted so refresh keeps your selection)
-  const currentRestaurantId = ref(
-    Number(localStorage.getItem("current_restaurant_id")) || null
+  const restaurants = ref(
+    Array.isArray(savedRestaurants) ? savedRestaurants : [],
   );
-  // Currently selected menu id (per session UI selection)
-  const currentMenuId = ref(Number(localStorage.getItem("current_menu_id")) || null);
+  const currentRestaurantId = ref(
+    Number(localStorage.getItem("current_restaurant_id")) || null,
+  );
+  const currentMenuId = ref(
+    Number(localStorage.getItem("current_menu_id")) || null,
+  );
 
   function setCurrentMenu(id) {
     const num = Number(id);
@@ -158,12 +141,11 @@ export const useAuthStore = defineStore("auth", () => {
     else localStorage.removeItem("current_menu_id");
   }
 
-  // Keep the legacy singular `restaurant` getter working by deriving it from
-  // the current selection (falls back to the first owned restaurant).
+  // Derive current restaurant with fallback to first owned
   const restaurant = computed(() => {
     if (currentRestaurantId.value) {
       const found = restaurants.value.find(
-        (r) => r.id === currentRestaurantId.value
+        (r) => r.id === currentRestaurantId.value,
       );
       if (found) return found;
     }
@@ -177,9 +159,13 @@ export const useAuthStore = defineStore("auth", () => {
   const restaurantId = computed(() => restaurant.value?.id || null);
   const restaurantSlug = computed(() => restaurant.value?.slug || null);
   const linkCode = computed(() => restaurant.value?.telegramLinkCode || null);
-  const telegramChatId = computed(() => restaurant.value?.telegramChatId || null);
+  const telegramChatId = computed(
+    () => restaurant.value?.telegramChatId || null,
+  );
   const isTelegramLinked = computed(() => !!restaurant.value?.telegramChatId);
-  const defaultLanguage = computed(() => restaurant.value?.defaultLanguage || "km");
+  const defaultLanguage = computed(
+    () => restaurant.value?.defaultLanguage || "km",
+  );
 
   function setCurrentRestaurant(id) {
     const num = Number(id);
@@ -189,25 +175,19 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
-  // Shared post-login state sync (token, user, restaurants, theme).
+  // ─── AUTH ACTIONS ─────────────────────────────────────────
   function applySession(data) {
     token.value = data.token;
     if (data.refreshToken) refreshToken.value = data.refreshToken;
-    // A successful login always supersedes any earlier "session expired".
     clearSessionExpired();
     user.value = data.user;
-    // Backend returns a `restaurants` array; keep old `restaurant` fallback
     restaurants.value = Array.isArray(data.restaurants)
       ? data.restaurants
       : data.restaurant
         ? [data.restaurant]
         : [];
 
-    // ⚠️ Session switch: `current_restaurant_id` / `current_menu_id` are
-    // persisted in localStorage, so they may still hold the PREVIOUS
-    // account's selection. Never carry it over — otherwise the dashboard
-    // shows and acts on a restaurant this account doesn't own. Select the
-    // new account's first restaurant (or none) instead.
+    // Avoid carrying over previous account's selected IDs
     const first = restaurants.value[0]?.id || null;
     currentRestaurantId.value = first;
     currentMenuId.value = null;
@@ -221,7 +201,6 @@ export const useAuthStore = defineStore("auth", () => {
 
     saveToStorage();
     axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
-    // Load this account's own theme color (defaults to brand teal)
     useThemeStore().load();
   }
 
@@ -234,8 +213,6 @@ export const useAuthStore = defineStore("auth", () => {
     applySession(res.data);
   }
 
-  // Super Admin portal login — restricted route. The backend only issues a
-  // session here when the account's role is super_admin.
   async function superAdminLogin(email, password) {
     const res = await axios.post(`${API_BASE_URL}/api/auth/login/super-admin`, {
       email,
@@ -247,7 +224,6 @@ export const useAuthStore = defineStore("auth", () => {
 
   async function register(payload) {
     const res = await axios.post(`${API_BASE_URL}/api/auth/register`, payload);
-    // Don't auto-login after registration — user must verify email first
     if (res.data.token) {
       token.value = res.data.token;
       if (res.data.refreshToken) refreshToken.value = res.data.refreshToken;
@@ -257,16 +233,14 @@ export const useAuthStore = defineStore("auth", () => {
         : res.data.restaurant
           ? [res.data.restaurant]
           : [];
-      if (restaurants.value.length) currentRestaurantId.value = restaurants.value[0].id;
+      if (restaurants.value.length)
+        currentRestaurantId.value = restaurants.value[0].id;
       saveToStorage();
       axios.defaults.headers.common["Authorization"] = `Bearer ${token.value}`;
     }
     return res.data;
   }
 
-  // Sign in with Google (credential = Google ID token from Google Identity
-  // Services). Pass { superAdminOnly: true } when called from the dedicated
-  // Super Admin portal — the backend then only admits super_admin accounts.
   async function loginWithGoogle(credential, options = {}) {
     const res = await axios.post(`${API_BASE_URL}/api/auth/google`, {
       credential,
@@ -276,36 +250,34 @@ export const useAuthStore = defineStore("auth", () => {
     applySession(res.data);
   }
 
-  // Fetch latest user + restaurants from the backend
+  // Fetch latest user and restaurant profiles
   async function fetchMe() {
     const res = await axios.get(`${API_BASE_URL}/api/auth/me`);
     user.value = res.data.user;
     restaurants.value = Array.isArray(res.data.restaurants)
       ? res.data.restaurants
       : [];
-    // Drop a stale selection this account doesn't own (e.g. one restored
-    // from localStorage before /auth/me answered, or left by a previous
-    // account on this browser) — otherwise the dashboard shows and acts on
-    // a restaurant that isn't ours.
+
     if (
       currentRestaurantId.value &&
       !restaurants.value.some((r) => r.id === currentRestaurantId.value)
     ) {
       currentRestaurantId.value = restaurants.value[0]?.id || null;
-      if (currentRestaurantId.value)
+      if (currentRestaurantId.value) {
         localStorage.setItem(
           "current_restaurant_id",
           String(currentRestaurantId.value),
         );
-      else localStorage.removeItem("current_restaurant_id");
+      } else {
+        localStorage.removeItem("current_restaurant_id");
+      }
     }
     saveToStorage();
     useThemeStore().load();
     return res.data;
   }
 
-  // Update the logged-in user's OWN email and/or password.
-  // Requires `currentPassword` unless the account has no password (Google-only).
+  // Update own email or password
   async function updateAccount(payload) {
     const res = await axios.patch(`${API_BASE_URL}/api/auth/account`, payload);
     if (res.data.token) {
@@ -318,7 +290,6 @@ export const useAuthStore = defineStore("auth", () => {
     return res.data;
   }
 
-  // Update the current restaurant's cached fields after edits
   function updateCurrentRestaurant(patch) {
     const idx = restaurants.value.findIndex((r) => r.id === restaurantId.value);
     if (idx !== -1) {
@@ -329,11 +300,16 @@ export const useAuthStore = defineStore("auth", () => {
 
   function saveToStorage() {
     localStorage.setItem("admin_token", token.value);
-    if (refreshToken.value)
+    if (refreshToken.value) {
       localStorage.setItem("admin_refresh_token", refreshToken.value);
-    else localStorage.removeItem("admin_refresh_token");
+    } else {
+      localStorage.removeItem("admin_refresh_token");
+    }
     localStorage.setItem("admin_user", JSON.stringify(user.value));
-    localStorage.setItem("admin_restaurants", JSON.stringify(restaurants.value));
+    localStorage.setItem(
+      "admin_restaurants",
+      JSON.stringify(restaurants.value),
+    );
   }
 
   function logout() {
@@ -342,8 +318,6 @@ export const useAuthStore = defineStore("auth", () => {
     user.value = null;
     restaurants.value = [];
     currentRestaurantId.value = null;
-    // Reset the UI to the brand color WITHOUT overwriting this user's saved
-    // choice (persist=false) — so the next account on this device starts clean
     useThemeStore().reset({ persist: false });
     localStorage.removeItem("admin_token");
     localStorage.removeItem("admin_refresh_token");
@@ -351,14 +325,12 @@ export const useAuthStore = defineStore("auth", () => {
     localStorage.removeItem("admin_restaurants");
     localStorage.removeItem("current_restaurant_id");
     delete axios.defaults.headers.common["Authorization"];
-    // Tell Google not to silently re-pick the previous account on this site.
-    // Without this, the next "Sign in with Google" click can log the same
-    // account straight back in without showing the account chooser.
+
     if (typeof window !== "undefined" && window.google?.accounts?.id) {
       try {
         window.google.accounts.id.disableAutoSelect();
       } catch (e) {
-        /* GSI not initialised — nothing to clear */
+        // GSI not initialized
       }
     }
   }
@@ -369,9 +341,7 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
-  // Decode a JWT payload WITHOUT verifying it (the server is the only
-  // authority — this purely decides whether renewal is needed before opening
-  // a connection that can't carry new headers, e.g. EventSource/SSE).
+  // ─── JWT HELPER ───────────────────────────────────────────
   function tokenExpiresAt(jwt) {
     try {
       const payload = JSON.parse(
@@ -383,30 +353,50 @@ export const useAuthStore = defineStore("auth", () => {
     }
   }
 
-  // Keep `token` valid for at least the next skewMs, silently renewing it
-  // when it's close to expiring. Call before building SSE URLs — once
-  // EventSource is connected the token is baked into its URL.
+  // Renew token if nearing expiration (within skewMs)
   async function ensureFreshToken(skewMs = 5 * 60 * 1000) {
     if (!token.value) return;
     const exp = tokenExpiresAt(token.value);
-    if (exp && exp - Date.now() > skewMs) return; // fresh enough
+    if (exp && exp - Date.now() > skewMs) return;
     try {
       await refreshSession();
     } catch (e) {
-      // Only a server rejection ends the session; a network error leaves the
-      // token as-is so the caller (and its retry loop) can try again later.
       if (e?.response || e?.noRefreshToken) endExpiredSession();
     }
   }
 
   return {
-    token, user, restaurant, restaurants, currentRestaurantId,
-    isLoggedIn, isEmailVerified, isOwner, isSuperAdmin, sessionRevoked,
-    sessionExpired, clearSessionExpired,
-    restaurantId, restaurantSlug,
-    linkCode, telegramChatId, isTelegramLinked, defaultLanguage,
-    login, superAdminLogin, register, loginWithGoogle, fetchMe, updateAccount, logout,
-    restoreToken, saveToStorage, ensureFreshToken,
-    setCurrentRestaurant, updateCurrentRestaurant, setCurrentMenu, currentMenuId,
+    token,
+    user,
+    restaurant,
+    restaurants,
+    currentRestaurantId,
+    isLoggedIn,
+    isEmailVerified,
+    isOwner,
+    isSuperAdmin,
+    sessionRevoked,
+    sessionExpired,
+    clearSessionExpired,
+    restaurantId,
+    restaurantSlug,
+    linkCode,
+    telegramChatId,
+    isTelegramLinked,
+    defaultLanguage,
+    login,
+    superAdminLogin,
+    register,
+    loginWithGoogle,
+    fetchMe,
+    updateAccount,
+    logout,
+    restoreToken,
+    saveToStorage,
+    ensureFreshToken,
+    setCurrentRestaurant,
+    updateCurrentRestaurant,
+    setCurrentMenu,
+    currentMenuId,
   };
 });

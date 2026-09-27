@@ -1,20 +1,7 @@
-// frontend/src/utils/share.mjs
-// ─── UNIVERSAL SHARING ─────────────────────────────────────────────────────
-// One place that knows how to send a menu link to EVERY platform:
-//
-//   · Web Share API  → every app installed on the phone (Instagram DM,
-//                      Messenger, WeChat, Telegram, TikTok, Signal, Viber…)
-//   · Facebook · Messenger · Telegram · WhatsApp · Instagram · WeChat ·
-//     LINE · Viber · LinkedIn · X (Twitter) · Reddit · Pinterest · Email · SMS
-//   · copy link · QR code (scan from another phone — this is how WeChat works
-//     when the page is not opened inside WeChat itself)
-//
-// Deep links (fb-messenger://, viber://, sms:, mailto:) copy the link first, so
-// the user always ends up with something to paste when no app is installed.
+// Universal sharing helper — generates platform share links, native share, and QR codes
 
 const RAW_API = (import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
 
-// Absolute API base — VITE_API_URL may be a path ("/api-proxy") in some setups.
 function apiBase() {
   if (!RAW_API) return "";
   if (/^https?:\/\//i.test(RAW_API)) return RAW_API;
@@ -22,15 +9,10 @@ function apiBase() {
   return `${window.location.origin}${RAW_API.startsWith("/") ? "" : "/"}${RAW_API}`;
 }
 
-// Where share links point. Default: the API share card (/s/menu), which carries
-// the restaurant's Open Graph tags so chats show a real preview. Set
-// VITE_SHARE_BASE_URL to "/s/menu" once the site proxies /s/* to the API, or to
-// an absolute URL (e.g. the API domain) when both are hosted separately.
 export function shareCardBase() {
   const configured = String(import.meta.env.VITE_SHARE_BASE_URL || "").trim();
   if (configured) {
-    if (/^https?:\/\//i.test(configured))
-      return configured.replace(/\/+$/, "");
+    if (/^https?:\/\//i.test(configured)) return configured.replace(/\/+$/, "");
     if (configured.startsWith("/") && typeof window !== "undefined")
       return `${window.location.origin}${configured}`.replace(/\/+$/, "");
   }
@@ -40,7 +22,7 @@ export function shareCardBase() {
   return "/s/menu";
 }
 
-// ─── URL BUILDERS ──────────────────────────────────────────────────────────
+// ─── URL Builders ──────────────────────────────────────────────────────────
 
 function menuParams({ rid, restaurantId, table }) {
   const params = new URLSearchParams();
@@ -50,28 +32,27 @@ function menuParams({ rid, restaurantId, table }) {
   return params;
 }
 
-// Direct SPA address of the menu (what humans really open).
+// Direct SPA menu URL
 export function buildMenuUrl({ rid, restaurantId, table, origin } = {}) {
   const base = `${(origin || window.location.origin || "").replace(/\/+$/, "")}/menu`;
   const qs = menuParams({ rid, restaurantId, table }).toString();
   return qs ? `${base}?${qs}` : base;
 }
 
-// Returns BOTH addresses:
-//   spaUrl   → open the menu directly (no bounce)
-//   shareUrl → the preview card (rich Open Graph thumbnail in every chat app)
+// Generates both direct SPA URL and Open Graph preview share URL
 export function buildShareLinks({ rid, restaurantId, table } = {}) {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
   const spaUrl = buildMenuUrl({ rid, restaurantId, table });
   const params = menuParams({ rid, restaurantId, table });
-  // `to` pins the bounce target to THIS site (the API only accepts origins it
-  // knows, so the card can never become an open redirect).
   if (origin) params.set("to", origin);
   const qs = params.toString();
-  return { spaUrl, shareUrl: qs ? `${shareCardBase()}?${qs}` : shareCardBase() };
+  return {
+    spaUrl,
+    shareUrl: qs ? `${shareCardBase()}?${qs}` : shareCardBase(),
+  };
 }
 
-// QR of any of the URLs above (rendered by the API: GET /s/qr.png).
+// QR image URL rendered by the backend
 export function qrImageUrl(data, { size = 260, color = "#111827" } = {}) {
   const api = apiBase();
   const base = api ? `${api}/s/qr.png` : "/s/qr.png";
@@ -94,18 +75,7 @@ export function canNativeShare() {
   );
 }
 
-// ─── PLATFORM MATRIX ───────────────────────────────────────────────────────
-
-/**
- * The platforms offered in the share sheet.
- *
- * kind: "link"           → open `href` (popup for http, app switch otherwise)
- *       "native"         → Web Share API (any installed app)
- *       "native-or-copy" → native share when available, else copy + hint
- *       "clipboard-open" → copy the link, then open `href`
- *       "copy"           → copy only
- *       "qr"             → show the QR panel
- */
+// ─── Platform Matrix ───────────────────────────────────────────────────────
 export function buildShareTargets({ url, text, image } = {}) {
   const e = encodeURIComponent;
   const mobile = isMobileDevice();
@@ -220,9 +190,9 @@ export function buildShareTargets({ url, text, image } = {}) {
   ].filter(Boolean);
 }
 
-// ─── ACTIONS ───────────────────────────────────────────────────────────────
+// ─── Actions ───────────────────────────────────────────────────────────────
 
-// Clipboard with a fallback for insecure contexts / older browsers.
+// Clipboard copy with fallback for older browsers
 export async function copyToClipboard(text) {
   const value = String(text || "");
   try {
@@ -231,7 +201,7 @@ export async function copyToClipboard(text) {
       return true;
     }
   } catch {
-    /* fall through to the legacy path */
+    // Fall through to legacy textarea approach
   }
   try {
     const area = document.createElement("textarea");
@@ -249,8 +219,7 @@ export async function copyToClipboard(text) {
   }
 }
 
-// http(s) → popup window; custom schemes (app deep links, sms:, mailto:) MUST
-// replace the current location, otherwise the OS never sees the app switch.
+// Opens link in new window or replaces current location for custom deep link schemes
 function openExternal(href) {
   if (!href) return;
   if (/^https?:/i.test(href)) {
@@ -265,12 +234,7 @@ function openExternal(href) {
   window.location.href = href;
 }
 
-/**
- * Runs one platform entry from buildShareTargets().
- *
- * @returns {Promise<{status: string, hint?: string}>}
- *   status: shared | opened | copied | qr | cancelled | error
- */
+// Executes action for a selected share target (native, link, clipboard, or QR)
 export async function runShareTarget(target, ctx = {}) {
   const url = ctx.url || "";
   const text = ctx.text || "";
@@ -310,4 +274,3 @@ export async function runShareTarget(target, ctx = {}) {
       return { status: "opened" };
   }
 }
-

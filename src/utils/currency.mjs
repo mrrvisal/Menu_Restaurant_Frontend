@@ -1,7 +1,4 @@
-// frontend/src/utils/currency.mjs
-// Money formatting — prices are STORED in riel (KHR). The restaurant can
-// choose to DISPLAY them in US dollars using its own exchange rate
-// (riel per 1 USD, owner-editable in Profile).
+// Money formatting — prices stored in riel (KHR), with optional USD display
 export function formatMoney(riel, currency = "KHR", rate = 4100) {
   const amount = Number(riel) || 0;
   if (String(currency).toUpperCase() === "USD") {

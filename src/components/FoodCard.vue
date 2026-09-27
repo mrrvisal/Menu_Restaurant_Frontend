@@ -1,11 +1,11 @@
-<!-- frontend/src/components/FoodCard.vue -->
 <template>
   <div class="food-card" @click="$emit('detail', food)">
     <!-- Admin delete button -->
-    <button v-if="isAdmin" class="card-delete-btn" @click.stop="$emit('delete', food)"><AppIcon name="x" :size="14" /></button>
+    <button v-if="isAdmin" class="card-delete-btn" @click.stop="$emit('delete', food)">
+      <AppIcon name="x" :size="14" />
+    </button>
 
-    <!-- Status badge (top-left) — customers only; admin already has the
-         status toggle button in the footer, so hide it there -->
+    <!-- Status badge (customer only) -->
     <div v-if="!isAdmin && food.status === 'available'" class="card-status">
       <span class="detail-status" :class="food.status">
         <AppIcon name="check-circle" :size="14" />
@@ -16,9 +16,13 @@
     <!-- Image -->
     <div class="food-card-img">
       <img v-if="food.img_url" :src="food.img_url" :alt="food.name" @error="imgError = true" />
-      <span v-if="!food.img_url || imgError" class="img-fallback"><AppIcon name="food" :size="48" /></span>
+      <span v-if="!food.img_url || imgError" class="img-fallback">
+        <AppIcon name="food" :size="48" />
+      </span>
       <div v-if="food.status === 'unavailable'" class="unavail-overlay">
-        <span class="unavail-tag"><AppIcon name="x-circle" :size="12" /> អស់</span>
+        <span class="unavail-tag">
+          <AppIcon name="x-circle" :size="12" /> អស់
+        </span>
       </div>
     </div>
 
@@ -32,18 +36,20 @@
         <span class="food-card-price">{{ currencyStore.fmt(food.price) }}</span>
 
         <!-- Admin: status toggle -->
-        <button v-if="isAdmin"
-          class="status-toggle-btn"
-          :class="food.status"
+        <button v-if="isAdmin" class="status-toggle-btn" :class="food.status"
           @click.stop="$emit('toggle-status', food.id)">
           <AppIcon name="check-circle" :size="12" /> {{ food.status === 'available' ? 'មាន' : 'អស់' }}
         </button>
 
         <!-- Guest: add to cart -->
         <template v-else>
-          <button v-if="food.status === 'unavailable'" class="add-cart-btn unavail" disabled><AppIcon name="x-circle" :size="14" /> អស់</button>
+          <button v-if="food.status === 'unavailable'" class="add-cart-btn unavail" disabled>
+            <AppIcon name="x-circle" :size="14" /> អស់
+          </button>
           <button v-else class="add-cart-btn" @click.stop="$emit('add-cart', food)">
-            <template v-if="cartQty > 0"><AppIcon name="cart" :size="14" /> ({{ cartQty }})</template>
+            <template v-if="cartQty > 0">
+              <AppIcon name="cart" :size="14" /> ({{ cartQty }})
+            </template>
             <template v-else>+ ដាក់</template>
           </button>
         </template>
@@ -58,9 +64,9 @@ import AppIcon from "@/components/AppIcon.vue";
 import { useCurrencyStore } from "@/stores/currency";
 
 const props = defineProps({
-  food:     { type: Object,  required: true },
-  isAdmin:  { type: Boolean, default: false },
-  cartQty:  { type: Number,  default: 0 },
+  food: { type: Object, required: true },
+  isAdmin: { type: Boolean, default: false },
+  cartQty: { type: Number, default: 0 },
 });
 
 defineEmits(['detail', 'delete', 'toggle-status', 'add-cart']);
@@ -87,7 +93,11 @@ function getCategoryEmoji(category) {
   flex-direction: column;
   position: relative;
 }
-.food-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px var(--shadow-tint, var(--primary-glow-strong, var(--shadow, rgba(0, 0, 0, 0.08)))); }
+
+.food-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px var(--shadow-tint, var(--primary-glow-strong, var(--shadow, rgba(0, 0, 0, 0.08))));
+}
 
 .food-card-img {
   width: 100%;
@@ -99,18 +109,34 @@ function getCategoryEmoji(category) {
   overflow: hidden;
   position: relative;
 }
-.food-card-img img { width: 100%; height: 100%; object-fit: cover; }
-.img-fallback { font-size: 50px; color: var(--primary, var(--green-light, currentColor)); }
+
+.food-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.img-fallback {
+  font-size: 50px;
+  color: var(--primary, var(--green-light, currentColor));
+}
 
 .unavail-overlay {
-  position: absolute; inset: 0;
-  background: rgba(0,0,0,.34);
-  display: flex; align-items: center; justify-content: center;
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, .34);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .unavail-tag {
-  background: #c62828; color: #fff;
-  font-size: 10px; font-weight: 700;
-  padding: 3px 10px; border-radius: 20px;
+  background: #c62828;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 20px;
 }
 
 /* Status badge — top-left over the image (from MenuView detail modal) */
@@ -121,6 +147,7 @@ function getCategoryEmoji(category) {
   z-index: 10;
   pointer-events: none;
 }
+
 .detail-status {
   display: inline-flex;
   align-items: center;
@@ -131,6 +158,7 @@ function getCategoryEmoji(category) {
   font-weight: 600;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
 }
+
 .detail-status.available {
   /* Dynamic theme: the customer menu (MenuView) derives --green-pale/-dark/-soft
      from the restaurant's theme_color, while admin pages use the theme store's
@@ -140,67 +168,186 @@ function getCategoryEmoji(category) {
   color: var(--green-dark, var(--primary-strong, #166534));
   border: 1px solid var(--green-soft, var(--border-green, rgba(0, 0, 0, 0.06)));
 }
+
 .detail-status.unavailable {
   background: #fee2e2;
   color: #991b1b;
 }
+
 @media (max-width: 480px) {
-  .card-status { top: 6px; left: 6px; }
-  .detail-status { font-size: 10px; padding: 3px 10px; gap: 3px; }
+  .card-status {
+    top: 6px;
+    left: 6px;
+  }
+
+  .detail-status {
+    font-size: 10px;
+    padding: 3px 10px;
+    gap: 3px;
+  }
 }
 
-.food-card-body { padding: 10px; flex: 1; display: flex; flex-direction: column; gap: 6px; }
-@media (max-width: 480px) {
-  .food-card-body { padding: 8px; gap: 4px; }
+.food-card-body {
+  padding: 10px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
-.food-card-hard { font-family: 'Hanuman', serif; display: flex; justify-content: space-between; }
-.food-card-name { font-family: 'Hanuman', serif; font-size: 14px; font-weight: 700; line-height: 1.3; }
+
 @media (max-width: 480px) {
-  .food-card-name { font-size: 12px; }
+  .food-card-body {
+    padding: 8px;
+    gap: 4px;
+  }
 }
-.food-card-price { font-size: 14px; font-weight: 700; color: var(--primary-strong, var(--green-dark, #14532d)); }
-.food-card-price-hide { font-size: 14px; display: none; font-weight: 700; color: var(--primary-strong, var(--green-dark, #14532d)); }
+
+.food-card-hard {
+  font-family: 'Hanuman', serif;
+  display: flex;
+  justify-content: space-between;
+}
+
+.food-card-name {
+  font-family: 'Hanuman', serif;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
 @media (max-width: 480px) {
-  .food-card-price { font-size: 12px; display: none; }
-  .food-card-price-hide { font-size: 12px; display: block; }
-  .add-cart-btn { padding: 4px 8px; font-size: 10px; }
-  .status-toggle-btn { font-size: 9px; padding: 2px 6px; }
+  .food-card-name {
+    font-size: 12px;
+  }
 }
+
+.food-card-price {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary-strong, var(--green-dark, #14532d));
+}
+
+.food-card-price-hide {
+  font-size: 14px;
+  display: none;
+  font-weight: 700;
+  color: var(--primary-strong, var(--green-dark, #14532d));
+}
+
+@media (max-width: 480px) {
+  .food-card-price {
+    font-size: 12px;
+    display: none;
+  }
+
+  .food-card-price-hide {
+    font-size: 12px;
+    display: block;
+  }
+
+  .add-cart-btn {
+    padding: 4px 8px;
+    font-size: 10px;
+  }
+
+  .status-toggle-btn {
+    font-size: 9px;
+    padding: 2px 6px;
+  }
+}
+
 .food-card-footer {
-  display: flex; justify-content: space-between;
-  align-items: center; margin-top: auto; gap: 4px; flex-wrap: wrap;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: auto;
+  gap: 4px;
+  flex-wrap: wrap;
 }
+
 @media (max-width: 480px) {
+
   /* .food-card-footer { flex-direction: column; align-items: stretch; gap: 6px; } */
   .food-card-footer .add-cart-btn,
-  .food-card-footer .status-toggle-btn { width: 100%; justify-content: center; }
+  .food-card-footer .status-toggle-btn {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .status-toggle-btn {
-  font-size: 10px; padding: 3px 8px; border-radius: 20px;
-  font-weight: 600; cursor: pointer; border: none; white-space: nowrap;
-  transition: all .2s; flex-shrink: 0;
+  font-size: 10px;
+  padding: 3px 8px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  white-space: nowrap;
+  transition: all .2s;
+  flex-shrink: 0;
 }
-.status-toggle-btn.available  { background: var(--surface-green, #e8f5e9); color: var(--primary-strong, #2d7a2d); border: 1px solid var(--border-green, #a5d6a7); }
-.status-toggle-btn.unavailable { background: #fbe9e7; color: #bf360c; border: 1px solid #ffccbc; }
-.status-toggle-btn:hover { filter: brightness(.9); }
+
+.status-toggle-btn.available {
+  background: var(--surface-green, #e8f5e9);
+  color: var(--primary-strong, #2d7a2d);
+  border: 1px solid var(--border-green, #a5d6a7);
+}
+
+.status-toggle-btn.unavailable {
+  background: #fbe9e7;
+  color: #bf360c;
+  border: 1px solid #ffccbc;
+}
+
+.status-toggle-btn:hover {
+  filter: brightness(.9);
+}
 
 .add-cart-btn {
-  background: var(--primary, var(--green-mid, #16a34a)); color: var(--on-primary, #fff); border: none;
-  border-radius: 20px; padding: 5px 11px; font-size: 11px;
-  font-weight: 600; cursor: pointer; transition: all .15s;
-  white-space: nowrap; flex-shrink: 0;
+  background: var(--primary, var(--green-mid, #16a34a));
+  color: var(--on-primary, #fff);
+  border: none;
+  border-radius: 20px;
+  padding: 5px 11px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  white-space: nowrap;
+  flex-shrink: 0;
 }
-.add-cart-btn:hover { background: var(--primary-dark, var(--green-dark, #14532d)); }
-.add-cart-btn.unavail { background: #9e9e9e; cursor: not-allowed; }
+
+.add-cart-btn:hover {
+  background: var(--primary-dark, var(--green-dark, #14532d));
+}
+
+.add-cart-btn.unavail {
+  background: #9e9e9e;
+  cursor: not-allowed;
+}
 
 .card-delete-btn {
-  position: absolute; top: 6px; right: 6px;
-  width: 26px; height: 26px; border-radius: 50%;
-  background: rgba(198,40,40,.9); color: white; border: none;
-  cursor: pointer; font-size: 13px; font-weight: 700;
-  display: flex; align-items: center; justify-content: center;
-  z-index: 10; transition: transform .15s, background .15s;
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(198, 40, 40, .9);
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  transition: transform .15s, background .15s;
 }
-.card-delete-btn:hover { background: #b71c1c; transform: scale(1.15); }
+
+.card-delete-btn:hover {
+  background: #b71c1c;
+  transform: scale(1.15);
+}
 </style>
