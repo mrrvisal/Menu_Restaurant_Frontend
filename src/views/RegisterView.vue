@@ -62,8 +62,7 @@
           </transition>
         </div>
 
-        <p class="hint">{{ i18n.t.register_restaurant_hint || "After verifying your email, you can create your
-        restaurant." }}</p>
+        <p class="hint">{{ i18n.t.register_restaurant_hint || "After verifying your email, you can create your restaurant." }}</p>
 
         <button type="submit" class="btn" :disabled="submitting">
           {{ submitting ? i18n.t.loading : i18n.t.register }}

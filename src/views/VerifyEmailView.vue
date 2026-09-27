@@ -56,10 +56,8 @@
         <div class="steps">
           <div class="step"><span class="step-n">1</span><span class="step-l">{{ i18n.t.step_open || "Open your inbox"
               }}</span></div>
-          <div class="step"><span class="step-n">2</span><span class="step-l">{{ i18n.t.step_click || "Click the
-              verification link" }}</span></div>
-          <div class="step"><span class="step-n">3</span><span class="step-l">{{ i18n.t.step_done || "Start building
-              your menu" }}</span></div>
+          <div class="step"><span class="step-n">2</span><span class="step-l">{{ i18n.t.step_click || "Click theverification link" }}</span></div>
+          <div class="step"><span class="step-n">3</span><span class="step-l">{{ i18n.t.step_done || "Start buildingyour menu" }}</span></div>
         </div>
 
         <div v-if="resendSuccess" class="msg success-msg">{{ i18n.t.email_sent }}</div>
