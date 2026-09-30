@@ -34,58 +34,15 @@
 
       <!-- Notice mode (after registration) -->
       <template v-else>
-        <div class="icon-circle mail"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-            stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="4" width="20" height="16" rx="2" />
-            <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-          </svg></div>
-        <div class="title">{{ i18n.t.check_email }}</div>
-        <p class="desc">{{ i18n.t.check_email_desc }}</p>
-
-        <!-- Email chip -->
-        <div v-if="userEmail" class="email-chip">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="4" />
-            <path d="M12 8v8m0-8h0" />
-          </svg>
-          {{ userEmail }}
-        </div>
-
-        <!-- Steps -->
-        <div class="steps">
-          <div class="step"><span class="step-n">1</span><span class="step-l">{{ i18n.t.step_open || "Open your inbox"
-              }}</span></div>
-          <div class="step"><span class="step-n">2</span><span class="step-l">{{ i18n.t.step_click || "Click theverification link" }}</span></div>
-          <div class="step"><span class="step-n">3</span><span class="step-l">{{ i18n.t.step_done || "Start buildingyour menu" }}</span></div>
-        </div>
-
-        <div v-if="resendSuccess" class="msg success-msg">{{ i18n.t.email_sent }}</div>
-        <div v-if="resendError" class="msg error-msg">{{ resendError }}</div>
-
-        <div class="actions">
-          <button class="btn btn-primary" @click="openMailApp">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round">
-              <rect x="2" y="4" width="20" height="16" rx="2" />
-              <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-            </svg>
-            {{ i18n.t.open_email }}
-          </button>
-          <button class="btn btn-ghost" :disabled="resending" @click="resendVerification">
-            <svg v-if="!resending" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polyline points="1 4 1 10 7 10" />
-              <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
-            </svg>
-            <span v-if="resending" class="btn-spinner"></span>
-            {{ resending ? i18n.t.loading : i18n.t.resend_email }}
-          </button>
-        </div>
-
-        <div class="links">
-          <router-link to="/login">{{ i18n.t.login }}</router-link>
-        </div>
+        <VerificationNotice
+          :user-email="userEmail"
+          :resend-success="resendSuccess"
+          :resend-error="resendError"
+          :resending="resending"
+          :i18n="i18n"
+          @open-mail-app="openMailApp"
+          @resend-verification="resendVerification"
+        />
       </template>
     </div>
   </div>
@@ -96,6 +53,7 @@ import { ref, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import axios from "axios";
 import { useI18nStore } from "@/stores/i18n";
+import VerificationNotice from "@/components/VerificationNotice.vue";
 
 const i18n = useI18nStore();
 const API_BASE = import.meta.env.VITE_API_URL;
@@ -131,7 +89,7 @@ function openMailApp() {
 
 async function resendVerification() {
   if (!userEmail.value) {
-    resendError.value = "Email not found. Please go back to login.";
+    resendError.value = i18n.t.email_not_found;
     return;
   }
   resending.value = true;
@@ -196,11 +154,6 @@ async function resendVerification() {
   color: #dc2626;
 }
 
-.icon-circle.mail {
-  background: #e0f2fe;
-  color: #0369a1;
-}
-
 .icon-circle svg {
   display: block;
 }
@@ -217,79 +170,6 @@ async function resendVerification() {
   .title {
     font-size: 17px;
   }
-}
-
-.desc {
-  font-size: 13px;
-  color: #6b7280;
-  line-height: 1.6;
-  margin-bottom: 20px;
-}
-
-.email-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #f0fdf4;
-  border: 1px solid #bbf7d0;
-  border-radius: 999px;
-  padding: 6px 14px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #0f766e;
-  margin-bottom: 18px;
-  word-break: break-all;
-  max-width: 100%;
-}
-
-.email-chip svg {
-  flex-shrink: 0;
-  color: #16a34a;
-}
-
-.steps {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  text-align: left;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  padding: 14px 16px;
-  margin-bottom: 18px;
-}
-
-.step {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12.5px;
-  color: #374151;
-}
-
-.step-n {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #0f766e, #22c55e);
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.step-l {
-  line-height: 1.4;
-}
-
-.actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 10px;
 }
 
 .btn {
@@ -341,17 +221,6 @@ async function resendVerification() {
   flex-shrink: 0;
 }
 
-.btn-spinner {
-  width: 15px;
-  height: 15px;
-  border: 2px solid rgba(15, 118, 110, 0.25);
-  border-top-color: #0f766e;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-  display: inline-block;
-  flex-shrink: 0;
-}
-
 .error-msg {
   background: #fbe9e7;
   border: 1.5px solid #ffccbc;
@@ -372,21 +241,6 @@ async function resendVerification() {
 
 .msg {
   margin-bottom: 12px;
-}
-
-.links {
-  margin-top: 16px;
-  font-size: 13px;
-}
-
-.links a {
-  color: #16a34a;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-.links a:hover {
-  text-decoration: underline;
 }
 
 .spinner {

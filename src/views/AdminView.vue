@@ -2,35 +2,8 @@
 <template>
   <div class="root" :class="['layout-' + (sidebarPosition || 'left'), { 'nav-open': showMobile }]">
     <!-- ─── MOBILE BAR ─── -->
-    <header class="mob">
-      <div class="mob-info">
-        <div class="mob-av">
-          <img v-if="restaurantLogo" :src="restaurantLogo" alt="" @error="logoLoadError = true" />
-          <svg v-else width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-            <circle cx="12" cy="7" r="4" />
-          </svg>
-        </div>
-        <span class="mob-label">{{
-          auth.restaurant?.name || "ភោជនីយដ្ឋាន"
-          }}</span>
-      </div>
-      <!-- Install app — when the app is already installed the icon shows ✓ and
-           the tooltip says so, but the button stays ENABLED: the owner can
-           still install again (another browser/device, or after removing it). -->
-      <button class="mob-btn mob-install" v-if="installAvailable" :title="installEntryLabel"
-        :aria-label="installEntryLabel" @click="openInstall">
-        <AppIcon :name="isInstalled ? 'check-circle' : 'download'" :size="18" />
-      </button>
-      <button class="mob-btn" @click="showMobile = !showMobile" aria-label="Menu" :aria-expanded="showMobile"
-        aria-controls="admin-sidebar">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <line x1="3" y1="6" x2="21" y2="6" />
-          <line x1="3" y1="12" x2="21" y2="12" />
-          <line x1="3" y1="18" x2="21" y2="18" />
-        </svg>
-      </button>
-    </header>
+    <AdminMobileBar :restaurant-logo="restaurantLogo" :show-mobile="showMobile"
+      @toggle-menu="showMobile = !showMobile" @logo-error="logoLoadError = true" />
 
     <!-- ─── SIDEBAR ─── -->
     <aside class="side" id="admin-sidebar">
@@ -439,430 +412,60 @@
         </div>
       </template>
 
-      <!-- ──────── ORDERS ──────── -->
-      <template v-if="adminTab === 'orders'">
-        <div class="bar orders-bar">
-          <div class="bar-acts">
-            <span class="ods-label">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <circle cx="11" cy="11" r="8" />
-                <line x1="21" y1="21" x2="16.65" y2="16.65" />
-              </svg>
-              {{ i18n.t.orders_search_date }}:
-            </span>
-            <!-- Search by date: pick any date to see that day's orders -->
-            <label class="orders-date-search">
-              <AppDatePicker v-model="searchDate" :placeholder="i18n.t.report_today" />
-            </label>
-            <!-- <button
-              v-if="searchActive"
-              class="ac ac-ghost ods-clear"
-              @click="clearDateSearch"
-            >
-              <AppIcon name="x" :size="12" />
-              {{ i18n.t.cancel || "Clear" }}
-            </button> -->
-            <button class="ac ac-ghost bar-refresh" :disabled="ordersLoading" @click="fetchOrders">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                <circle cx="12" cy="12" r="10" />
-                <polyline points="12 6 12 12 16 14" />
-              </svg>
-              {{ ordersLoading ? i18n.t.loading : i18n.t.refresh || "Refresh" }}
-            </button>
-          </div>
-        </div>
-        <div v-if="ordersLoading" class="empty">
-          <div class="spinner"></div>
-          <p>{{ i18n.t.loading }}</p>
-        </div>
-        <!-- ─── DATE SEARCH RESULTS ─── -->
-        <div v-else-if="searchActive" class="order-search">
-          <header class="search-head">
-            <span class="search-title">
-              <AppIcon name="calendar" :size="14" />
-              {{ dayLabel(searchDate) }}
-            </span>
-            <span class="search-count">{{ searchDateOrders.length }} {{ i18n.t.orders }}</span>
-          </header>
-          <div v-if="searchDateOrders.length" class="order-grid">
-            <div v-for="order in searchDateOrders" :key="order.id" class="order-c">
-              <div class="order-h">
-                <div class="order-hl">
-                  <span class="order-id">
-                    <AppIcon name="clipboard" :size="12" />#{{ order.id }}
-                  </span>
-                  <span class="order-t"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                      stroke="currentColor" stroke-width="1.5">
-                      <rect x="3" y="3" width="18" height="18" rx="2" />
-                      <line x1="3" y1="9" x2="21" y2="9" />
-                      <line x1="9" y1="3" x2="9" y2="9" />
-                    </svg>
-                    {{ i18n.t.table }} {{ order.table_no }}</span>
-                </div>
-                <div class="order-m">
-                  <span class="order-st" :class="order.status">
-                    <AppIcon :name="statusIcon(order.status)" :size="11" />
-                    {{ statusLabel(order.status) }}
-                  </span>
-                  <span class="order-time">{{
-                    formatDate(order.created_at)
-                    }}</span>
-                </div>
-              </div>
-              <div class="order-items">
-                <div v-for="(item, idx) in parseItems(order.items)" :key="idx" class="order-i">
-                  <span>{{ item.name }}</span>
-                  <span class="order-p">{{ item.qty }} ×
-                    {{ currencyStore.fmt(item.price) }}</span>
-                </div>
-              </div>
-              <div v-if="order.note" class="order-n">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                </svg>
-                {{ order.note }}
-              </div>
-              <div class="order-total">
-                {{ i18n.t.total }}:
-                <strong>{{ currencyStore.fmt(order.total) }}</strong>
-              </div>
-              <div v-if="getStatusOptions(order.status).length" class="order-status-actions">
-                <span class="order-status-label">{{ i18n.t.change_status || "ប្តូរស្ថានភាព" }}:</span>
-                <div class="order-status-btns">
-                  <button v-for="s in getStatusOptions(order.status)" :key="s" class="order-status-btn"
-                    :class="'st-' + s" @click="updateOrderStatus(order.id, s)">
-                    <AppIcon :name="statusIcon(s)" :size="11" />
-                    {{ statusLabel(s) }}
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-          <p v-else class="day-empty-note">
-            {{ i18n.t.no_orders_date }}
-          </p>
-        </div>
-        <!-- ─── NORMAL VIEW: today + date-grouped history ─── -->
-        <div v-else-if="!orders.length" class="empty">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
-            opacity=".3">
-            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-            <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
-          </svg>
-          <!-- No orders at all (e.g. fresh new day) — show the same
-               "no orders today" note used by the empty Today section -->
-          <p>{{ i18n.t.no_orders_today }}</p>
-        </div>
-        <div v-else class="order-days">
-          <div v-for="sec in orderSections" :key="sec.key" class="day-section" :class="{ 'day-today': sec.today }">
-            <!-- Section header: "Today" for the active list, the order's date
-                 for history groups. Previous days start collapsed — their
-                 orders were "cleared" out of the active view at midnight. -->
-            <header class="day-head" :class="{
-              clickable: sec.collapsible,
-              open: sec.collapsible && expandedDays[sec.key],
-            }" @click="sec.collapsible && toggleDay(sec.key)">
-              <span class="day-title">
-                <AppIcon :name="sec.today ? 'sun' : 'orders'" :size="14" />
-                {{ sec.today ? i18n.t.report_today : dayLabel(sec.day) }}
-              </span>
-              <span class="day-meta">
-                <span class="day-count">{{ sec.orders.length }} {{ i18n.t.orders }}</span>
-                <svg v-if="sec.collapsible" class="day-chev" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                  stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <polyline points="6 9 12 15 18 9" />
-                </svg>
-              </span>
-            </header>
-
-            <div v-if="!sec.collapsible || expandedDays[sec.key]" class="order-grid">
-              <div v-for="order in sec.orders" :key="order.id" class="order-c">
-                <div class="order-h">
-                  <div class="order-hl">
-                    <span class="order-id">
-                      <AppIcon name="clipboard" :size="12" />#{{ order.id }}
-                    </span>
-                    <span class="order-t"><svg width="12" height="12" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="1.5">
-                        <rect x="3" y="3" width="18" height="18" rx="2" />
-                        <line x1="3" y1="9" x2="21" y2="9" />
-                        <line x1="9" y1="3" x2="9" y2="9" />
-                      </svg>
-                      {{ i18n.t.table }} {{ order.table_no }}</span>
-                  </div>
-                  <div class="order-m">
-                    <span class="order-st" :class="order.status">
-                      <AppIcon :name="statusIcon(order.status)" :size="11" />
-                      {{ statusLabel(order.status) }}
-                    </span>
-                    <span class="order-time">{{
-                      formatDate(order.created_at)
-                      }}</span>
-                  </div>
-                </div>
-                <div class="order-items">
-                  <div v-for="(item, idx) in parseItems(order.items)" :key="idx" class="order-i">
-                    <span>{{ item.name }}</span>
-                    <span class="order-p">{{ item.qty }} ×
-                      {{ currencyStore.fmt(item.price) }}</span>
-                  </div>
-                </div>
-                <div v-if="order.note" class="order-n">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14 2 14 8 20 8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                  </svg>
-                  {{ order.note }}
-                </div>
-                <div class="order-total">
-                  {{ i18n.t.total }}:
-                  <strong>{{ currencyStore.fmt(order.total) }}</strong>
-                </div>
-                <div v-if="getStatusOptions(order.status).length" class="order-status-actions">
-                  <span class="order-status-label">{{ i18n.t.change_status || "ប្តូរស្ថានភាព" }}:</span>
-                  <div class="order-status-btns">
-                    <button v-for="s in getStatusOptions(order.status)" :key="s" class="order-status-btn"
-                      :class="'st-' + s" @click="updateOrderStatus(order.id, s)">
-                      <AppIcon :name="statusIcon(s)" :size="11" />
-                      {{ statusLabel(s) }}
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <p v-if="sec.today && !sec.orders.length" class="day-empty-note">
-              {{ i18n.t.no_orders_today }}
-            </p>
-          </div>
-        </div>
-      </template>
-      <!-- ──────── REPORTS ──────── -->
-      <template v-if="adminTab === 'reports'">
-        <!-- Filter panel (left) + summary cards (right) -->
-        <div class="rep-top">
-          <div class="rep-side">
-            <!-- Filters: presets / range / grouping / export -->
-            <div class="bar rep-bar">
-              <div class="rep-presets">
-                <button v-for="p in reportPresets" :key="p.key" class="chip" :class="{ active: reportPreset === p.key }"
-                  @click="applyReportPreset(p.key)">
-                  {{ p.label }}
-                </button>
-              </div>
-              <div class="rep-controls">
-                <label class="rep-date">
-                  <span>{{ i18n.t.report_from }}</span>
-                  <AppDatePicker v-model="reportStartDate" :max="reportEndDate" @change="
-                    reportPreset = 'custom';
-                  fetchReport();
-                  " />
-                </label>
-                <label class="rep-date">
-                  <span>{{ i18n.t.report_to }}</span>
-                  <AppDatePicker v-model="reportEndDate" :min="reportStartDate" @change="
-                    reportPreset = 'custom';
-                  fetchReport();
-                  " />
-                </label>
-                <div class="rep-groups">
-                  <button v-for="g in reportGroups" :key="g.key" class="chip" :class="{ active: reportGroup === g.key }"
-                    @click="
-                      reportGroup = g.key;
-                    fetchReport();
-                    ">
-                    {{ g.label }}
-                  </button>
-                </div>
-              </div>
-              <div class="rep-export">
-                <AppSelect v-model="reportDataset" :options="reportDatasets" size="md" tone="soft" variant="teal" />
-                <button class="ac ac-primary" :disabled="reportExporting" @click="exportReport">
-                  <AppIcon name="download" :size="14" />
-                  {{ reportExporting ? i18n.t.report_exporting : i18n.t.report_export }}
-                </button>
-              </div>
-            </div>
-            <div v-if="reportExportMsg" class="msg rep-msg" :class="reportExportError ? 'msg-e' : 'msg-s'">
-              <AppIcon :name="reportExportError ? 'alert-circle' : 'check-circle'" :size="14" />
-              {{ reportExportMsg }}
-            </div>
-          </div>
-
-          <div class="rep-main-col">
-            <div v-if="reportLoading" class="empty">
-              <div class="spinner"></div>
-              <p>{{ i18n.t.loading }}</p>
-            </div>
-            <div v-else-if="reportError" class="empty">
-              <AppIcon name="alert-circle" :size="34" />
-              <p>{{ reportError }}</p>
-            </div>
-            <template v-else>
-              <!-- Summary cards -->
-              <div class="rep-cards">
-                <div class="rep-card">
-                  <div class="rep-card-i rep-i-teal">
-                    <AppIcon name="money" :size="18" />
-                  </div>
-                  <div class="metric-b">
-                    <span class="metric-v">{{ currencyStore.fmt(report.summary?.revenue) }}</span>
-                    <span class="metric-l">{{ i18n.t.revenue }}</span>
-                  </div>
-                </div>
-                <div class="rep-card">
-                  <div class="rep-card-i rep-i-green">
-                    <AppIcon name="orders" :size="18" />
-                  </div>
-                  <div class="metric-b">
-                    <span class="metric-v">{{ report.summary?.orders ?? 0 }}</span>
-                    <span class="metric-l">{{ i18n.t.orders }}</span>
-                  </div>
-                </div>
-                <div class="rep-card">
-                  <div class="rep-card-i rep-i-blue">
-                    <AppIcon name="chart" :size="18" />
-                  </div>
-                  <div class="metric-b">
-                    <span class="metric-v">{{ currencyStore.fmt(report.summary?.avgOrderValue) }}</span>
-                    <span class="metric-l">{{ i18n.t.report_avg_order }}</span>
-                  </div>
-                </div>
-                <div class="rep-card">
-                  <div class="rep-card-i rep-i-amber">
-                    <AppIcon name="food" :size="18" />
-                  </div>
-                  <div class="metric-b">
-                    <span class="metric-v">{{ report.summary?.itemsSold ?? 0 }}</span>
-                    <span class="metric-l">{{ i18n.t.report_items_sold }}</span>
-                  </div>
-                </div>
-                <div class="rep-card" :class="{ 'rep-card-dim': !report.summary?.cancelledOrders }">
-                  <div class="rep-card-i rep-i-red">
-                    <AppIcon name="x-circle" :size="18" />
-                  </div>
-                  <div class="metric-b">
-                    <span class="metric-v">{{ report.summary?.cancelledOrders ?? 0 }}</span>
-                    <span class="metric-l">{{ i18n.t.cancelled }} · {{
-                      currencyStore.fmt(report.summary?.cancelledRevenue) }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Revenue chart -->
-              <div class="rep-panel">
-                <div class="rep-panel-h">
-                  <span>
-                    <AppIcon name="chart" :size="15" /> {{ i18n.t.report_chart_title }}
-                  </span>
-                  <span v-if="report.summary?.bestPeriod" class="rep-panel-sub">
-                    {{ i18n.t.report_best_period }}: {{ report.summary.bestPeriod.label }} ·
-                    {{ currencyStore.fmt(report.summary.bestPeriod.revenue) }}
-                  </span>
-                </div>
-                <SalesChart :points="reportSeriesPoints" :color="chartColor" :format-value="(v) => currencyStore.fmt(v)"
-                  :format-axis="fmtAxis" :aria-label="i18n.t.report_chart_title" :empty-text="i18n.t.no_data" />
-              </div>
-              <div class="rep-two">
-                <!-- Top-selling dishes -->
-                <div class="rep-panel">
-                  <div class="rep-panel-h">
-                    <span>
-                      <AppIcon name="food" :size="15" /> {{ i18n.t.report_top_title }}
-                    </span>
-                  </div>
-                  <div v-if="!report.topItems?.length" class="rep-empty">{{ i18n.t.no_data }}</div>
-                  <div v-else class="rep-rows">
-                    <div v-for="(item, i) in report.topItems" :key="item.name" class="rep-row">
-                      <span class="rep-rank">{{ i + 1 }}</span>
-                      <div class="rep-row-b">
-                        <span class="rep-row-l">{{ item.name }}</span>
-                        <div class="rep-row-bar">
-                          <span :style="{ width: topItemWidth(item) }" :title="currencyStore.fmt(item.revenue)"></span>
-                        </div>
-                      </div>
-                      <span class="rep-row-v">
-                        <strong>{{ item.qty }}</strong>
-                        <em>{{ i18n.t.report_qty }}</em>
-                        <b>{{ currencyStore.fmt(item.revenue) }}</b>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Orders by hour -->
-                <div class="rep-panel">
-                  <div class="rep-panel-h">
-                    <span>
-                      <AppIcon name="clock" :size="15" /> {{ i18n.t.report_hours_title }}
-                    </span>
-                  </div>
-                  <SalesChart :points="reportHourPoints" :color="chartColor"
-                    :format-value="(v) => `${v} ${i18n.t.orders}`" :format-axis="(v) => v"
-                    :aria-label="i18n.t.report_hours_title" :empty-text="i18n.t.no_data" />
-                </div>
-              </div>
-
-              <div class="rep-two">
-                <!-- Orders by table -->
-                <div class="rep-panel">
-                  <div class="rep-panel-h">
-                    <span>
-                      <AppIcon name="table" :size="15" /> {{ i18n.t.report_tables_title }}
-                    </span>
-                  </div>
-                  <div v-if="!report.byTable?.length" class="rep-empty">{{ i18n.t.no_data }}</div>
-                  <div v-else class="rep-rows">
-                    <div v-for="row in report.byTable" :key="row.table_no" class="rep-row">
-                      <div class="rep-row-b">
-                        <span class="rep-row-l">{{ i18n.t.table }} {{ row.table_no }}</span>
-                        <div class="rep-row-bar">
-                          <span :style="{ width: tableBarWidth(row) }" :title="currencyStore.fmt(row.revenue)"></span>
-                        </div>
-                      </div>
-                      <span class="rep-row-v">
-                        <strong>{{ row.orders }}</strong>
-                        <b>{{ currencyStore.fmt(row.revenue) }}</b>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- Status breakdown -->
-                <div class="rep-panel">
-                  <div class="rep-panel-h">
-                    <span>
-                      <AppIcon name="orders" :size="15" /> {{ i18n.t.report_status_title }}
-                    </span>
-                  </div>
-                  <div v-if="!report.byStatus?.length" class="rep-empty">{{ i18n.t.no_data }}</div>
-                  <div v-else class="rep-rows">
-                    <div v-for="row in report.byStatus" :key="row.status" class="rep-row">
-                      <span class="order-st" :class="row.status">
-                        <AppIcon :name="statusIcon(row.status)" :size="11" />
-                        {{ statusLabel(row.status) }}
-                      </span>
-                      <div class="rep-row-b">
-                        <div class="rep-row-bar">
-                          <span :style="{ width: statusBarWidth(row) }" :title="currencyStore.fmt(row.revenue)"></span>
-                        </div>
-                      </div>
-                      <span class="rep-row-v">
-                        <strong>{{ row.orders }}</strong>
-                        <b>{{ currencyStore.fmt(row.revenue) }}</b>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </template>
-          </div>
-        </div>
-      </template>
+      <AdminOrdersSection
+        v-if="adminTab === 'orders'"
+        :orders="orders"
+        :orders-loading="ordersLoading"
+        :fetch-orders="fetchOrders"
+        :update-order-status="updateOrderStatus"
+        :expanded-days="expandedDays"
+        :toggle-day="toggleDay"
+        :order-sections="orderSections"
+        :day-label="dayLabel"
+        v-model:search-date="searchDate"
+        :search-active="searchActive"
+        :search-date-orders="searchDateOrders"
+        :i18n="i18n"
+        :currency-store="currencyStore"
+        :status-icon="statusIcon"
+        :status-label="statusLabel"
+        :get-status-options="getStatusOptions"
+        :format-date="formatDate"
+        :parse-items="parseItems"
+      />
+      <AdminReportsSection
+        v-if="adminTab === 'reports'"
+        :report="report"
+        :report-loading="reportLoading"
+        :report-error="reportError"
+        v-model:report-group="reportGroup"
+        v-model:report-preset="reportPreset"
+        v-model:report-start-date="reportStartDate"
+        v-model:report-end-date="reportEndDate"
+        v-model:report-dataset="reportDataset"
+        v-model:report-format="reportFormat"
+        :report-exporting="reportExporting"
+        :report-export-msg="reportExportMsg"
+        :report-export-error="reportExportError"
+        :report-presets="reportPresets"
+        :report-groups="reportGroups"
+        :report-datasets="reportDatasets"
+        :report-formats="reportFormats"
+        :apply-report-preset="applyReportPreset"
+        :fetch-report="fetchReport"
+        :export-report="exportReport"
+        :report-series-points="reportSeriesPoints"
+        :report-hour-points="reportHourPoints"
+        :chart-color="chartColor"
+        :fmt-axis="fmtAxis"
+        :top-item-width="topItemWidth"
+        :table-bar-width="tableBarWidth"
+        :status-bar-width="statusBarWidth"
+        :i18n="i18n"
+        :currency-store="currencyStore"
+        :status-icon="statusIcon"
+        :status-label="statusLabel"
+      />
     </main>
 
     <!-- ═══════ MODALS ═══════ -->
@@ -926,7 +529,7 @@
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
               </svg>
             </div>
-            <div class="dlg-t">លុបម្ហូបនេះ?</div>
+            <div class="dlg-t">{{ i18n.t.confirm_delete_food }}</div>
             <div class="dlg-d">{{ deletingFood.name }}</div>
             <div class="dlg-acts">
               <button class="btn btn-g" @click="deletingFood = null">
@@ -950,7 +553,7 @@
                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
               </svg>
             </div>
-            <div class="dlg-t">លុបប្រភេទនេះ?</div>
+            <div class="dlg-t">{{ i18n.t.confirm_delete_category }}</div>
             <div class="dlg-d">{{ deletingCat.label_km }}</div>
             <div class="dlg-acts">
               <button class="btn btn-g" @click="deletingCat = null">
@@ -1653,215 +1256,44 @@
       </Transition>
     </Teleport>
 
-    <!-- ═══ SETTINGS (account email / password) ═══
-         Moved out of the Profile modal — opened from the avatar
-         dropdown's "Settings" item. -->
-    <Teleport to="body">
-      <Transition name="fade">
-        <div v-if="showSettings" class="overlay" @click.self="showSettings = false">
-          <div class="sheet">
-            <div class="sheet-h">
-              <span>
-                <AppIcon name="settings" :size="16" />
-                {{ i18n.t.settings || "Settings" }}
-              </span><button class="ic" aria-label="Close" @click="showSettings = false">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-              </button>
-            </div>
-            <div class="sheet-b">
-              <!-- ─── SETTINGS CATEGORY TABS ─── -->
-              <div class="st-tabs">
-                <button type="button" class="st-tab" :class="{ active: settingsTab === 'appearance' }"
-                  @click="settingsTab = 'appearance'">
-                  {{ i18n.t.settings_tab_appearance || "Appearance" }}
-                </button>
-                <button type="button" class="st-tab" :class="{ active: settingsTab === 'currency' }"
-                  @click="settingsTab = 'currency'">
-                  {{ i18n.t.currency || "Currency" }}
-                </button>
-                <button type="button" class="st-tab" :class="{ active: settingsTab === 'notify' }"
-                  @click="settingsTab = 'notify'">
-                  {{ i18n.t.settings_tab_notify || "Notifications" }}
-                </button>
-                <button type="button" class="st-tab" :class="{ active: settingsTab === 'account' }"
-                  @click="settingsTab = 'account'">
-                  {{ i18n.t.settings_tab_account || "Account" }}
-                </button>
-              </div>
-
-              <!-- ─── APPEARANCE ─── -->
-              <template v-if="settingsTab === 'appearance'">
-                <!-- ─── THEME COLOR ─── -->
-                <div class="fld">
-                  <label class="fld-l">{{ i18n.t.theme_color || "Theme color" }}</label>
-                  <div class="swatches">
-                    <button v-for="c in theme.presets" :key="c.value" type="button" class="swatch"
-                      :class="{ active: theme.primary === c.value }" :style="{ background: c.value }" :title="c.name"
-                      :aria-label="c.name" @click="onPresetColor(c.value)">
-                      <svg v-if="theme.primary === c.value" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    </button>
-                    <label class="swatch swatch-custom" :title="i18n.t.theme_custom || 'Pick any color'">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.5">
-                        <circle cx="12" cy="12" r="10" />
-                        <path
-                          d="M12 2a10 10 0 0 0 0 20c1.1 0 2-.9 2-2v-1c0-1.1.9-2 2-2h1a4 4 0 0 0 4-4c0-6.08-4.92-11-9-11z" />
-                        <circle cx="7.5" cy="10.5" r="1" fill="currentColor" />
-                        <circle cx="12" cy="7.5" r="1" fill="currentColor" />
-                        <circle cx="16.5" cy="10.5" r="1" fill="currentColor" />
-                      </svg>
-                      <input type="color" class="swatch-input" :value="theme.primary" @input="onCustomColor" />
-                    </label>
-                  </div>
-                  <div class="swatch-meta">
-                    <input class="fld-i hex-in" :value="theme.primary" maxlength="7" spellcheck="false"
-                      placeholder="#0f766e" @change="applyHexInput" @keyup.enter="$event.target.blur()" />
-                    <button type="button" class="btn btn-g btn-sm" @click="resetTheme">
-                      {{ i18n.t.theme_reset || "Reset" }}
-                    </button>
-                  </div>
-                </div>
-
-                <!-- ─── SIDEBAR POSITION ─── -->
-                <div class="fld">
-                  <label class="fld-l">{{ i18n.t.sidebar_position || "Sidebar position" }}</label>
-                  <div class="layout-options">
-                    <button v-for="pos in ['left', 'right', 'top', 'bottom']" :key="pos" type="button"
-                      class="layout-opt" :class="{ active: sidebarPosition === pos }"
-                      :title="i18n.t['sb_' + pos] || pos" @click="applySidebarPosition(pos)">
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                        stroke-width="1.5" stroke-linejoin="round">
-                        <template v-if="pos === 'left'">
-                          <rect x="3" y="4" width="5" height="16" rx="1.5" />
-                          <rect x="10" y="4" width="11" height="16" rx="1.5" />
-                        </template>
-                        <template v-else-if="pos === 'right'">
-                          <rect x="3" y="4" width="11" height="16" rx="1.5" />
-                          <rect x="16" y="4" width="5" height="16" rx="1.5" />
-                        </template>
-                        <template v-else-if="pos === 'top'">
-                          <rect x="4" y="3" width="16" height="5" rx="1.5" />
-                          <rect x="4" y="10" width="16" height="11" rx="1.5" />
-                        </template>
-                        <template v-else>
-                          <rect x="4" y="3" width="16" height="11" rx="1.5" />
-                          <rect x="4" y="16" width="16" height="5" rx="1.5" />
-                        </template>
-                      </svg>
-                      <span>{{ i18n.t['sb_' + pos] || pos }}</span>
-                    </button>
-                  </div>
-                </div>
-              </template>
-
-              <!-- ─── CURRENCY ─── -->
-              <template v-else-if="settingsTab === 'currency'">
-                <div v-if="settingsCurrencyMsg" class="msg msg-s">{{ settingsCurrencyMsg }}</div>
-                <div v-if="settingsCurrencyError" class="msg msg-e">{{ settingsCurrencyError }}</div>
-                <div class="fld">
-                  <label class="fld-l">{{ i18n.t.currency || "Currency" }}</label>
-                  <AppSelect block size="sm" tone="soft" variant="teal" :model-value="profileCurrency"
-                    :options="currencyOptions" option-value="value" option-label="label"
-                    @update:model-value="profileCurrency = $event" />
-                </div>
-                <div v-if="profileCurrency === 'USD'" class="fld">
-                  <label class="fld-l">{{ i18n.t.exchange_rate || "Exchange rate" }}</label>
-                  <input v-model.number="profileRate" type="number" min="1" step="50" class="fld-i"
-                    placeholder="4100" />
-                </div>
-                <button class="btn btn-primary btn-b" :disabled="currencySubmitting" @click="saveCurrency">
-                  {{ currencySubmitting ? i18n.t.loading : i18n.t.save }}
-                </button>
-              </template>
-
-              <!-- ─── NOTIFICATIONS ─── -->
-              <template v-else-if="settingsTab === 'notify'">
-                <!-- ─── PUSH NOTIFICATIONS (this device) ─── -->
-                <div class="fld push-fld">
-                  <label class="fld-l">{{
-                    i18n.t.push_notifications || "Push notifications"
-                    }}</label>
-                  <p class="push-desc">
-                    {{
-                      i18n.t.push_notifications_desc ||
-                      "Get an alert on this device when a new order arrives — even when the dashboard tab is closed."
-                    }}
-                  </p>
-                  <div class="push-row">
-                    <span class="push-state" :class="'push-st-' + pushState">
-                      <AppIcon v-if="pushState === 'enabled'" name="bell" :size="12" />
-                      {{ pushStateLabel }}
-                    </span>
-                    <button type="button" class="btn btn-sm" :class="pushState === 'enabled' ? 'btn-ghost' : 'btn-g'"
-                      :disabled="pushBusy ||
-                        pushState === 'unsupported' ||
-                        pushState === 'blocked'
-                        " @click="togglePush">
-                      {{
-                        pushBusy
-                          ? i18n.t.loading
-                          : pushState === "enabled"
-                            ? i18n.t.push_disable || "Turn off"
-                            : i18n.t.push_enable || "Turn on"
-                      }}
-                    </button>
-                  </div>
-                  <div v-if="pushError" class="msg msg-e">{{ pushError }}</div>
-                </div>
-
-              </template>
-
-              <!-- ─── ACCOUNT ─── -->
-              <template v-else>
-                <div v-if="accountSuccess" class="msg msg-s">
-                  {{ accountSuccess }}
-                </div>
-                <div v-if="accountError" class="msg msg-e">
-                  {{ accountError }}
-                </div>
-                <div class="fld">
-                  <label class="fld-l">{{ i18n.t.email_address || "Email address" }}</label>
-                  <input v-model="accountEmail" type="email" class="fld-i" autocomplete="email"
-                    :placeholder="i18n.t.email_address || 'Email address'" />
-                </div>
-                <div class="fld">
-                  <label class="fld-l">{{ i18n.t.current_password || "Current password" }}</label>
-                  <input v-model="accountCurrentPassword" type="password" class="fld-i" autocomplete="current-password"
-                    :placeholder="i18n.t.current_password || 'Current password'" />
-                  <!-- Google-created accounts have no password yet: the backend
-                     accepts a new password without the current one, so tell the
-                     owner they can leave this field empty. -->
-                  <p v-if="auth.user?.hasPassword === false" class="fld-hint">
-                    {{
-                      i18n.t.google_no_password_hint ||
-                      "This account was created with Google — leave “Current password” empty to set your first password."
-                    }}
-                  </p>
-                </div>
-                <div class="fld">
-                  <label class="fld-l">{{ i18n.t.new_password || "New password" }}</label>
-                  <input v-model="accountNewPassword" type="password" class="fld-i" autocomplete="new-password"
-                    :placeholder="i18n.t.new_password || 'New password'" />
-                </div>
-                <button class="btn btn-primary btn-b" :disabled="accountSubmitting" @click="saveAccount">
-                  {{
-                    accountSubmitting
-                      ? i18n.t.loading
-                      : i18n.t.update_account || "Update email / password"
-                  }}
-                </button>
-              </template>
-            </div>
-          </div>
-        </div>
-      </Transition>
-    </Teleport>
+    <AdminSettingsModal
+      :show="showSettings"
+      :i18n="i18n"
+      v-model:settings-tab="settingsTab"
+      :theme="theme"
+      :on-preset-color="onPresetColor"
+      :on-custom-color="onCustomColor"
+      :apply-hex-input="applyHexInput"
+      :reset-theme="resetTheme"
+      :sidebar-position="sidebarPosition"
+      :apply-sidebar-position="applySidebarPosition"
+      :settings-currency-msg="settingsCurrencyMsg"
+      :settings-currency-error="settingsCurrencyError"
+      v-model:profile-currency="profileCurrency"
+      :currency-options="currencyOptions"
+      v-model:profile-rate="profileRate"
+      :save-currency="saveCurrency"
+      :currency-submitting="currencySubmitting"
+      :order-tracking="orderTracking"
+      :tracking-submitting="trackingSubmitting"
+      :tracking-msg="trackingMsg"
+      :tracking-error="trackingError"
+      :toggle-order-tracking="toggleOrderTracking"
+      :push-state="pushState"
+      :push-state-label="pushStateLabel"
+      :push-busy="pushBusy"
+      :toggle-push="togglePush"
+      :push-error="pushError"
+      :account-success="accountSuccess"
+      :account-error="accountError"
+      v-model:account-email="accountEmail"
+      v-model:account-current-password="accountCurrentPassword"
+      v-model:account-new-password="accountNewPassword"
+      :auth="auth"
+      :account-submitting="accountSubmitting"
+      :save-account="saveAccount"
+      @close="showSettings = false"
+    />
 
     <!-- ═══ INSTALL APP (PWA download for owners) ═══
          Android / desktop: fires the native install dialog.
@@ -1900,18 +1332,11 @@
                   <AppIcon name="check-circle" :size="14" />
                   {{ i18n.t.install_done }}
                 </div>
-                <p class="ins-desc">{{ i18n.t.install_installed_hint }}</p>
 
                 <button v-if="canNativeInstall" class="btn btn-primary btn-b" @click="installApp">
                   <AppIcon name="download" :size="15" />
                   {{ i18n.t.install_again }}
                 </button>
-                <div v-else-if="!needsManualInstall" class="ins-wait">
-                  <span>{{ i18n.t.install_retry_hint }}</span>
-                  <button class="btn btn-g btn-sm" @click="reloadPage">
-                    {{ i18n.t.refresh || "Refresh" }}
-                  </button>
-                </div>
                 <div v-else-if="manualInstallHint" class="msg msg-i">
                   {{ manualInstallHint }}
                 </div>
@@ -1964,15 +1389,6 @@
                   {{ i18n.t.install_wait }}
                 </button>
               </template>
-
-              <!-- The manual steps for THIS browser: macOS Safari → File ▸
-                   “Add to Dock…”, iOS → Share sheet, Chrome/Edge → ⋮ menu.
-                   Shown in every state except the brief Chromium wait. -->
-              <div v-if="showInstallSteps" class="ins-steps">
-                <div v-for="(step, index) in manualInstallSteps" :key="index" class="tg-step">
-                  <span class="step-n">{{ index + 1 }}</span> {{ step }}
-                </div>
-              </div>
             </div>
           </div>
         </div>
@@ -1983,18 +1399,20 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
+import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
 import { useFoodsStore } from "@/stores/foods";
 import { useI18nStore } from "@/stores/i18n";
 import FoodCard from "@/components/FoodCard.vue";
 import FoodFormModal from "@/components/FoodFormModal.vue";
 import AppSelect from "@/components/AppSelect.vue";
-import AppDatePicker from "@/components/AppDatePicker.vue";
 import AppIcon from "@/components/AppIcon.vue";
-import SalesChart from "@/components/SalesChart.vue";
 import NotificationBell from "@/components/NotificationBell.vue";
 import ShareGrid from "@/components/ShareGrid.vue";
+import AdminMobileBar from "@/components/admin/AdminMobileBar.vue";
+import AdminOrdersSection from "@/components/admin/AdminOrdersSection.vue";
+import AdminReportsSection from "@/components/admin/AdminReportsSection.vue";
+import AdminSettingsModal from "@/components/admin/AdminSettingsModal.vue";
 import { useThemeStore } from "@/stores/theme";
 import { useNotificationsStore } from "@/stores/notifications";
 import { useCurrencyStore } from "@/stores/currency";
@@ -2005,11 +1423,21 @@ import {
 } from "@/utils/pushNotifications";
 import { buildShareLinks } from "@/utils/share.mjs";
 import { usePwaInstall } from "@/utils/pwaInstall";
+import { useInstallUi } from "@/composables/useInstallUi";
+import { useAdminTab } from "@/composables/useAdminTab";
+import { useAdminFoods } from "@/composables/useAdminFoods";
+import { useAdminCategories } from "@/composables/useAdminCategories";
+import { useAdminOrders } from "@/composables/useAdminOrders";
+import { useAdminStats } from "@/composables/useAdminStats";
+import { useAdminQr } from "@/composables/useAdminQr";
+import { useAdminDevices } from "@/composables/useAdminDevices";
+import { useAdminReports } from "@/composables/useAdminReports";
+import { useAdminStream } from "@/composables/useAdminStream";
+import { useAdminRestaurant } from "@/composables/useAdminRestaurant";
 import axios from "axios";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 const router = useRouter();
-const route = useRoute();
 const auth = useAuthStore();
 const foods = useFoodsStore();
 const i18n = useI18nStore();
@@ -2017,36 +1445,84 @@ const theme = useThemeStore();
 const notifications = useNotificationsStore();
 const currencyStore = useCurrencyStore();
 
-// ─── ACTIVE TAB (persists across page refresh) ─────────────
-// The selected sidebar tab is mirrored into the URL as ?tab=… so a
-// refresh (F5 / pull-to-refresh) — or a shared link — lands back on the
-// exact same view instead of resetting to "Foods".
-const VALID_TABS = ["foods", "categories", "orders", "reports"];
-const adminTab = ref(
-  VALID_TABS.includes(route.query.tab) ? route.query.tab : "foods",
-);
-watch(adminTab, (tab) => {
-  router
-    .replace({ query: { ...route.query, tab } })
-    .catch(() => { }); // duplicate navigation is harmless
-});
-const curCat = ref("");
-const searchQ = ref("");
-const showForm = ref(false);
-const editingFood = ref(null);
-const deletingFood = ref(null);
+// ─── DASHBOARD DOMAINS ─────────────────────────────────────
+// State + actions live in @/composables/useAdmin* (verbatim extracts).
+// Singleton refs: the sidebar, the SSE stream and every tab share one source.
+const { adminTab } = useAdminTab();
+const { curCat, searchQ, showForm, editingFood, deletingFood, menuCreating, load, openAdd, confirmDel, doDelete } = useAdminFoods();
+const { showCatForm, editingCat, catSubmitting, catSuccess, catErrors, catLabelKm, deletingCat, openCatForm, submitCategory, confirmDelCat, doDeleteCat } = useAdminCategories();
+const { orders, ordersLoading, fetchOrders, updateOrderStatus, expandedDays, toggleDay, orderSections, dayLabel, searchDate, searchActive, searchDateOrders, clearDateSearch, scheduleNewDayCheck, stopNewDayCheck } = useAdminOrders();
+const { stats, fetchStats } = useAdminStats();
+const { showQR, qrTableNumber, qrCodeDataUrl, qrLoading, qrError, qrInfo, savedQrs, qrSearch, qrListLoading, qrListError, selectedSavedNo, deletingQr, filteredSavedQrs, openQR, generateQR, previewSavedQr, downloadSavedQr, formatQrDate, confirmDelQr, doDeleteQr, downloadQR } = useAdminQr();
+const { showDevices, devicesList, devicesLoading, devicesError, devicesMsg, deletingDevice, revokingDeviceId, expandedDeviceId, loginHistory, historyLoading, historyError, activeDevicesCount, openDevices, confirmRevokeDevice, doRevokeDevice, revokeAllOthers, fetchLoginHistory, toggleDeviceDetails, deviceMethodLabel } = useAdminDevices();
+const { report, reportLoading, reportError, reportGroup, reportPreset, reportStartDate, reportEndDate, reportDataset, reportFormat, reportExporting, reportExportMsg, reportExportError, reportPresets, reportGroups, reportDatasets, reportFormats, applyReportPreset, openReports, fetchReport, exportReport, reportSeriesPoints, reportHourPoints, chartColor, fmtAxis, topItemWidth, tableBarWidth, statusBarWidth } = useAdminReports();
+const { connectOrderStream, disconnectOrderStream } = useAdminStream();
+const { showAddRestaurant, addRestaurantName, addRestaurantSubmitting, addRestaurantMsg, addRestaurantError, openAddRestaurant, submitAddRestaurant, onSwitchRestaurant, initForRestaurant, ensureDefaultMenu, refreshCurrentMenuSelection, loadCategories, syncRestaurantTheme } = useAdminRestaurant();
+// ─── RESET ON EVERY MOUNT ──────────────────────────────────
+// The domain composables keep their state in module-level singletons so
+// every part of the dashboard shares it. The original view owned per-instance
+// refs, so each visit started clean — restore that exact behavior here
+// (runs during setup, before the first render, exactly like a fresh ref).
+function resetSingletonState() {
+  curCat.value = "";
+  searchQ.value = "";
+  showForm.value = false;
+  editingFood.value = null;
+  deletingFood.value = null;
+
+  showCatForm.value = false;
+  editingCat.value = null;
+  catSubmitting.value = false;
+  catSuccess.value = "";
+  catErrors.value = "";
+  catLabelKm.value = "";
+  deletingCat.value = null;
+
+  showQR.value = false;
+  qrTableNumber.value = "";
+  qrCodeDataUrl.value = "";
+  qrLoading.value = false;
+  qrError.value = "";
+  qrInfo.value = "";
+  qrSearch.value = "";
+  qrListLoading.value = false;
+  qrListError.value = "";
+  selectedSavedNo.value = null;
+  deletingQr.value = null;
+
+  showDevices.value = false;
+  devicesLoading.value = false;
+  devicesError.value = "";
+  devicesMsg.value = "";
+  deletingDevice.value = null;
+  revokingDeviceId.value = null;
+  expandedDeviceId.value = null;
+  historyLoading.value = false;
+  historyError.value = "";
+
+  showAddRestaurant.value = false;
+  addRestaurantSubmitting.value = false;
+  addRestaurantMsg.value = "";
+  addRestaurantError.value = "";
+
+  searchDate.value = "";
+  expandedDays.value = {};
+
+  // data refs start empty and are refetched on mount (same as before)
+  orders.value = [];
+  ordersLoading.value = false;
+  report.value = {};
+  reportLoading.value = false;
+  devicesList.value = [];
+  loginHistory.value = [];
+  stats.value = { totalRevenue: 0, totalOrders: 0, daily: [] };
+}
+resetSingletonState();
+
 const loggingOut = ref(false);
-const showQR = ref(false);
 const showMobile = ref(false);
 let desktopBreakpointQuery = null;
 const showTelegramSettings = ref(false);
-const showCatForm = ref(false);
-const editingCat = ref(null);
-const catSubmitting = ref(false);
-const catSuccess = ref("");
-const catErrors = ref("");
-const catLabelKm = ref("");
-const deletingCat = ref(null);
 const showProfile = ref(false);
 const showSettings = ref(false);
 const settingsTab = ref("appearance");
@@ -2087,13 +1563,6 @@ const tgLoading = ref(false);
 const displayLinkCode = computed(() => auth.linkCode || "------");
 const isLinked = computed(() => auth.isTelegramLinked);
 
-const stats = ref({ totalRevenue: 0, totalOrders: 0, daily: [] });
-const statsLoading = ref(false);
-const statsError = ref("");
-const statsStartDate = ref(
-  new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
-);
-const statsEndDate = ref(new Date().toISOString().slice(0, 10));
 const previewLinkCopied = ref(false);
 const previewMenuUrl = computed(() => {
   if (!auth.restaurantId) return "#";
@@ -2129,146 +1598,6 @@ const shareText = computed(() =>
 );
 const shareImage = computed(() => restaurantLogo.value || "");
 
-const orders = ref([]);
-const ordersLoading = ref(false);
-const orderStream = ref(null);
-const orderStreamError = ref("");
-let streamRetryTimer = null;
-let streamAttempts = 0;
-const lastAlertedOrderId = ref(null);
-const isSpeaking = ref(false);
-const qrTableNumber = ref("");
-const qrCodeDataUrl = ref("");
-const qrLoading = ref(false);
-const qrError = ref("");
-const qrInfo = ref("");
-// ─── SAVED TABLE QRs ("made done") ─────────────────────────
-// Every generated table QR is stored server-side (qr_codes table). A table
-// number already in this list can NOT be generated again — the stored QR is
-// reused, and the owner can search / preview / download it below.
-const savedQrs = ref([]);
-const qrSearch = ref("");
-const qrListLoading = ref(false);
-const qrListError = ref("");
-const selectedSavedNo = ref(null);
-const deletingQr = ref(null);
-const filteredSavedQrs = computed(() => {
-  const q = qrSearch.value.trim();
-  if (!q) return savedQrs.value;
-  return savedQrs.value.filter((qr) => String(qr.table_no).includes(q));
-});
-
-// ─── DEVICE SESSIONS (access log for the account) ──────────
-// Every device that logs in is recorded server-side (device_sessions
-// table): device id/name/type, browser, OS, screen, timezone, language,
-// IP + best-effort city/country, first seen, last login, last active.
-// The owner can review ALL of them here and sign out any device (or all
-// others at once) — the auth middleware then rejects that device's token.
-const showDevices = ref(false);
-const devicesList = ref([]);
-const devicesLoading = ref(false);
-const devicesError = ref("");
-const devicesMsg = ref("");
-const deletingDevice = ref(null);
-const revokingDeviceId = ref(null);
-const expandedDeviceId = ref(null);
-const loginHistory = ref([]);
-const historyLoading = ref(false);
-const historyError = ref("");
-const activeDevicesCount = computed(
-  () => devicesList.value.filter((d) => !d.revoked).length
-);
-function openDevices() {
-  devicesError.value = "";
-  devicesMsg.value = "";
-  showDevices.value = true;
-  fetchDevices();
-  fetchLoginHistory();
-}
-async function fetchDevices() {
-  devicesLoading.value = true;
-  devicesError.value = "";
-  try {
-    const res = await axios.get(`${API_BASE}/api/auth/devices`);
-    devicesList.value = res.data || [];
-  } catch (err) {
-    devicesError.value =
-      err.response?.data?.error || "មិនអាចផ្ទុកបញ្ជីឧបករណ៍បានទេ";
-  } finally {
-    devicesLoading.value = false;
-  }
-}
-function confirmRevokeDevice(device) {
-  deletingDevice.value = device;
-}
-async function doRevokeDevice() {
-  const device = deletingDevice.value;
-  if (!device || revokingDeviceId.value) return;
-  revokingDeviceId.value = device.id;
-  try {
-    await axios.delete(`${API_BASE}/api/auth/devices/${device.id}`);
-    deletingDevice.value = null;
-    if (device.isCurrent) {
-      // Revoking THIS device → sign out immediately
-      auth.logout();
-      window.location.href = "/login";
-      return;
-    }
-    devicesMsg.value =
-      i18n.t.device_signed_out_ok || "ឧបករណ៍ត្រូវបានចេញរួចរាល់!";
-    setTimeout(() => {
-      devicesMsg.value = "";
-    }, 2500);
-    await fetchDevices();
-    await fetchLoginHistory();
-  } catch (err) {
-    devicesError.value =
-      err.response?.data?.error || "មិនអាចចេញឧបករណ៍នេះបានទេ";
-  } finally {
-    revokingDeviceId.value = null;
-  }
-}
-async function revokeAllOthers() {
-  devicesError.value = "";
-  try {
-    const res = await axios.delete(`${API_BASE}/api/auth/devices`);
-    devicesMsg.value =
-      (i18n.t.sign_out_others_ok || "ឧបករណ៍ផ្សេងទាំងអស់ត្រូវបានចេញរួចរាល់!") +
-      (res.data?.count ? ` (${res.data.count})` : "");
-    setTimeout(() => {
-      devicesMsg.value = "";
-    }, 2500);
-    await fetchDevices();
-    await fetchLoginHistory();
-  } catch (err) {
-    devicesError.value =
-      err.response?.data?.error || "មិនអាចចេញឧបករណ៍ផ្សេងបានទេ";
-  }
-}
-async function fetchLoginHistory() {
-  historyLoading.value = true;
-  historyError.value = "";
-  try {
-    const res = await axios.get(`${API_BASE}/api/auth/devices/history`);
-    loginHistory.value = res.data || [];
-  } catch (err) {
-    historyError.value =
-      err.response?.data?.error || "មិនអាចផ្ទុកប្រវត្តិការចូលបានទេ";
-  } finally {
-    historyLoading.value = false;
-  }
-}
-function toggleDeviceDetails(id) {
-  expandedDeviceId.value = expandedDeviceId.value === id ? null : id;
-}
-function deviceMethodLabel(method) {
-  const labels = {
-    password: i18n.t.method_password || "Password",
-    google: "Google",
-  };
-  return labels[method] || method || i18n.t.device_unknown;
-}
-
 const currencyOptions = computed(() => [
   { value: "KHR", label: i18n.t.currency_khr || "៛ KHR" },
   { value: "USD", label: i18n.t.currency_usd || "$ USD" },
@@ -2297,6 +1626,9 @@ function openSettings() {
   settingsCurrencyError.value = "";
   profileCurrency.value = auth.restaurant?.currency || "KHR";
   profileRate.value = Number(auth.restaurant?.exchangeRate) || 4100;
+  orderTracking.value = Boolean(auth.restaurant?.orderTracking ?? 0);
+  trackingMsg.value = "";
+  trackingError.value = "";
   syncRestaurantTheme();
   refreshPushState();
   showSettings.value = true;
@@ -2398,6 +1730,45 @@ async function togglePush() {
   }
 }
 
+// ─── GUEST ORDER TRACKING (Settings → Orders) ──────────────
+// Owner switch for the public /track page: ON = new orders get a track
+// token and guests follow them live; OFF = no token is issued (the cart
+// never offers the link) and old links answer 404 on the tracker.
+// Same optimistic flip + revert-on-error pattern as the push toggle.
+// Default OFF: guests can only track after the owner turns this on.
+const orderTracking = ref(false);
+const trackingSubmitting = ref(false);
+const trackingMsg = ref("");
+const trackingError = ref("");
+
+async function toggleOrderTracking() {
+  const next = !orderTracking.value;
+  orderTracking.value = next; // optimistic — reverted below on failure
+  trackingSubmitting.value = true;
+  trackingMsg.value = "";
+  trackingError.value = "";
+  try {
+    await axios.patch(`${API_BASE}/api/auth/tracking`, {
+      orderTracking: next,
+      restaurant_id: auth.restaurantId,
+    });
+    if (auth.restaurant) {
+      auth.restaurant.orderTracking = next;
+      auth.saveToStorage();
+    }
+    trackingMsg.value = i18n.t.saved_success || "Saved successfully!";
+    setTimeout(() => {
+      trackingMsg.value = "";
+    }, 2500);
+  } catch (err) {
+    orderTracking.value = !next;
+    trackingError.value =
+      err?.response?.data?.error || i18n.t.generic_error || "Error";
+  } finally {
+    trackingSubmitting.value = false;
+  }
+}
+
 // ─── STICKY PAGE HEADER HEIGHT ────────────────────────────
 // `.hdr` is stuck to the top of the scroll area and `.rep-side` parks right
 // below it, so the header's own height must be known in CSS. It is measured
@@ -2487,12 +1858,6 @@ function resetTheme() {
   clearTimeout(themeSaveTimer.value);
   saveThemeToServer(theme.primary);
 }
-// The owner sees the color that their customers see (the restaurant's saved color)
-function syncRestaurantTheme() {
-  const c = auth.restaurant?.themeColor;
-  if (c) theme.setPrimary(c, { persist: false });
-}
-
 // ─── SIDEBAR POSITION (owner-selectable layout) ─────────────
 const sidebarSaveTimer = ref(null);
 const sidebarPosition = computed(() => auth.restaurant?.sidebarPosition || "left");
@@ -2527,7 +1892,7 @@ function onLogoChange(e) {
 }
 async function submitProfile() {
   if (!profileName.value.trim()) {
-    profileError.value = "សូមបញ្ចូលឈ្មោះហាង";
+    profileError.value = i18n.t.restaurant_name_required;
     return;
   }
   profileSubmitting.value = true;
@@ -2545,7 +1910,7 @@ async function submitProfile() {
       auth.restaurant.logoUrl = res.data.restaurant.logoUrl;
       auth.saveToStorage();
     }
-    profileSuccess.value = "រក្សាទុកបានជោគជ័យ!";
+    profileSuccess.value = i18n.t.saved_success;
     setTimeout(() => {
       showProfile.value = false;
     }, 1200);
@@ -2553,7 +1918,7 @@ async function submitProfile() {
     profileError.value =
       err.response?.data?.code === "DUPLICATE_RESTAURANT"
         ? i18n.t.dup_restaurant || "You already have a restaurant with this name"
-        : err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
+        : err.response?.data?.error || i18n.t.generic_error;
   } finally {
     profileSubmitting.value = false;
   }
@@ -2592,7 +1957,7 @@ async function saveAccount() {
     }, 3500);
   } catch (err) {
     accountError.value =
-      err.response?.data?.error || i18n.t.generic_error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
+      err.response?.data?.error || i18n.t.generic_error;
   } finally {
     accountSubmitting.value = false;
   }
@@ -2636,44 +2001,22 @@ async function copyLinkCode() {
   }
 }
 async function unlinkTelegram() {
-  if (!confirm("តើចង់លែងភ្ជាប់ Telegram មែនទេ?")) return;
+  if (!confirm(i18n.t.tg_unlink_confirm)) return;
   try {
     await axios.patch(`${API_BASE}/api/auth/unlink-telegram`);
     if (auth.restaurant) {
       auth.restaurant.telegramChatId = null;
       auth.saveToStorage();
     }
-    tgSuccess.value = "លែងភ្ជាប់ Telegram រួចរាល់!";
+    tgSuccess.value = i18n.t.tg_unlinked;
     setTimeout(() => {
       tgSuccess.value = "";
     }, 2000);
   } catch (err) {
-    tgError.value = err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
+    tgError.value = err.response?.data?.error || i18n.t.generic_error;
   }
 }
 
-async function fetchOrders() {
-  // An account without a restaurant has no orders — skip the call (the
-  // backend would answer 404 "No restaurant found for this account").
-  if (!auth.restaurantId) {
-    orders.value = [];
-    return;
-  }
-  ordersLoading.value = true;
-  try {
-    // Scope the list to the restaurant selected in the dashboard. Without
-    // restaurant_id the backend falls back to the account's FIRST restaurant,
-    // so switching restaurants kept showing the other one's orders.
-    const res = await axios.get(`${API_BASE}/api/orders`, {
-      params: auth.restaurantId ? { restaurant_id: auth.restaurantId } : {},
-    });
-    orders.value = res.data;
-  } catch (err) {
-    console.error(err);
-  } finally {
-    ordersLoading.value = false;
-  }
-}
 function parseItems(items) {
   try {
     return typeof items === "string" ? JSON.parse(items) : items;
@@ -2682,15 +2025,16 @@ function parseItems(items) {
   }
 }
 function statusLabel(status) {
-  // Khmer order-status text only. The glyph that used to be baked into these
-  // labels (hourglass / chef / plate / check / cross) is now an SVG <AppIcon>
-  // rendered next to this text via statusIcon() below.
+  // Locale-aware order-status text (i18n order_st_*). The glyph that used to
+  // be baked into these labels (hourglass / chef / plate / check / cross) is
+  // now an SVG <AppIcon> rendered next to this text via statusIcon() below.
   const labels = {
-    pending: "រង់ចាំ",
-    preparing: "កំពុងរៀបចំ",
-    ready: "រួចរាល់",
-    served: "បានបម្រើ",
-    cancelled: "បោះបង់",
+    pending: i18n.t.order_st_pending,
+    confirmed: i18n.t.order_st_confirmed,
+    preparing: i18n.t.order_st_preparing,
+    ready: i18n.t.order_st_ready,
+    served: i18n.t.order_st_served,
+    cancelled: i18n.t.order_st_cancelled,
   };
   return labels[status] || status;
 }
@@ -2713,7 +2057,7 @@ function getStatusOptions(currentStatus) {
 }
 function formatDate(dateStr) {
   const d = new Date(dateStr);
-  return d.toLocaleString("km-KH", {
+  return d.toLocaleString(i18n.locale === "km" ? "km-KH" : "en-US", {
     year: "numeric",
     month: "short",
     day: "numeric",
@@ -2721,546 +2065,6 @@ function formatDate(dateStr) {
     minute: "2-digit",
   });
 }
-async function updateOrderStatus(orderId, status) {
-  try {
-    await axios.patch(`${API_BASE}/api/orders/${orderId}/status`, { status });
-    const idx = orders.value.findIndex((o) => o.id === orderId);
-    if (idx !== -1) orders.value[idx].status = status;
-  } catch (err) {
-    alert("មិនអាចប្តូរស្ថានភាពកម្មង់បានទេ");
-  }
-}
-
-// ─── NEW-DAY ORDER GROUPING (frontend only — DB data is never touched) ───
-// Orders are grouped by their order date. While the day is running, ALL of
-// today's orders sit together in one active list. When the clock passes
-// midnight the reactive `todayKey` flips, so yesterday's orders MOVE out of
-// the active list into their own collapsible date sections (order history).
-// Nothing is deleted — reports / CSV export still see every order.
-function dayKeyOf(date) {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, "0");
-  const d = String(date.getDate()).padStart(2, "0");
-  return `${y}-${m}-${d}`;
-}
-const todayKey = ref(dayKeyOf(new Date()));
-const expandedDays = ref({});
-function toggleDay(day) {
-  expandedDays.value = { ...expandedDays.value, [day]: !expandedDays.value[day] };
-}
-const todayOrders = computed(() =>
-  orders.value.filter(
-    (o) => o.created_at && dayKeyOf(new Date(o.created_at)) === todayKey.value,
-  ),
-);
-const pastDayGroups = computed(() => {
-  const map = new Map();
-  for (const o of orders.value) {
-    if (!o.created_at) continue;
-    const k = dayKeyOf(new Date(o.created_at));
-    if (k === todayKey.value) continue;
-    if (!map.has(k)) map.set(k, []);
-    map.get(k).push(o);
-  }
-  return [...map.entries()]
-    .sort((a, b) => (a[0] < b[0] ? 1 : -1)) // newest day first
-    .map(([day, list]) => ({ day, list }));
-});
-// Sections rendered by the Orders tab: today first (always open), then one
-// collapsible section per previous day (collapsed by default).
-const orderSections = computed(() => {
-  const sections = [
-    { key: "today", today: true, orders: todayOrders.value, collapsible: false },
-  ];
-  for (const g of pastDayGroups.value) {
-    sections.push({
-      key: g.day,
-      today: false,
-      day: g.day,
-      orders: g.list,
-      collapsible: true,
-    });
-  }
-  return sections;
-});
-function dayLabel(dayStr) {
-  const [y, m, d] = dayStr.split("-").map(Number);
-  return new Date(y, m - 1, d).toLocaleDateString("km-KH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-// ─── DATE SEARCH (frontend only) ───────────────────────────
-// Lets the owner jump to any specific date and see that day's orders.
-// AppDatePicker uses "YYYY-MM-DD" — the exact same shape as dayKeyOf(),
-// so picking a date filters orders by simple string equality.
-const searchDate = ref(""); // "" = no date filter (normal today/history view)
-
-const searchActive = computed(() => !!searchDate.value);
-
-// All orders whose order date matches the picked date, newest first
-const searchDateOrders = computed(() => {
-  if (!searchActive.value) return [];
-  return orders.value
-    .filter((o) => o.created_at && dayKeyOf(new Date(o.created_at)) === searchDate.value)
-    .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-});
-
-function clearDateSearch() {
-  searchDate.value = "";
-}
-
-// Midnight timer — flips todayKey just after midnight so yesterday's orders
-// are moved into history automatically, then re-arms (covers devices that
-// sleep through the exact tick).
-let newDayTimer = null;
-function scheduleNewDayCheck() {
-  clearTimeout(newDayTimer);
-  const now = new Date();
-  const nextMidnight = new Date(now);
-  nextMidnight.setHours(24, 0, 0, 0);
-  newDayTimer = setTimeout(() => {
-    if (todayKey.value !== dayKeyOf(new Date())) {
-      todayKey.value = dayKeyOf(new Date());
-      fetchOrders();
-    }
-    scheduleNewDayCheck();
-  }, Math.max(1000, nextMidnight - now) + 1000);
-}
-
-function openCatForm(cat = null) {
-  editingCat.value = cat;
-  catSuccess.value = "";
-  catErrors.value = "";
-  catLabelKm.value = cat ? cat.label_km : "";
-  showCatForm.value = true;
-}
-async function submitCategory() {
-  catSuccess.value = "";
-  catErrors.value = "";
-  if (!catLabelKm.value.trim()) {
-    catErrors.value = "សូមបញ្ចូលឈ្មោះប្រភេទ";
-    return;
-  }
-  catSubmitting.value = true;
-  try {
-    const data = { label_km: catLabelKm.value.trim() };
-    if (editingCat.value) {
-      await foods.updateCategory(editingCat.value.id, data);
-      catSuccess.value = "កែប្រែប្រភេទបានជោគជ័យ!";
-      setTimeout(() => {
-        showCatForm.value = false;
-        editingCat.value = null;
-        catSuccess.value = "";
-      }, 1200);
-    } else {
-      await foods.addCategory(data);
-      catSuccess.value = "បន្ថែមប្រភេទបានជោគជ័យ!";
-      catLabelKm.value = "";
-      setTimeout(() => {
-        catSuccess.value = "";
-      }, 1500);
-    }
-  } catch (err) {
-    catErrors.value =
-      err.response?.data?.code === "DUPLICATE_CATEGORY"
-        ? i18n.t.dup_category || "You already have a category with this name"
-        : err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
-  } finally {
-    catSubmitting.value = false;
-  }
-}
-function confirmDelCat(cat) {
-  deletingCat.value = cat;
-}
-async function doDeleteCat() {
-  if (!deletingCat.value) return;
-  try {
-    await foods.deleteCategory(deletingCat.value.id);
-  } catch (err) {
-    alert(err.response?.data?.error || "លុបមិនបានជោគជ័យ");
-  }
-  deletingCat.value = null;
-}
-
-function openQR() {
-  qrError.value = "";
-  qrInfo.value = "";
-  qrCodeDataUrl.value = "";
-  qrTableNumber.value = "";
-  qrSearch.value = "";
-  selectedSavedNo.value = null;
-  savedQrs.value = [];
-  showQR.value = true;
-  fetchSavedQrs();
-}
-async function generateQR() {
-  const num = parseInt(qrTableNumber.value);
-  if (!num || num < 1) {
-    qrError.value = "សូមបញ្ចូលលេខតុឲ្យបានត្រឹមត្រូវ";
-    return;
-  }
-  qrLoading.value = true;
-  qrError.value = "";
-  qrInfo.value = "";
-  try {
-    let url = `${API_BASE}/api/qr/table/${num}`;
-    if (auth.restaurantId) url += `?restaurant_id=${auth.restaurantId}`;
-    // NOTE: deliberately NO force=1 — a table number whose QR was already
-    // "made done" can not be made again. The server returns the stored QR
-    // and this UI simply shows it (also searchable in the saved list below).
-    const res = await axios.get(url);
-    qrCodeDataUrl.value = res.data.qrCode;
-    selectedSavedNo.value = res.data.tableNumber;
-    upsertSavedQr({
-      id: `table-${res.data.tableNumber}`,
-      table_no: res.data.tableNumber,
-      created_at: res.data.createdAt || new Date().toISOString(),
-      _dataUrl: res.data.qrCode,
-    });
-    qrInfo.value = res.data.alreadyExists
-      ? (
-        i18n.t.qr_already_saved ||
-        "តុលេខ {n} ត្រូវបានធ្វើរួចហើយ — បង្ហាញ QR ដែលបានរក្សាទុក"
-      ).replace("{n}", res.data.tableNumber)
-      : i18n.t.qr_created_success || "បង្កើត QR បានជោគជ័យ!";
-  } catch (e) {
-    qrError.value =
-      "បង្កើត QR បរាជ័យ: " + (e.response?.data?.error || e.message);
-  } finally {
-    qrLoading.value = false;
-  }
-}
-async function fetchSavedQrs() {
-  qrListLoading.value = true;
-  qrListError.value = "";
-  try {
-    let url = `${API_BASE}/api/qr/codes`;
-    if (auth.restaurantId) url += `?restaurant_id=${auth.restaurantId}`;
-    const res = await axios.get(url);
-    savedQrs.value = (res.data || []).map((r) => ({ ...r, _dataUrl: "" }));
-  } catch (err) {
-    qrListError.value =
-      err.response?.data?.error || "មិនអាចផ្ទុក QR ដែលបានធ្វើរួចបានទេ";
-  } finally {
-    qrListLoading.value = false;
-  }
-}
-function upsertSavedQr(item) {
-  const rest = savedQrs.value.filter((q) => q.table_no !== item.table_no);
-  const idx = rest.findIndex((q) => q.table_no > item.table_no);
-  if (idx === -1) rest.push(item);
-  else rest.splice(idx, 0, item);
-  savedQrs.value = rest;
-}
-async function loadSavedQrImage(qr) {
-  if (qr._dataUrl) return qr._dataUrl;
-  let url = `${API_BASE}/api/qr/codes/${qr.table_no}`;
-  if (auth.restaurantId) url += `?restaurant_id=${auth.restaurantId}`;
-  const res = await axios.get(url);
-  qr._dataUrl = res.data.qr_data_url;
-  return qr._dataUrl;
-}
-async function previewSavedQr(qr) {
-  qrError.value = "";
-  qrInfo.value = "";
-  qrTableNumber.value = String(qr.table_no);
-  selectedSavedNo.value = qr.table_no;
-  try {
-    qrCodeDataUrl.value = await loadSavedQrImage(qr);
-  } catch (err) {
-    qrError.value = err.response?.data?.error || "មិនអាចផ្ទុក QR បានទេ";
-  }
-}
-async function downloadSavedQr(qr) {
-  try {
-    const dataUrl = await loadSavedQrImage(qr);
-    const link = document.createElement("a");
-    link.href = dataUrl;
-    link.download = `table-${qr.table_no}-qr.png`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  } catch (err) {
-    qrError.value = err.response?.data?.error || "មិនអាចទាញយក QR បានទេ";
-  }
-}
-function formatQrDate(d) {
-  if (!d) return "";
-  return new Date(d).toLocaleDateString("km-KH", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
-function confirmDelQr(qr) {
-  deletingQr.value = qr;
-}
-async function doDeleteQr() {
-  const qr = deletingQr.value;
-  if (!qr) return;
-  try {
-    let url = `${API_BASE}/api/qr/codes/${qr.table_no}`;
-    if (auth.restaurantId) url += `?restaurant_id=${auth.restaurantId}`;
-    await axios.delete(url);
-    // Remove from the saved list; that table number can be generated again
-    savedQrs.value = savedQrs.value.filter((q) => q.table_no !== qr.table_no);
-    // If the deleted QR was shown in the preview area, clear it
-    if (selectedSavedNo.value === qr.table_no) {
-      selectedSavedNo.value = null;
-      qrCodeDataUrl.value = "";
-      qrTableNumber.value = "";
-    }
-    qrError.value = "";
-    qrInfo.value = i18n.t.qr_deleted || "លុប QR រួចរាល់!";
-  } catch (err) {
-    qrError.value = err.response?.data?.error || "លុប QR មិនបានជោគជ័យ";
-  } finally {
-    deletingQr.value = null;
-  }
-}
-function downloadQR() {
-  if (!qrCodeDataUrl.value) return;
-  const link = document.createElement("a");
-  link.href = qrCodeDataUrl.value;
-  link.download = `table-${qrTableNumber.value}-qr.png`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-}
-
-async function fetchStats() {
-  if (!auth.restaurantId) return;
-  statsLoading.value = true;
-  statsError.value = "";
-  try {
-    const res = await axios.get(`${API_BASE}/api/orders/stats`, {
-      params: {
-        // Revenue / order metrics must belong to the SELECTED restaurant —
-        // without restaurant_id the backend reports the account's first one.
-        restaurant_id: auth.restaurantId,
-        start_date: statsStartDate.value,
-        end_date: statsEndDate.value,
-      },
-    });
-    stats.value = res.data;
-  } catch (err) {
-    statsError.value = err.response?.data?.error || "Failed to load stats";
-  } finally {
-    statsLoading.value = false;
-  }
-}
-// ─── SALES REPORTS (Reports tab) ─────────────────────────────
-// Backed by the same /orders/stats endpoint as the metric cards, but with a
-// selectable range + day/week/month grouping and CSV export. `summary`
-// numbers exclude cancelled orders; cancelled totals are shown apart.
-const report = ref({});
-const reportLoading = ref(false);
-const reportError = ref("");
-const reportGroup = ref("day");
-const reportPreset = ref("7d");
-const reportStartDate = ref("");
-const reportEndDate = ref("");
-const reportDataset = ref("series");
-const reportExporting = ref(false);
-const reportExportMsg = ref("");
-const reportExportError = ref(false);
-
-// Preset ranges, each with the period grouping it defaults to
-const REPORT_PRESETS = [
-  { key: "today", group: "day" },
-  { key: "7d", group: "day" },
-  { key: "30d", group: "day" },
-  { key: "month", group: "day" },
-  { key: "last_month", group: "month" },
-  { key: "year", group: "month" },
-];
-
-const reportPresets = computed(() =>
-  REPORT_PRESETS.map((p) => ({
-    key: p.key,
-    label:
-      {
-        today: i18n.t.report_today,
-        "7d": i18n.t.report_7d,
-        "30d": i18n.t.report_30d,
-        month: i18n.t.report_this_month,
-        last_month: i18n.t.report_last_month,
-        year: i18n.t.report_this_year,
-      }[p.key] || p.key,
-  })),
-);
-
-const reportGroups = computed(() => [
-  { key: "day", label: i18n.t.report_group_day },
-  { key: "week", label: i18n.t.report_group_week },
-  { key: "month", label: i18n.t.report_group_month },
-]);
-
-const reportDatasets = computed(() => [
-  { value: "series", label: i18n.t.report_ds_series },
-  { value: "summary", label: i18n.t.report_ds_summary },
-  { value: "orders", label: i18n.t.report_ds_orders },
-  { value: "items", label: i18n.t.report_ds_items },
-  { value: "tables", label: i18n.t.report_ds_tables },
-  { value: "hours", label: i18n.t.report_ds_hours },
-  { value: "status", label: i18n.t.report_ds_status },
-]);
-
-// Local-time YYYY-MM-DD (toISOString() would shift by the UTC offset)
-function reportDateStr(d) {
-  const off = d.getTimezoneOffset();
-  return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
-}
-
-function applyReportPreset(key) {
-  reportPreset.value = key;
-  const preset = REPORT_PRESETS.find((p) => p.key === key);
-  const now = new Date();
-  let start = reportDateStr(now);
-  let end = start;
-
-  if (key === "7d") start = reportDateStr(new Date(now.getTime() - 6 * 86400000));
-  else if (key === "30d")
-    start = reportDateStr(new Date(now.getTime() - 29 * 86400000));
-  else if (key === "month")
-    start = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
-  else if (key === "last_month") {
-    start = reportDateStr(new Date(now.getFullYear(), now.getMonth() - 1, 1));
-    end = reportDateStr(new Date(now.getFullYear(), now.getMonth(), 0));
-  } else if (key === "year") start = `${now.getFullYear()}-01-01`;
-
-  reportStartDate.value = start;
-  reportEndDate.value = end;
-  if (preset?.group) reportGroup.value = preset.group;
-  fetchReport();
-}
-
-function openReports() {
-  adminTab.value = "reports";
-  if (!reportStartDate.value || !reportEndDate.value) applyReportPreset("7d");
-  else if (!Object.keys(report.value).length) fetchReport();
-}
-
-async function fetchReport() {
-  if (!auth.restaurantId) return;
-  reportLoading.value = true;
-  reportError.value = "";
-  try {
-    const res = await axios.get(`${API_BASE}/api/orders/stats`, {
-      params: {
-        restaurant_id: auth.restaurantId,
-        start_date: reportStartDate.value,
-        end_date: reportEndDate.value,
-        group: reportGroup.value,
-      },
-    });
-    report.value = res.data;
-  } catch (err) {
-    reportError.value =
-      err.response?.data?.error || "Failed to load sales report";
-  } finally {
-    reportLoading.value = false;
-  }
-}
-
-// Trigger the CSV download as a blob so the JWT header travels with it
-// (a plain <a href> cannot authenticate).
-async function exportReport() {
-  if (reportExporting.value) return;
-  reportExporting.value = true;
-  reportExportMsg.value = "";
-  reportExportError.value = false;
-  try {
-    const res = await axios.get(`${API_BASE}/api/orders/export`, {
-      params: {
-        restaurant_id: auth.restaurantId,
-        start_date: reportStartDate.value,
-        end_date: reportEndDate.value,
-        group: reportGroup.value,
-        type: reportDataset.value,
-        lang: i18n.locale,
-      },
-      responseType: "blob",
-    });
-    // The server names the file via Content-Disposition (exposed by CORS);
-    // fall back to a local default when that header is not readable.
-    const match = /filename="?([^";]+)"?/.exec(
-      res.headers["content-disposition"] || "",
-    );
-    const name = match ? match[1] : `sales-${reportDataset.value}.csv`;
-    const url = URL.createObjectURL(res.data);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    reportExportMsg.value = i18n.t.report_export_ok || "Export ready!";
-    setTimeout(() => {
-      reportExportMsg.value = "";
-    }, 2500);
-  } catch (err) {
-    console.error("Sales export error:", err);
-    reportExportMsg.value =
-      err.response?.data?.error ||
-      i18n.t.report_export_err ||
-      "Could not export the report";
-    reportExportError.value = true;
-  } finally {
-    reportExporting.value = false;
-  }
-}
-
-// Chart inputs
-const reportSeriesPoints = computed(() =>
-  (report.value.series || []).map((r) => ({ label: r.label, value: r.revenue })),
-);
-const reportHourPoints = computed(() =>
-  (report.value.byHour || []).map((r) => ({
-    label: `${String(r.hour).padStart(2, "0")}:00`,
-    value: r.orders,
-  })),
-);
-// The chart picks up the restaurant's theme color
-const chartColor = computed(() => theme.primary || "#0f766e");
-
-// Compact axis labels — full currency strings overflow the small axis area
-function fmtAxis(value) {
-  const v = Number(value) || 0;
-  if (v >= 1000000) return `${(v / 1000000).toFixed(1).replace(/\.0$/, "")}M`;
-  if (v >= 1000) return `${Math.round(v / 1000)}K`;
-  return String(Math.round(v));
-}
-
-// Inline bar widths for the list panels (relative to the row leader)
-const maxTopQty = computed(() =>
-  Math.max(
-    1,
-    ...(report.value.topItems || []).map((item) => Number(item.qty) || 0),
-  ),
-);
-function topItemWidth(item) {
-  return `${Math.round(((Number(item.qty) || 0) / maxTopQty.value) * 100)}%`;
-}
-const maxTableRevenue = computed(() =>
-  Math.max(
-    1,
-    ...(report.value.byTable || []).map((r) => Number(r.revenue) || 0),
-  ),
-);
-function tableBarWidth(row) {
-  return `${Math.round(((Number(row.revenue) || 0) / maxTableRevenue.value) * 100)}%`;
-}
-const maxStatusCount = computed(() =>
-  Math.max(1, ...(report.value.byStatus || []).map((r) => Number(r.orders) || 0)),
-);
-function statusBarWidth(row) {
-  return `${Math.round(((Number(row.orders) || 0) / maxStatusCount.value) * 100)}%`;
-}
-
 function copyPreviewLink() {
   if (!navigator.clipboard || previewMenuUrl.value === "#") return;
   navigator.clipboard.writeText(previewMenuUrl.value);
@@ -3281,147 +2085,6 @@ function openShare() {
 // KDS runs on its own screen/tab — never inside the dashboard SPA
 function openKds() {
   window.open("/kds", "_blank", "noopener");
-}
-async function load() {
-  const params = {};
-  if (auth.currentMenuId) params.menu_id = auth.currentMenuId;
-  if (curCat.value) params.category = curCat.value;
-  if (searchQ.value) params.search = searchQ.value;
-  await foods.fetchFoods(params);
-}
-
-// ─── RESTAURANT SWITCHING / CREATION ───────────────────────
-async function onSwitchRestaurant(value) {
-  const id = Number(value);
-  auth.setCurrentRestaurant(id);
-  syncRestaurantTheme();
-  currencyStore.setFrom(auth.restaurant);
-  curCat.value = "";
-  searchQ.value = "";
-  await initForRestaurant();
-}
-
-const showAddRestaurant = ref(false);
-const addRestaurantName = ref("");
-const addRestaurantSubmitting = ref(false);
-const addRestaurantMsg = ref("");
-const addRestaurantError = ref("");
-
-function openAddRestaurant() {
-  addRestaurantName.value = "";
-  addRestaurantMsg.value = "";
-  addRestaurantError.value = "";
-  showAddRestaurant.value = true;
-}
-
-async function submitAddRestaurant() {
-  addRestaurantError.value = "";
-  addRestaurantMsg.value = "";
-  if (!addRestaurantName.value.trim()) {
-    addRestaurantError.value = "សូមបញ្ចូលឈ្មោះភោជនីយដ្ឋាន";
-    return;
-  }
-  addRestaurantSubmitting.value = true;
-  try {
-    const res = await axios.post(
-      `${API_BASE}/api/auth/restaurants`,
-      { name: addRestaurantName.value.trim() }
-    );
-    // Refresh the restaurants list
-    await auth.fetchMe();
-    if (res.data.restaurant) auth.setCurrentRestaurant(res.data.restaurant.id);
-    await initForRestaurant();
-    addRestaurantMsg.value = "បង្កើតភោជនីយដ្ឋានបានជោគជ័យ!";
-    setTimeout(() => {
-      showAddRestaurant.value = false;
-    }, 1100);
-  } catch (err) {
-    addRestaurantError.value =
-      err.response?.data?.code === "DUPLICATE_RESTAURANT"
-        ? i18n.t.dup_restaurant || "You already have a restaurant with this name"
-        : err.response?.data?.error || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
-  } finally {
-    addRestaurantSubmitting.value = false;
-  }
-}
-
-// ─── MENU HANDLING (one menu per restaurant) ───────────────
-const menuCreating = ref(false);
-
-async function ensureDefaultMenu() {
-  if (!auth.restaurantId) return;
-  if (menuCreating.value) return;
-  menuCreating.value = true;
-  try {
-    const created = await foods.addMenu("Default Menu");
-    auth.setCurrentMenu(created.id);
-    await foods.fetchMenus();
-    await refreshCurrentMenuSelection();
-    await initForRestaurant();
-  } catch (err) {
-    console.error("Could not create menu:", err);
-  } finally {
-    menuCreating.value = false;
-  }
-}
-
-// Ensure currentMenuId points to an existing menu; default to first.
-function refreshCurrentMenuSelection() {
-  if (
-    !auth.currentMenuId ||
-    !foods.menus.some((m) => m.id === auth.currentMenuId)
-  ) {
-    auth.setCurrentMenu(foods.menus.length ? foods.menus[0].id : null);
-  }
-}
-
-async function loadCategories() {
-  const params = {};
-  if (auth.currentMenuId) params.menu_id = auth.currentMenuId;
-  await foods.fetchCategories(params);
-}
-
-async function initForRestaurant() {
-  // Load menus for the (new) current restaurant
-  await foods.fetchMenus();
-  refreshCurrentMenuSelection();
-  // When switching restaurants, drop the previous menu's category selection
-  curCat.value = "";
-  searchQ.value = "";
-  await loadCategories();
-  await load();
-  // Refresh orders for the selected restaurant — also re-seeds the
-  // notification bell via the watch(orders) → seedNotificationsFromOrders.
-  await fetchOrders();
-  fetchStats();
-  // The Reports tab is restaurant-scoped too — refresh it when it is open
-  if (adminTab.value === "reports") fetchReport();
-  // Reconnect the order stream to the selected restaurant
-  disconnectOrderStream();
-  connectOrderStream();
-}
-function openAdd() {
-  editingFood.value = null;
-  showForm.value = true;
-}
-function confirmDel(food) {
-  deletingFood.value = food;
-}
-async function doDelete() {
-  if (!deletingFood.value) return;
-  try {
-    await foods.deleteFood(deletingFood.value.id);
-  } catch (err) {
-    // Ownership failures (e.g. a stale row from another account/restaurant)
-    // come back as 404 — surface it instead of an unhandled rejection, and
-    // keep the row until the list is refetched.
-    console.error(
-      "Delete food failed:",
-      err?.response?.data?.error || err.message,
-    );
-  } finally {
-    deletingFood.value = null;
-  }
 }
 function confirmLogout() {
   auth.logout();
@@ -3482,337 +2145,6 @@ async function onNotificationSelect(notification) {
 // Shared message builder for order notifications. The SSE payload uses
 // camelCase (tableNo); DB rows fetched from /api/orders use snake_case
 // (table_no) — accept both.
-function buildOrderNotifMessage(order) {
-  const tableNo = order.tableNo ?? order.table_no ?? "-";
-  let msg = (i18n.t.new_order_notif || "New order from table {table}").replace(
-    "{table}",
-    tableNo,
-  );
-  if (order.total != null && order.total !== "") {
-    msg += ` · ${currencyStore.fmt(order.total)}`;
-  }
-  return msg;
-}
-
-// Resolve a restaurant id → display name from the account's restaurant list
-// (SSE events carry restaurantName since backend v15; seeds / older events
-// fall back to this mapping).
-function restaurantNameFor(restaurantId) {
-  if (restaurantId == null) return "";
-  const r = auth.restaurants.find((x) => Number(x.id) === Number(restaurantId));
-  return r?.name || "";
-}
-
-// Backfill: the bell only receives LIVE events while the dashboard is open,
-// so after a reload it would show an empty list even though orders exist.
-// Seed the most recent orders as notifications (dedupe by id keeps this
-// idempotent). Only pending orders count as unread → the badge reflects the
-// pending orders; handled ones are marked read.
-const MAX_SEEDED_ORDERS = 15;
-function seedNotificationsFromOrders() {
-  const recent = orders.value.slice(0, MAX_SEEDED_ORDERS);
-  for (const o of recent) {
-    if (!o || !o.id) continue;
-    const id = `new-order-${o.id}`;
-    notifications.push({
-      id,
-      type: "new-order",
-      title: i18n.t.new_order || "New order",
-      message: buildOrderNotifMessage(o),
-      orderId: o.id,
-      restaurantId: o.restaurant_id ?? o.restaurantId ?? null,
-      restaurantName:
-        o.restaurant_name || restaurantNameFor(o.restaurant_id ?? o.restaurantId),
-      tableNo: o.table_no ?? o.tableNo,
-      createdAt: o.created_at || undefined,
-      read: o.status !== "pending",
-    });
-    // An order that was pending (unread) and has since been handled
-    // should not keep the badge lit after the list refreshes.
-    if (o.status !== "pending") notifications.markRead(id);
-  }
-}
-watch(orders, () => seedNotificationsFromOrders());
-
-// Chrome loads speech voices asynchronously — cache the list and refresh it
-// when ready so playOrderAlert() always has the full voice list to pick from.
-const ttsVoices = ref(
-  "speechSynthesis" in window ? window.speechSynthesis.getVoices() : [],
-);
-if ("speechSynthesis" in window) {
-  window.speechSynthesis.onvoiceschanged = () => {
-    ttsVoices.value = window.speechSynthesis.getVoices();
-  };
-}
-
-// Chrome blocks speechSynthesis until the page has had some user interaction
-// (autoplay policy). Unlock it silently on the first click / keypress so the
-// SSE-triggered announcement is allowed later.
-let ttsUnlocked = false;
-function unlockTTS() {
-  if (ttsUnlocked) return;
-  ttsUnlocked = true;
-  try {
-    const u = new SpeechSynthesisUtterance(" ");
-    u.volume = 0;
-    window.speechSynthesis.speak(u);
-  } catch {
-    /* unlock attempt only — never break the dashboard */
-  }
-}
-if ("speechSynthesis" in window) {
-  window.addEventListener("pointerdown", unlockTTS, { once: true });
-  window.addEventListener("keydown", unlockTTS, { once: true });
-}
-
-function playOrderAlert(order) {
-  if (!("speechSynthesis" in window)) {
-    console.warn("Speech synthesis not supported in this browser");
-    return;
-  }
-
-  const tableNo = order.tableNo || "1";
-  const voices = ttsVoices.value;
-  const kmVoice = voices.find(
-    (v) => v.lang && v.lang.toLowerCase().startsWith("km"),
-  );
-
-  // Announcement = table number only (no dishes, no money).
-  // If the device has no Khmer voice, the engine silently skips the Khmer
-  // script and reads just the digits — so fall back to an English sentence
-  // to make sure the full announcement is actually heard.
-  const text = kmVoice
-    ? `ទទួលបានការកម្មង់ពីតុលេខ ${tableNo}`
-    : `Received order from table number ${tableNo}`;
-
-  const utterance = new SpeechSynthesisUtterance(text);
-  if (kmVoice) {
-    utterance.lang = "km-KH";
-    utterance.voice = kmVoice;
-  } else {
-    // Fallback: set only the language, let the engine choose its own
-    // default voice — assigning a picked voice can silently fail in Chrome.
-    utterance.lang = "en-US";
-  }
-  utterance.rate = 1;
-  utterance.pitch = 1;
-  utterance.volume = 1;
-
-  utterance.onstart = () => {
-    isSpeaking.value = true;
-  };
-  utterance.onend = () => {
-    isSpeaking.value = false;
-  };
-  utterance.onerror = (e) => {
-    isSpeaking.value = false;
-    console.warn("Order alert speech error:", e?.error || e);
-  };
-
-  // Chrome bug: speak() right after cancel() gets silently dropped.
-  // Delay the speak slightly and make sure the engine isn't paused.
-  window.speechSynthesis.cancel();
-  setTimeout(() => {
-    try {
-      window.speechSynthesis.resume();
-      window.speechSynthesis.speak(utterance);
-    } catch (err) {
-      console.warn("Speech speak failed:", err);
-    }
-  }, 150);
-}
-
-// Probe the stream endpoint once so the real HTTP status/error can be
-// reported — EventSource hides response codes, which made production 404s
-// (e.g. "Restaurant not found") impossible to diagnose. The SSE handler
-// sends headers immediately on both success and error, so a short probe is
-// enough; the probe connection is then aborted and EventSource takes over.
-async function probeOrderStream(url) {
-  const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), 10000);
-  try {
-    const res = await fetch(url, { signal: ctrl.signal, cache: "no-store" });
-    if (!res.ok) {
-      let msg = `HTTP ${res.status}`;
-      try {
-        msg = (await res.json()).error || msg;
-      } catch {
-        /* non-JSON body — keep the generic message */
-      }
-      return { ok: false, status: res.status, msg };
-    }
-    return { ok: true };
-  } finally {
-    clearTimeout(timer);
-    ctrl.abort(); // close the probe connection; EventSource opens its own
-  }
-}
-
-function scheduleStreamRetry(delayMs) {
-  clearTimeout(streamRetryTimer);
-  streamRetryTimer = setTimeout(() => {
-    streamRetryTimer = null;
-    connectOrderStream();
-  }, delayMs);
-}
-
-async function connectOrderStream() {
-  if (!auth.token) return;
-  // An account without a restaurant can't have an order stream — the server
-  // would answer 404 and the retry loop would spam it every 60s. The stream
-  // is (re)connected from initForRestaurant() once a restaurant exists.
-  if (!auth.restaurantId) {
-    orderStreamError.value = "";
-    return;
-  }
-  if (orderStream.value) return; // Already connected
-  clearTimeout(streamRetryTimer);
-  streamRetryTimer = null;
-
-  // Renew the access token first when it's close to expiring — EventSource
-  // bakes the token into its URL and can't swap it without a reconnect.
-  await auth.ensureFreshToken();
-  if (!auth.token) return; // session ended while renewing
-
-  const params = new URLSearchParams({ token: auth.token });
-  // Stream the restaurant the owner selected in the dashboard; when omitted,
-  // the server streams every restaurant the account owns.
-  if (auth.restaurant?.id) {
-    params.set("restaurant_id", String(auth.restaurant.id));
-  }
-  const url = `${API_BASE}/api/orders/stream?${params.toString()}`;
-
-  try {
-    const probe = await probeOrderStream(url);
-    if (!probe.ok) {
-      orderStreamError.value = probe.msg;
-      streamAttempts += 1;
-      // A 404 here means the account has no (matching) restaurant in the
-      // server's database — retry slowly in case one is created later.
-      console.error(
-        `Order stream unavailable (${probe.status}): ${probe.msg} — retrying in 60s`,
-      );
-      scheduleStreamRetry(60000);
-      return;
-    }
-  } catch {
-    /* probe couldn't finish (offline / server waking up) — let EventSource try */
-  }
-
-  const es = new EventSource(url);
-
-  es.addEventListener("connected", () => {
-    orderStreamError.value = "";
-    streamAttempts = 0;
-    console.log("🔊 Real-time order stream connected");
-  });
-
-  es.addEventListener("new-order", (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      if (!data.orderId || data.orderId === lastAlertedOrderId.value) return;
-      lastAlertedOrderId.value = data.orderId;
-
-      // 🔔 Push to the notification bell (near the profile avatar)
-      notifications.push({
-        id: `new-order-${data.orderId}`,
-        type: "new-order",
-        title: i18n.t.new_order || "New order",
-        message: buildOrderNotifMessage(data),
-        orderId: data.orderId,
-        restaurantId: data.restaurantId ?? auth.restaurantId ?? null,
-        restaurantName:
-          data.restaurantName ||
-          restaurantNameFor(data.restaurantId ?? auth.restaurantId),
-        tableNo: data.tableNo,
-        createdAt: data.createdAt || new Date().toISOString(),
-      });
-
-      console.log("🛎️ New order received:", data);
-
-      // 🔊 Play Khmer voice alert: "ទទួលបានការកម្មង់ពីតុលេខ X"
-      playOrderAlert(data);
-
-      // Auto-refresh orders list if on orders tab
-      if (adminTab.value === "orders") {
-        fetchOrders();
-      }
-
-      // Refresh stats so dashboard numbers stay current
-      fetchStats();
-      // A live order changes the report too (when the tab is open)
-      if (adminTab.value === "reports") fetchReport();
-
-      // Also refresh foods badge if pending orders exist
-      const badgeEl = document.querySelector(".nav-badge");
-      if (badgeEl) badgeEl.classList.add("pulse-fast");
-    } catch (err) {
-      console.error("Failed to parse new-order event:", err);
-    }
-  });
-
-  es.addEventListener("order-status", (event) => {
-    try {
-      const data = JSON.parse(event.data);
-      console.log("🔄 Order status changed:", data);
-
-      // 🔔 Push to the notification bell (near the profile avatar)
-      notifications.push({
-        id: `order-status-${data.orderId}-${data.status}`,
-        type: "order-status",
-        status: data.status,
-        title: i18n.t.status_updated || "Status updated",
-        message: (i18n.t.order_status_notif || "Order #{id} (table {table}) → {status}")
-          .replace("{id}", data.orderId)
-          .replace("{table}", data.tableNo ?? "-")
-          .replace("{status}", i18n.t[data.status] || data.status),
-        orderId: data.orderId,
-        restaurantId: data.restaurantId ?? auth.restaurantId ?? null,
-        restaurantName:
-          data.restaurantName ||
-          restaurantNameFor(data.restaurantId ?? auth.restaurantId),
-        tableNo: data.tableNo,
-      });
-
-      // Update order status in the local list in real-time
-      const idx = orders.value.findIndex((o) => o.id === data.orderId);
-      if (idx !== -1) {
-        orders.value[idx].status = data.status;
-      }
-
-      // Refresh stats so dashboard numbers stay current
-      fetchStats();
-    } catch (err) {
-      console.error("Failed to parse order-status event:", err);
-    }
-  });
-
-  es.onerror = () => {
-    es.close();
-    orderStream.value = null;
-    streamAttempts += 1;
-    // Backoff: 5s, 10s, 15s … capped at 60s. Render's free tier can sleep
-    // the service, so keep retrying — just not every 5s forever.
-    const delay = Math.min(60000, 5000 * streamAttempts);
-    console.warn(`Order stream disconnected, retrying in ${delay / 1000}s…`);
-    scheduleStreamRetry(delay);
-  };
-
-  orderStream.value = es;
-}
-
-function disconnectOrderStream() {
-  clearTimeout(streamRetryTimer);
-  streamRetryTimer = null;
-  if (orderStream.value) {
-    orderStream.value.close();
-    orderStream.value = null;
-  }
-  if ("speechSynthesis" in window) {
-    window.speechSynthesis.cancel();
-  }
-}
-
 onMounted(async () => {
   // Refresh restaurants list (in case a new one was added elsewhere)
   await auth.fetchMe();
@@ -3865,130 +2197,34 @@ onMounted(async () => {
 // forever with no way to recover.
 const {
   canNativeInstall,
-  isStandalone,
   isInstalled,
-  isIos,
-  isSafari,
-  isFirefox,
   needsManualInstall,
   insecureContext,
   installDismissed,
   installAvailable,
-  promptInstall,
 } = usePwaInstall();
+// Modal open/close state, wait-timer logic and labels — shared singleton
+// with the mobile bar and the profile menu (see @/composables/useInstallUi)
+const {
+  showInstallModal,
+  installWaitExpired,
+  manualInstallSteps,
+  manualInstallHint,
+  showInstallSteps,
+  openInstall,
+  installApp,
+  reloadPage,
+} = useInstallUi();
 
-const showInstallModal = ref(false);
-// A successful install hides the entry point immediately (no page reload).
-watch(isInstalled, (done) => {
-  if (done) showInstallModal.value = false;
-});
-
-// The browser may need a moment before it fires the event — on a first visit
-// the service worker has only just been installed. Keep the spinner for this
-// short grace period only, then fall back to the manual menu steps, so the
-// button can never spin forever.
-const INSTALL_WAIT_MS = 2500;
-const installWaitExpired = ref(false);
-let installWaitTimer = null;
-watch(showInstallModal, (open) => {
-  clearTimeout(installWaitTimer);
-  installWaitTimer = null;
-  if (!open) return;
-  installWaitExpired.value = false;
-  // Nothing to wait for: the app is installed, the browser has no install
-  // event at all (Safari / iOS / Firefox), or the page runs as the app itself.
-  if (
-    canNativeInstall.value ||
-    isInstalled.value ||
-    needsManualInstall.value ||
-    isStandalone.value
-  )
-    return;
-  installWaitTimer = setTimeout(() => {
-    if (!canNativeInstall.value) installWaitExpired.value = true;
-  }, INSTALL_WAIT_MS);
-});
-// The event can still arrive while the modal is open → drop the fallback
-watch(canNativeInstall, (ready) => {
-  if (ready) installWaitExpired.value = false;
-});
-
-// Label/tooltip for the install entry points: plain "Install app" normally,
-// and "already installed · install again" once the app is on this device — the
-// entry STAYS clickable because the owner may want to install it again.
-const installEntryLabel = computed(() =>
-  isInstalled.value
-    ? `${i18n.t.install_installed} · ${i18n.t.install_again}`
-    : i18n.t.install_app,
-);
-
-// ─── MANUAL INSTALL STEPS (per browser) ────────────────────
-// Only Chromium browsers fire beforeinstallprompt. macOS Safari installs via
-// File ▸ “Add to Dock…”, iOS via the Share sheet, Chrome/Edge via the ⋮ menu —
-// and Firefox cannot install web apps at all (hint only, no steps).
-const manualInstallSteps = computed(() => {
-  if (isIos.value)
-    return [i18n.t.install_ios_1, i18n.t.install_ios_2, i18n.t.install_ios_3];
-  if (isSafari.value)
-    return [
-      i18n.t.install_safari_1,
-      i18n.t.install_safari_2,
-      i18n.t.install_safari_3,
-    ];
-  if (isFirefox.value) return [];
-  return [i18n.t.install_chrome_1, i18n.t.install_chrome_2];
-});
-
-// Short line above those steps (empty when the steps explain themselves).
-// NOTE: iOS is checked first — the iOS UA also contains “Mac OS X”, so it
-// would otherwise match the desktop-Safari hint (which mentions macOS).
-const manualInstallHint = computed(() => {
-  if (isIos.value) return "";
-  if (isSafari.value) return i18n.t.install_safari_hint;
-  if (isFirefox.value) return i18n.t.install_firefox_hint;
-  return "";
-});
-
-// Chromium, still waiting for beforeinstallprompt — the only state that should
-// not show the manual steps yet (the one-tap dialog may still arrive).
-const installWaiting = computed(
-  () =>
-    !canNativeInstall.value &&
-    !isInstalled.value &&
-    !needsManualInstall.value &&
-    !installDismissed.value &&
-    !installWaitExpired.value,
-);
-const showInstallSteps = computed(
-  () => manualInstallSteps.value.length > 0 && !installWaiting.value,
-);
-
-function openInstall() {
-  // Always open the modal first — the actual download only happens when the
-  // user clicks the install button inside (no auto-download). The modal also
-  // opens when the app is already installed: it tells the owner, and offers
-  // "Install again" (another browser/device, or after removing the app).
-  showInstallModal.value = true;
-}
-// Fire the browser's native install dialog (needs the captured event and a
-// user gesture, hence the button). promptInstall() drops the event right
-// away — a BeforeInstallPromptEvent can only be used once, so reusing it
-// after a dismissal would just throw InvalidStateError.
-async function installApp() {
-  const res = await promptInstall();
-  if (res.ok && res.outcome === "accepted") showInstallModal.value = false;
-}
-// Reload helper for the "browser not ready" state — a reload lets Chrome
-// finish service-worker setup, after which beforeinstallprompt fires.
-function reloadPage() {
-  window.location.reload();
-}
+// Labels / manual steps / actions come from @/composables/useInstallUi.
 onUnmounted(() => {
   window.removeEventListener("keydown", handleEscKey);
   document.removeEventListener("click", onProfileMenuDocClick);
   disconnectOrderStream();
-  clearTimeout(newDayTimer);
-  clearTimeout(installWaitTimer);
+  stopNewDayCheck(); // midnight timer lives in useAdminOrders now
+  // Closing the shared modal also clears the composable's wait timer and
+  // resets the state for the next mount (HEAD kept both in this component).
+  showInstallModal.value = false;
   // The beforeinstallprompt / appinstalled listeners stay attached for the
   // whole app lifetime (attached once from main.js) — nothing to remove here.
   if (hdrResizeObserver) {
@@ -4480,10 +2716,6 @@ onUnmounted(() => {
 }
 
 /* ─── MOBILE ─── */
-.mob {
-  display: none;
-}
-
 .scrim {
   display: none;
   opacity: 0;
@@ -6435,7 +4667,6 @@ onUnmounted(() => {
 }
 
 .qr-p img {
-  width: 160px;
   height: 160px;
   border-radius: 10px;
   border: 2px solid var(--border-green);
@@ -7187,98 +5418,7 @@ onUnmounted(() => {
     --hdr-stick-top: var(--mob-h);
   }
 
-  /* Mobile Header — the height is exact (and border-box) so the sticky .hdr
-     below it can offset by precisely --mob-h instead of guessing */
-  .mob {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    /* reduced from 10px */
-    box-sizing: border-box;
-    height: var(--mob-h);
-    padding: 0 12px;
-    /* reduced from 14px */
-    background: var(--surface);
-    border-bottom: 1px solid var(--border);
-    position: sticky;
-    top: 0;
-    z-index: 90;
-  }
-
-  .mob-btn {
-    width: 28px;
-    /* reduced from 32px */
-    height: 28px;
-    /* reduced from 32px */
-    border-radius: 6px;
-    /* reduced from 8px */
-    border: 1px solid var(--border);
-    background: var(--surface);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    color: var(--ink);
-    position: relative;
-    flex-shrink: 0;
-  }
-
-  .mob-btn:hover {
-    border-color: var(--primary-strong, var(--primary));
-  }
-
-  .mob-info {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    /* reduced from 10px */
-    flex: 1;
-    min-width: 0;
-  }
-
-  .mob-av {
-    width: 24px;
-    /* reduced from 28px */
-    height: 24px;
-    /* reduced from 28px */
-    border-radius: 5px;
-    /* reduced from 6px */
-    overflow: hidden;
-    border: 1px solid var(--border-green);
-    flex-shrink: 0;
-    background: var(--surface-green);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--primary);
-  }
-
-  .mob-av img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-
-  .mob-label {
-    font-size: 12px;
-    /* reduced from 13px */
-    font-weight: 700;
-    color: var(--ink);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .mob-alert {
-    position: absolute;
-    top: 4px;
-    right: 4px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--amber);
-    animation: blink-dot 1.5s ease-in-out infinite;
-  }
+  /* Mobile Header styles moved to @/components/admin/AdminMobileBar.vue */
 
   /* Sidebar - Slide out */
   .side {
@@ -7769,10 +5909,6 @@ onUnmounted(() => {
 }
 
 /* ─── PWA install (owners "download the web as an app") ─── */
-.mob-install {
-  color: var(--primary-strong, var(--primary));
-}
-
 .ins-desc {
   font-size: 12.5px;
   line-height: 1.6;
@@ -7881,8 +6017,6 @@ onUnmounted(() => {
   .main {
     padding: 0px 16px 40px;
   }
-
-
 }
 
 @media (max-width: 420px) {

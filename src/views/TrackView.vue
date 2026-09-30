@@ -1,98 +1,83 @@
 <!-- Guest order live status tracking view (/track) -->
 <template>
   <div class="track" :style="themeVars">
-    <!-- ─── TOP BAR ─── -->
     <header class="trk-top">
       <div class="trk-brand">
-        <img v-if="order?.logoUrl" :src="order.logoUrl" class="trk-logo" alt="" />
-        <AppIcon v-else name="store" :size="22" />
-        <strong>{{ order?.restaurantName || i18n.t.track_title }}</strong>
+        <img
+          v-if="logoSrc"
+          :src="logoSrc"
+          class="trk-logo"
+          alt=""
+          @error="onLogoError"
+        />
+        <span v-else class="trk-logo trk-logo-empty" aria-hidden="true">
+          <AppIcon name="store" :size="19" />
+        </span>
+        <div class="trk-brand-txt">
+          <strong>{{ order?.restaurantName || i18n.t.track_title }}</strong>
+          <small v-if="order?.restaurantName">{{ i18n.t.track_title }}</small>
+        </div>
       </div>
       <div class="trk-top-acts">
-        <button class="trk-lang" @click="i18n.toggleLocale">
+        <button
+          class="trk-lang"
+          type="button"
+          :title="langTitle"
+          :aria-label="langTitle"
+          @click="i18n.toggleLocale"
+        >
+          <AppIcon name="globe" :size="14" />
           {{ i18n.locale === "km" ? "EN" : "ខ្មែរ" }}
         </button>
-        <span class="trk-live" :class="{ off: state !== 'live' }">
-          <i></i>{{ state === "live" ? i18n.t.kds_live : i18n.t.track_connecting }}
+        <span class="trk-live" :class="{ off: state !== 'live' }" role="status" aria-live="polite">
+          <i aria-hidden="true"></i>
+          {{ state === "live" ? i18n.t.kds_live : i18n.t.track_connecting }}
         </span>
       </div>
     </header>
 
     <main class="trk-body">
-      <!-- ─── NOT FOUND / INVALID LINK ─── -->
-      <div v-if="state === 'invalid' || state === 'notfound'" class="trk-blank">
-        <AppIcon name="x-octagon" :size="40" />
-        <p>{{ i18n.t.track_not_found }}</p>
-      </div>
+      <!-- Wrong / expired tracking link -->
+      <section v-if="state === 'invalid' || state === 'notfound'" class="trk-blank is-error">
+        <span class="trk-blank-ic"><AppIcon name="x-octagon" :size="30" /></span>
+        <h1>{{ i18n.t.track_not_found }}</h1>
+        <p>{{ i18n.t.track_not_found_hint }}</p>
+      </section>
 
-      <!-- ─── CONNECTING ─── -->
-      <div v-else-if="state === 'loading'" class="trk-blank">
-        <div class="trk-spinner"></div>
+      <!-- Waiting for the first snapshot -->
+      <section v-else-if="!order" class="trk-blank">
+        <span class="trk-spinner" aria-hidden="true"></span>
+        <h1>{{ i18n.t.track_title }}</h1>
         <p>{{ i18n.t.track_connecting }}</p>
-      </div>
+      </section>
 
-      <!-- ─── TRACKER ─── -->
-      <div v-else class="trk-card">
-        <div class="trk-head">
-          <span class="trk-oid">#{{ order.orderId }}</span>
-          <span class="trk-table">
-            <AppIcon name="qr" :size="13" /> {{ i18n.t.table }}
-            {{ order.tableNo }}
-          </span>
-          <span class="trk-time">{{ formatTime(order.createdAt) }}</span>
-        </div>
-
-        <!-- Cancelled banner replaces the stepper -->
-        <div v-if="isCancelled" class="trk-cancelled">
-          <AppIcon name="x-circle" :size="18" />
-          {{ i18n.t.track_cancelled }}
-        </div>
-
-        <!-- ─── LIVE STEPPER ─── -->
-        <div v-else class="trk-steps">
-          <template v-for="(s, i) in steps" :key="s.key">
-            <div class="trk-step" :class="{ done: currentStep >= i, now: currentStep === i }">
-              <div class="step-dot">
-                <AppIcon :name="s.icon" :size="16" />
-              </div>
-              <span class="step-label">{{ s.label }}</span>
-            </div>
-            <div v-if="i < steps.length - 1" class="step-line" :class="{ filled: currentStep > i }"></div>
-          </template>
-        </div>
-
-        <!-- ─── ITEMS ─── -->
-        <div class="trk-items">
-          <div class="trk-items-h">{{ i18n.t.kds_items }}</div>
-          <div v-for="(it, idx) in parseItems(order.items)" :key="idx" class="trk-item">
-            <span class="qty">{{ it.qty }}×</span>
-            <span class="name">{{ it.name }}</span>
-            <span class="price">
-              {{ currencyStore.fmt(Number(it.price) * Number(it.qty || 1)) }}
-            </span>
-          </div>
-          <div v-if="order.note" class="trk-note">
-            <AppIcon name="note" :size="13" />
-            {{ order.note }}
-          </div>
-        </div>
-
-        <!-- ─── TOTAL ─── -->
-        <div class="trk-total">
-          <span>{{ i18n.t.kds_total }}</span>
-          <strong>{{ currencyStore.fmt(order.total) }}</strong>
-        </div>
+      <!-- Live order — card stays on screen even if the stream blips -->
+      <div v-else class="trk-stack">
+        <TrackOrderCard
+          :order="order"
+          :steps="steps"
+          :current-step="currentStep"
+          :is-cancelled="isCancelled"
+          :format-time="formatTime"
+          :parse-items="parseItems"
+          :currency-store="currencyStore"
+          :i18n="i18n"
+        />
+        <p class="trk-foot">
+          {{ i18n.t.track_auto }}
+        </p>
       </div>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import { useRoute } from "vue-router";
 import { useI18nStore } from "@/stores/i18n";
 import { useCurrencyStore } from "@/stores/currency";
 import AppIcon from "@/components/AppIcon.vue";
+import TrackOrderCard from "@/components/TrackOrderCard.vue";
 import {
   normalizeHex,
   lighten,
@@ -100,6 +85,7 @@ import {
   strongColor,
 } from "@/utils/color.mjs";
 import { buildThemePalette } from "@/utils/themePalette.mjs";
+import { getCurrentLocale } from "@/utils/apiErrors";
 
 const API_BASE = import.meta.env.VITE_API_URL;
 const route = useRoute();
@@ -143,6 +129,44 @@ function statusStep(s) {
 const currentStep = computed(() => statusStep(order.value?.status));
 const isCancelled = computed(() => order.value?.status === "cancelled");
 
+// Same wording convention as SiteNav's language switcher
+const langTitle = computed(() =>
+  i18n.locale === "km" ? "Switch to English" : "ប្តូរទៅភាសាខ្មែរ",
+);
+
+// ─── LOGO ──────────────────────────────────────────────────
+// Header image: the owner's restaurant photo → the shared default logo
+// (same one MenuView uses when a restaurant hasn't uploaded one) → the
+// store-icon chip, only if even that image fails to load.
+const DEFAULT_LOGO =
+  "https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png";
+
+const ownerLogoFailed = ref(false);
+const defaultLogoFailed = ref(false);
+watch(
+  () => order.value?.logoUrl,
+  () => {
+    ownerLogoFailed.value = false; // URL changed — give the new one a chance
+    defaultLogoFailed.value = false;
+  },
+);
+const ownerLogo = computed(
+  () => order.value?.logoUrl || order.value?.logo_url || "",
+);
+const logoSrc = computed(() => {
+  if (ownerLogo.value && !ownerLogoFailed.value) return ownerLogo.value;
+  if (!defaultLogoFailed.value) return DEFAULT_LOGO;
+  return ""; // both images failed → store-icon chip
+});
+function onLogoError() {
+  // The failed <img> is still the current src when the error event fires
+  if (ownerLogo.value && logoSrc.value === ownerLogo.value) {
+    ownerLogoFailed.value = true;
+  } else {
+    defaultLogoFailed.value = true;
+  }
+}
+
 // ─── THEME (restaurant's saved color drives the page) ──────
 const themeVars = computed(() => {
   const input = order.value?.themeColor;
@@ -184,23 +208,22 @@ function formatTime(t) {
 // state instead of an endless reconnect loop. The probe connection is
 // aborted and EventSource opens its own.
 function streamUrl() {
-  return `${API_BASE}/api/orders/track?order_id=${orderId.value}&token=${encodeURIComponent(token.value)}`;
+  return `${API_BASE}/api/orders/track?order_id=${orderId.value}&token=${encodeURIComponent(token.value)}&lang=${getCurrentLocale()}`;
 }
 
 async function onStatus(event) {
   try {
     const update = JSON.parse(event.data);
-    // SSE may send only status changes — ensure full order data is loaded
-    if (orderId.value && token.value) {
-      const full = await fetchFullOrder();
-      if (full) {
-        order.value = full;
-      } else {
-        // fallback: merge whatever SSE sent
-        order.value = { ...order.value, ...update };
-      }
-    } else {
+    // The first frame (and every reconnect) is a full snapshot; later frames
+    // only carry status changes — for those, reload the complete order so
+    // items/total/theme stay intact.
+    if (update.items) {
       order.value = update;
+    } else if (orderId.value && token.value) {
+      const full = await fetchFullOrder();
+      order.value = full || { ...order.value, ...update };
+    } else {
+      order.value = { ...order.value, ...update };
     }
     currencyStore.setFrom(order.value);
     state.value = "live";
@@ -215,7 +238,10 @@ async function fetchFullOrder() {
   try {
     const res = await fetch(
       `${API_BASE}/api/orders/${orderId.value}?token=${encodeURIComponent(token.value)}`,
-      { cache: "no-store" }
+      {
+        cache: "no-store",
+        headers: { "Accept-Language": getCurrentLocale() },
+      },
     );
     if (!res.ok) return null;
     return res.json();
@@ -237,20 +263,15 @@ async function connect() {
   }
   if (es) return;
 
-  // Fetch full order first so items/theme/total render immediately
-  // (SSE only streams status changes, not the complete payload)
-  const full = await fetchFullOrder();
-  if (full) {
-    order.value = full;
-    currencyStore.setFrom(order.value);
-  }
-
+  // No REST pre-fetch here: the stream delivers a full snapshot (items,
+  // theme, total) the moment it connects, which paints the card right away.
   try {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), 8000);
     const res = await fetch(streamUrl(), {
       signal: ctrl.signal,
       cache: "no-store",
+      headers: { "Accept-Language": getCurrentLocale() },
     });
     clearTimeout(timer);
     if (res.status === 404) {
@@ -292,8 +313,11 @@ onUnmounted(() => {
   --primary-dark: #12813c;
   --on-primary: #fff;
   min-height: 100vh;
-  background: var(--green-pale, #f4faf6);
+  min-height: 100dvh;
   color: var(--text-dark, #111827);
+  background:
+    radial-gradient(760px 300px at 50% -120px, var(--glow-soft, rgba(74, 222, 128, 0.16)), transparent 70%),
+    var(--green-pale, #f4faf6);
   font-family: "Hanuman", "Noto Sans Khmer", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   display: flex;
@@ -302,14 +326,18 @@ onUnmounted(() => {
 
 /* ─── Top bar ─── */
 .trk-top {
+  position: sticky;
+  top: 0;
+  z-index: 20;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
-  padding: 12px 16px;
-  background: var(--primary);
-  color: var(--on-primary, #fff);
+  gap: 10px 12px;
   flex-wrap: wrap;
+  padding: calc(10px + env(safe-area-inset-top, 0px)) 16px 10px;
+  background: linear-gradient(120deg, var(--primary-dark, #12813c), var(--primary) 62%);
+  color: var(--on-primary, #fff);
+  box-shadow: 0 12px 26px -18px var(--shadow-tint, rgba(16, 24, 20, 0.55));
 }
 
 .trk-brand {
@@ -317,19 +345,45 @@ onUnmounted(() => {
   align-items: center;
   gap: 10px;
   min-width: 0;
+  flex: 1 1 auto;
 }
 
 .trk-logo {
-  width: 34px;
-  height: 34px;
-  border-radius: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 11px;
   object-fit: cover;
-  border: 2px solid rgba(255, 255, 255, 0.4);
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.16);
   flex-shrink: 0;
 }
 
-.trk-brand strong {
+.trk-logo-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-primary, #fff);
+}
+
+.trk-brand-txt {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.trk-brand-txt strong {
   font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trk-brand-txt small {
+  font-size: 10.5px;
+  font-weight: 600;
+  opacity: 0.85;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -339,51 +393,70 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-shrink: 0;
 }
 
+/* Language pill — KH ⇄ EN */
 .trk-lang {
-  height: 30px;
-  min-width: 48px;
-  padding: 0 10px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.45);
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--on-primary, #fff);
-  font-family: inherit;
-  font-size: 11px;
-  font-weight: 800;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.trk-lang:hover {
-  background: rgba(255, 255, 255, 0.22);
-}
-
-.trk-live {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   height: 30px;
-  padding: 0 11px;
+  padding: 0 12px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.16);
-  font-size: 11px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+  transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.trk-lang:hover {
+  background: rgba(255, 255, 255, 0.24);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
+.trk-lang:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.85);
+  outline-offset: 2px;
+}
+
+/* Live badge — dot blinks while the SSE stream is open */
+.trk-live {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  font-size: 11.5px;
   font-weight: 700;
+  line-height: 1;
   white-space: nowrap;
 }
 
 .trk-live i {
-  width: 7px;
-  height: 7px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background: #a7f3d0;
-  animation: trk-blink 1.4s ease-in-out infinite;
+  background: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.25);
+  animation: trk-blink 1.5s ease-in-out infinite;
+}
+
+.trk-live.off {
+  background: rgba(0, 0, 0, 0.16);
+  border-color: rgba(255, 255, 255, 0.16);
 }
 
 .trk-live.off i {
-  background: #fecaca;
-  animation: none;
+  background: #fbbf24;
+  box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.22);
 }
 
 @keyframes trk-blink {
@@ -394,41 +467,79 @@ onUnmounted(() => {
   }
 
   50% {
-    opacity: 0.25;
+    opacity: 0.35;
   }
 }
 
 /* ─── Body ─── */
 .trk-body {
   flex: 1;
+  width: 100%;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 22px 16px calc(34px + env(safe-area-inset-bottom, 0px));
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding: 26px 14px 60px;
+  flex-direction: column;
+  gap: 14px;
 }
 
+/* Auto margins vertically center the card on tall screens, and collapse
+   to 0 when it's taller than the viewport — so nothing gets cut off. */
+.trk-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin: auto 0;
+}
+
+/* ─── Blank / loading states ─── */
 .trk-blank {
-  text-align: center;
-  color: var(--text-light, #6b7280);
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 60px 10px;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 12px 60px;
+  text-align: center;
+}
+
+.trk-blank h1 {
+  font-size: 16px;
+  font-weight: 800;
 }
 
 .trk-blank p {
-  margin: 0;
-  font-size: 14px;
+  max-width: 300px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: var(--text-light, #6b7280);
+}
+
+.trk-blank-ic {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #fff;
+  color: var(--primary-strong, var(--primary));
+  border: 1px solid var(--green-soft, #e5efe9);
+  box-shadow: 0 16px 34px -20px var(--shadow-tint, rgba(16, 24, 20, 0.5));
+}
+
+.trk-blank.is-error .trk-blank-ic {
+  color: #dc2626;
+  border-color: #fecaca;
 }
 
 .trk-spinner {
-  width: 30px;
-  height: 30px;
-  border: 3px solid var(--green-soft, #d3ecdc);
-  border-top-color: var(--primary);
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
-  animation: trk-spin 0.7s linear infinite;
+  border: 4px solid var(--green-soft, #e5efe9);
+  border-top-color: var(--primary);
+  animation: trk-spin 0.8s linear infinite;
 }
 
 @keyframes trk-spin {
@@ -437,226 +548,30 @@ onUnmounted(() => {
   }
 }
 
-/* ─── Card ─── */
-.trk-card {
-  width: 100%;
-  max-width: 460px;
-  background: #fff;
-  border-radius: 22px;
-  border: 1px solid var(--green-soft, #e8f5e9);
-  box-shadow: 0 20px 50px var(--shadow-tint, rgba(16, 24, 20, 0.12));
-  padding: 18px 18px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.trk-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.trk-oid {
-  font-size: 17px;
-  font-weight: 800;
-  color: var(--primary-strong, var(--primary));
-}
-
-.trk-table {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 700;
-  padding: 4px 11px;
-  border-radius: 999px;
-  background: var(--green-pale, #f0fdf4);
-  color: var(--green-dark, #14532d);
-}
-
-.trk-time {
-  font-size: 11px;
-  color: var(--text-light, #6b7280);
-  white-space: nowrap;
-}
-
-/* ─── Cancelled ─── */
-.trk-cancelled {
+/* ─── Footer hint ─── */
+.trk-foot {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 16px;
-  border-radius: 14px;
-  background: #fef2f2;
-  border: 1px solid #fecaca;
-  color: #b91c1c;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-/* ─── Stepper ─── */
-.trk-steps {
-  display: flex;
-  align-items: flex-start;
-}
-
-.trk-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 6px;
-  flex: 0 0 auto;
-  min-width: 58px;
-}
-
-.step-dot {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--green-pale, #f0fdf4);
-  color: var(--text-light, #9ca3af);
-  border: 2px solid var(--green-soft, #e5efe9);
-  transition: all 0.3s ease;
-}
-
-.step-label {
-  font-size: 10.5px;
-  font-weight: 700;
-  color: var(--text-light, #9ca3af);
-  text-align: center;
-  line-height: 1.25;
-  white-space: nowrap;
-}
-
-.trk-step.done .step-dot {
-  background: var(--primary);
-  border-color: var(--primary);
-  color: var(--on-primary, #fff);
-}
-
-.trk-step.done .step-label {
-  color: var(--primary-strong, var(--primary));
-}
-
-.trk-step.now .step-dot {
-  animation: trk-pulse 1.8s ease-in-out infinite;
-}
-
-@keyframes trk-pulse {
-
-  0%,
-  100% {
-    box-shadow: 0 0 0 4px var(--glow-soft, rgba(74, 222, 128, 0.2));
-  }
-
-  50% {
-    box-shadow: 0 0 0 8px var(--glow-soft, rgba(74, 222, 128, 0.08));
-  }
-}
-
-.step-line {
-  flex: 1;
-  height: 3px;
-  border-radius: 3px;
-  background: var(--green-soft, #e5efe9);
-  margin-top: 18px;
-  min-width: 12px;
-  transition: background 0.3s ease;
-}
-
-.step-line.filled {
-  background: var(--primary);
-}
-
-/* ─── Items ─── */
-.trk-items {
-  border-top: 1px dashed var(--green-soft, #e5efe9);
-  padding-top: 12px;
-  display: flex;
-  flex-direction: column;
   gap: 7px;
-}
-
-.trk-items-h {
-  font-size: 10.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
-  color: var(--text-light, #9ca3af);
-}
-
-.trk-item {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  font-size: 14px;
-}
-
-.trk-item .qty {
-  color: var(--primary-strong, var(--primary));
-  font-weight: 800;
-  min-width: 28px;
-  text-align: right;
-}
-
-.trk-item .name {
-  flex: 1;
-  min-width: 0;
-}
-
-.trk-item .price {
+  font-size: 11.5px;
   font-weight: 600;
-  color: var(--text-light, #4b5563);
-  font-size: 12.5px;
-  white-space: nowrap;
-}
-
-.trk-note {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #92400e;
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px dashed rgba(245, 158, 11, 0.35);
-  border-radius: 10px;
-  padding: 7px 10px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-/* ─── Total ─── */
-.trk-total {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-top: 2px solid var(--green-soft, #e5efe9);
-  padding-top: 12px;
-  font-size: 14px;
-  font-weight: 700;
   color: var(--text-light, #6b7280);
+  text-align: center;
 }
 
-.trk-total strong {
-  font-size: 20px;
-  font-weight: 800;
-  color: var(--primary-strong, var(--primary));
-}
-
-/* ─── Responsive ─── */
-@media (max-width: 420px) {
-  .step-label {
-    font-size: 9.5px;
+/* ─── Small screens ─── */
+@media (max-width: 380px) {
+  .trk-top {
+    padding-inline: 12px;
   }
 
-  .trk-card {
-    padding: 15px 14px 18px;
+  .trk-brand-txt small {
+    display: none;
+  }
+
+  .trk-lang {
+    padding: 0 10px;
   }
 }
 

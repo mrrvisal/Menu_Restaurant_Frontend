@@ -1,0 +1,911 @@
+/* ─── ADMIN SHARED PRIMITIVES ────────────────────────────────
+   Moved out of AdminView.vue's scoped styles so the split admin
+   components can keep using them (scoped CSS cannot cross component
+   boundaries). Selector CONTEXT keeps every rule admin-only:
+     • `.root …`    → admin in-page content (sidebar / header / tabs)
+     • `.overlay …` → admin modal content (teleported to <body>)
+   Both roots exist ONLY on admin screens, so `.btn` / `.msg` / `.chip`
+   (which also exist in other views) can never leak outside admin.
+   Class names and declarations are unchanged — visuals stay identical.
+   Imported once from main.js, before any component styles. */
+
+/* Chips (category filter, report presets) */
+.root .chip,
+.overlay .chip {
+  padding: 6px 14px;
+  background: var(--surface);
+  border-radius: 999px;
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  border: 1px solid var(--border);
+  min-height: 30px;
+  flex-shrink: 0;
+}
+
+.root .chip:hover,
+.overlay .chip:hover {
+  border-color: var(--primary-strong, var(--primary));
+  color: var(--text);
+  transform: translateY(-1px);
+}
+
+.root .chip.active,
+.overlay .chip.active {
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+  border-color: var(--primary-strong, var(--primary));
+}
+
+/* Search box (foods search, orders bar, QR modal) */
+.root .srch,
+.overlay .srch {
+  position: relative;
+  min-width: 150px;
+  flex: 1;
+  max-width: 280px;
+}
+
+.root .srch input,
+.overlay .srch input {
+  width: 100%;
+  padding: 6px 24px 6px 30px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--text);
+  background: var(--surface);
+  outline: none;
+  transition: all 0.2s ease;
+  min-height: 32px;
+}
+
+.root .srch input:focus,
+.overlay .srch input:focus {
+  border-color: var(--primary-strong, var(--primary));
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.root .srch-i,
+.overlay .srch-i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted-light);
+  pointer-events: none;
+}
+
+.root .srch-x,
+.overlay .srch-x {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: none;
+  background: var(--surface-green);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.root .srch-x:hover,
+.overlay .srch-x:hover {
+  background: var(--border-green);
+  color: var(--text);
+}
+
+/* Small icon buttons (close, edit, delete) */
+.root .ic,
+.overlay .ic {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.root .ic:hover,
+.overlay .ic:hover {
+  border-color: var(--primary-strong, var(--primary));
+  background: var(--surface-green);
+  color: var(--primary-strong, var(--primary));
+}
+
+.root .ic-sm,
+.overlay .ic-sm {
+  width: 26px;
+  height: 26px;
+}
+
+.root .ic-red,
+.overlay .ic-red {
+  color: var(--red);
+}
+
+.root .ic-red:hover,
+.overlay .ic-red:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: var(--red-dark);
+}
+
+/* ═══ MODAL CHROME ═══
+   `.overlay` is admin-unique (verified) → kept as-is; everything inside
+   is prefixed with `.overlay` to restore the original scoped specificity. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.overlay .dlg {
+  background: white;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 320px;
+  padding: 24px 20px;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-green);
+}
+
+.overlay .sheet {
+  background: var(--surface);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 440px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
+  border: 1px solid var(--border-green);
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.overlay .sheet-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--surface-green);
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.overlay .sheet-h span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--primary-strong, var(--primary));
+}
+
+.overlay .sheet-b {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.overlay .dlg-i {
+  color: var(--red);
+  margin-bottom: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.overlay .dlg-i-r {
+  color: var(--red-dark);
+}
+
+.overlay .dlg-t {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--red);
+  margin-bottom: 4px;
+}
+
+.overlay .dlg-d {
+  font-size: 12px;
+  color: #374151;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.overlay .dlg-acts {
+  display: flex;
+  gap: 8px;
+}
+
+.overlay .dlg-acts .btn {
+  flex: 1;
+  justify-content: center;
+}
+
+/* ═══ BUTTONS ═══ */
+.root .btn,
+.overlay .btn {
+  padding: 8px 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+  min-height: 36px;
+  min-width: 70px;
+}
+
+.root .btn:hover,
+.overlay .btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Disabled buttons (e.g. "Installed" in the install-app modal) */
+.root .btn:disabled,
+.overlay .btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.root .btn:disabled:hover,
+.overlay .btn:disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.root .btn-g,
+.overlay .btn-g {
+  background: var(--surface-green);
+  color: var(--ink);
+  border: 1px solid var(--border-green);
+}
+
+.root .btn-g:hover,
+.overlay .btn-g:hover {
+  background: var(--tint-hover, #dcfce7);
+}
+
+.root .btn-r,
+.overlay .btn-r {
+  background: var(--red);
+  color: white;
+}
+
+.root .btn-r:hover,
+.overlay .btn-r:hover {
+  background: var(--red-dark);
+}
+
+.root .btn-primary,
+.overlay .btn-primary {
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+}
+
+.root .btn-primary:hover,
+.overlay .btn-primary:hover {
+  background: var(--primary-dark);
+  box-shadow: 0 4px 16px var(--primary-glow-strong);
+}
+
+.root .btn-b,
+.overlay .btn-b {
+  width: 100%;
+  justify-content: center;
+}
+
+.root .btn-sm,
+.overlay .btn-sm {
+  min-height: 28px;
+  min-width: 0;
+  padding: 4px 12px;
+  font-size: 11px;
+  border-radius: 6px;
+}
+
+/* ═══ FORM FIELDS ═══ */
+.root .fld,
+.overlay .fld {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.root .fld-l,
+.overlay .fld-l {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.root .fld-i,
+.overlay .fld-i {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  color: var(--text);
+  transition: all 0.2s ease;
+  background: var(--surface);
+  box-sizing: border-box;
+  min-height: 36px;
+}
+
+.root .fld-i:focus,
+.overlay .fld-i:focus {
+  border-color: var(--primary-strong, var(--primary));
+  box-shadow: 0 0 0 3px var(--primary-glow);
+}
+
+.root .fld-i.err,
+.overlay .fld-i.err {
+  border-color: var(--red);
+  background: #fff8f8;
+}
+
+.root .fld-hint,
+.overlay .fld-hint {
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--muted);
+  margin: 6px 0 0;
+}
+
+.root .fld-e,
+.overlay .fld-e {
+  font-size: 10px;
+  color: var(--red);
+}
+
+/* ═══ MESSAGES (success / error / info) ═══ */
+.root .msg,
+.overlay .msg {
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.root .msg-s,
+.overlay .msg-s {
+  background: var(--surface-green);
+  color: var(--green-dark);
+  border: 1px solid var(--border-green);
+}
+
+.root .msg-e,
+.overlay .msg-e {
+  background: #fef2f2;
+  color: var(--red);
+  border: 1px solid #fecaca;
+}
+
+.root .msg-i,
+.overlay .msg-i {
+  background: #eff6ff;
+  color: var(--blue);
+  border: 1px solid #bfdbfe;
+}
+
+/* ═══ TRANSITIONS ═══
+   AdminView's scoped timing (0.15s) — compound selectors keep it on
+   admin elements only, overriding the global main.css 0.2s fade. */
+.overlay.fade-enter-active,
+.overlay.fade-leave-active,
+.profile-menu.fade-enter-active,
+.profile-menu.fade-leave-active {
+  transition: opacity 0.15s ease;
+}
+
+.overlay.fade-enter-from,
+.overlay.fade-leave-to,
+.profile-menu.fade-enter-from,
+.profile-menu.fade-leave-to {
+  opacity: 0;
+}
+
+/* ═══ RESPONSIVE (from AdminView's scoped media queries) ═══ */
+@media (max-width: 900px) {
+  .root .srch,
+  .overlay .srch {
+    min-width: 0;
+    flex: 1;
+    max-width: none;
+  }
+
+  .root .btn,
+  .overlay .btn {
+    min-height: 30px;
+    min-width: 50px;
+    font-size: 10px;
+    padding: 5px 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .overlay .sheet {
+    max-width: 100%;
+    margin: 6px;
+    border-radius: 10px;
+  }
+
+  .overlay .sheet-h {
+    padding: 12px 14px;
+    font-size: 12px;
+  }
+
+  .overlay .sheet-b {
+    padding: 12px;
+    gap: 10px;
+  }
+
+  .overlay .dlg {
+    padding: 16px 14px;
+  }
+
+  .root .chip,
+  .overlay .chip {
+    padding: 3px 8px;
+    font-size: 9px;
+    min-height: 24px;
+  }
+
+  .root .btn,
+  .overlay .btn {
+    min-height: 26px;
+    min-width: 40px;
+    font-size: 9px;
+    padding: 3px 8px;
+  }
+
+  .root .fld-i,
+  .overlay .fld-i {
+    min-height: 28px;
+    font-size: 10px;
+    padding: 5px 6px;
+  }
+}
+
+/* ═══ SHARED WITH THE AdminView.vue SPLIT COMPONENTS ═══════════
+   Same rule bodies as AdminView.vue's scoped styles; only the selector
+   context (.root / .overlay) is prefixed, so class names and visuals
+   stay identical across the split components. */
+
+/* ── Action buttons (toolbars, header avatar, reports export) ── */
+.root .ac,
+.overlay .ac {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-family: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  position: relative;
+  min-height: 36px;
+  min-width: 36px;
+  flex-shrink: 0;
+  line-height: 1.2;
+  border: none;
+}
+
+.root .ac-ghost,
+.overlay .ac-ghost {
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.root .ac-ghost:hover,
+.overlay .ac-ghost:hover {
+  border-color: var(--primary-strong, var(--primary));
+  background: var(--surface-green);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+.root .ac-primary,
+.overlay .ac-primary {
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+  border: 1px solid var(--primary-strong, var(--primary));
+}
+
+.root .ac-primary:hover,
+.overlay .ac-primary:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px var(--primary-glow-strong);
+}
+
+.root .ac-avatar,
+.overlay .ac-avatar {
+  padding: 8px;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  justify-content: center;
+  min-width: 36px;
+}
+
+.root .ac-icon-only,
+.overlay .ac-icon-only {
+  padding: 8px 10px;
+}
+
+.root .ac:disabled,
+.overlay .ac:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.root .ac span,
+.overlay .ac span {
+  display: inline-block;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+
+/* ── Toolbar (foods / categories / orders / reports bars) ── */
+.root .bar,
+.overlay .bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.root .bar-scroll,
+.overlay .bar-scroll {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: 1;
+  padding: 2px 0;
+  min-width: 100px;
+}
+
+.root .bar-scroll::-webkit-scrollbar,
+.overlay .bar-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.root .bar-acts,
+.overlay .bar-acts {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.root .bar-count,
+.overlay .bar-count {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+/* ── Metric value/label (metrics strip + report summary cards) ── */
+.root .metric-b,
+.overlay .metric-b {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  /* value → label breathing room */
+  min-width: 0;
+}
+
+.root .metric-v,
+.overlay .metric-v {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.root .metric-l,
+.overlay .metric-l {
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--muted);
+  font-weight: 500;
+  /* letter-spacing 0: tracking inserts visible gaps between Khmer glyphs */
+  letter-spacing: 0;
+}
+
+
+/* ── Order status pill (order cards + report status rows) ── */
+.root .order-st,
+.overlay .order-st {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  white-space: nowrap;
+  letter-spacing: 0.2px;
+  /* SVG status icon + label */
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.root .order-st.pending,
+.overlay .order-st.pending {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.root .order-st.confirmed,
+.overlay .order-st.confirmed {
+  background: #dbeafe;
+  color: #1e40af;
+}
+
+.root .order-st.preparing,
+.overlay .order-st.preparing {
+  background: #fce7f3;
+  color: #9d174d;
+}
+
+.root .order-st.ready,
+.overlay .order-st.ready {
+  background: var(--tint-hover, #dcfce7);
+  color: var(--green-dark);
+}
+
+.root .order-st.served,
+.overlay .order-st.served {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.root .order-st.cancelled,
+.overlay .order-st.cancelled {
+  background: #fbe9e7;
+  color: var(--red);
+}
+
+/* ── Loading / empty states ── */
+.root .empty,
+.overlay .empty {
+  text-align: center;
+  padding: 56px 20px;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.root .empty p,
+.overlay .empty p {
+  margin: 0;
+  font-size: 13px;
+}
+
+.root .spinner,
+.overlay .spinner {
+  width: 24px;
+  height: 24px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--primary-strong, var(--primary));
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+
+/* ── Numbered steps (Telegram guide + install-app modal) ── */
+.root .tg-step,
+.overlay .tg-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  color: var(--text);
+}
+
+.root .tg-step:last-child,
+.overlay .tg-step:last-child {
+  margin-bottom: 0;
+}
+
+.root .step-n,
+.overlay .step-n {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--on-primary, #fff);
+  font-size: 8px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.root .tg-step code,
+.overlay .tg-step code {
+  background: var(--surface-green);
+  padding: 1px 4px;
+  border-radius: 4px;
+  color: var(--primary-strong, var(--primary));
+}
+
+
+/* ── Responsive overrides (from AdminView's scoped media queries) ── */
+@media (max-width: 900px) {
+  .root .ac,
+  .overlay .ac {
+    padding: 5px 10px;
+    /* reduced from 6px 12px */
+    font-size: 10px;
+    /* reduced from 11px */
+    min-height: 28px;
+    /* reduced from 32px */
+    min-width: 28px;
+    /* reduced from 32px */
+  }
+
+  .root .ac span,
+  .overlay .ac span {
+    max-width: 70px;
+    /* reduced from 80px */
+  }
+
+  .root .ac-icon-only,
+  .overlay .ac-icon-only {
+    padding: 5px 6px;
+    /* reduced from 6px 8px */
+  }
+
+  .root .bar,
+  .overlay .bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+    /* reduced from 8px */
+    margin-bottom: 12px;
+    /* reduced from 18px */
+  }
+
+  .root .bar-acts,
+  .overlay .bar-acts {
+    flex-wrap: wrap;
+  }
+
+  .root .bar-scroll,
+  .overlay .bar-scroll {
+    order: 2;
+  }
+
+  .root .metric-v,
+  .overlay .metric-v {
+    font-size: 17px;
+    /* reduced from 18px */
+  }
+}
+
+
+@media (max-width: 480px) {
+  .root .ac,
+  .overlay .ac {
+    padding: 3px 8px;
+    /* reduced from 4px 10px */
+    font-size: 9px;
+    /* reduced from 10px */
+    min-height: 24px;
+    /* reduced from 28px */
+    min-width: 24px;
+    /* reduced from 28px */
+  }
+
+  .root .ac span,
+  .overlay .ac span {
+    max-width: 50px;
+    /* reduced from 60px */
+  }
+
+  .root .ac-icon-only,
+  .overlay .ac-icon-only {
+    padding: 3px 4px;
+    /* reduced from 4px 6px */
+  }
+
+  .root .bar-scroll,
+  .overlay .bar-scroll {
+    gap: 4px;
+  }
+
+  .root .metric-v,
+  .overlay .metric-v {
+    font-size: 16px;
+    /* reduced from 17px */
+  }
+}
+
+@media (max-width: 380px) {
+  .root .ac span,
+  .overlay .ac span {
+    max-width: 35px;
+    /* reduced from 40px */
+  }
+}
+
+@media (max-height: 600px) and (orientation: landscape) {
+  .root .metric-v,
+  .overlay .metric-v {
+    font-size: 14px;
+    /* reduced from 16px */
+  }
+}
+

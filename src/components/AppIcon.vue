@@ -107,6 +107,17 @@
     <line x1="16" y1="17" x2="8" y2="17" />
     <polyline points="10 9 9 9 8 9" />
   </svg>
+  <!-- Super admin: shield + crown (sidebar nav, stats card, panel headers) -->
+  <svg v-else-if="name === 'shield'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M12 2.2 4.4 5v6c0 4.7 3.1 8.9 7.6 10.1 4.5-1.2 7.6-5.4 7.6-10.1V5L12 2.2Z" />
+    <path d="M7.9 15 7.4 10.4 10.4 12.7 12 8.9 13.6 12.7 16.6 10.4 16.1 15Z" stroke-width="1.75" />
+  </svg>
+  <svg v-else-if="name === 'plus'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M12 5v14" />
+    <path d="M5 12h14" />
+  </svg>
   <svg v-else-if="name === 'lock'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
     stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
     <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />

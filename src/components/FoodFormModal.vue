@@ -14,8 +14,8 @@
 
             <!-- Name -->
             <div class="form-group">
-              <label class="form-label">ឈ្មោះម្ហូប *</label>
-              <input v-model="form.name" class="form-input" :class="{ error: errors.name }" placeholder="ឈ្មោះម្ហូប..."
+              <label class="form-label">{{ i18n.t.food_name }} *</label>
+              <input v-model="form.name" class="form-input" :class="{ error: errors.name }" :placeholder="i18n.t.food_name_ph"
                 @input="errors.name = ''" />
               <div v-if="errors.name" class="field-err">{{ errors.name }}</div>
             </div>
@@ -78,6 +78,7 @@
 <script setup>
 import { ref, watch } from 'vue';
 import { useFoodsStore } from '@/stores/foods';
+import { useI18nStore } from '@/stores/i18n';
 import AppSelect from '@/components/AppSelect.vue';
 import AppIcon from '@/components/AppIcon.vue';
 
@@ -89,6 +90,7 @@ const props = defineProps({
 const emit = defineEmits(['close', 'saved']);
 
 const foods = useFoodsStore();
+const i18n = useI18nStore();
 const fileInput = ref(null);
 const previewUrl = ref('');
 const selectedFile = ref(null);
@@ -141,14 +143,14 @@ function onFileChange(event) {
 
   // Validate file size (5MB max)
   if (file.size > 5 * 1024 * 1024) {
-    errors.value.img = 'រូបភាពធំពេក (max 5MB)';
+    errors.value.img = i18n.t.image_too_large;
     return;
   }
 
   // Validate file type
   const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
   if (!allowedTypes.includes(file.type)) {
-    errors.value.img = 'សូមជ្រើសរើសរូបភាពប្រភេទ JPG, PNG, WEBP, ឬ GIF';
+    errors.value.img = i18n.t.image_type_invalid;
     return;
   }
 
@@ -174,11 +176,11 @@ function removeImage() {
 function validate() {
   let isValid = true;
   if (!form.value.name.trim()) {
-    errors.value.name = 'សូមបញ្ចូលឈ្មោះម្ហូប';
+    errors.value.name = i18n.t.food_name_required;
     isValid = false;
   }
   if (!form.value.price || isNaN(form.value.price) || parseFloat(form.value.price) < 0) {
-    errors.value.price = 'សូមបញ្ចូលតម្លៃត្រឹមត្រូវ';
+    errors.value.price = i18n.t.price_invalid;
     isValid = false;
   }
   return isValid;
@@ -204,17 +206,17 @@ async function submit() {
 
     if (props.editFood) {
       await foods.updateFood(props.editFood.id, formData);
-      successMsg.value = 'រក្សាទុកបានជោគជ័យ!';
+      successMsg.value = i18n.t.saved_success;
     } else {
       await foods.addFood(formData);
-      successMsg.value = 'បន្ថែមម្ហូបបានជោគជ័យ!';
+      successMsg.value = i18n.t.food_created;
     }
 
     emit('saved');
     setTimeout(() => emit('close'), 1000);
   } catch (error) {
     console.error('Submit error:', error);
-    errors.value.name = error.response?.data?.error || error.message || 'មានបញ្ហា សូមព្យាយាមម្ដងទៀត';
+    errors.value.name = error.response?.data?.error || i18n.t.generic_error;
   } finally {
     submitting.value = false;
   }

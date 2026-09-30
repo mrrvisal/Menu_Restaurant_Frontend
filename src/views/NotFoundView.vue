@@ -7,23 +7,7 @@
     <div class="nf-glow g2" aria-hidden="true"></div>
 
     <main class="nf-inner">
-      <!-- floating cracked-plate illustration -->
-      <div class="nf-art" aria-hidden="true">
-        <svg viewBox="0 0 140 140" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"
-          stroke-linejoin="round">
-          <!-- plate -->
-          <ellipse cx="66" cy="84" rx="50" ry="19" />
-          <ellipse cx="66" cy="79" rx="32" ry="11" opacity=".5" />
-          <!-- crack -->
-          <path d="M48 72l8 9-5 6 9 7" opacity=".75" />
-          <!-- fork -->
-          <path d="M98 30v16m-6-16v9a6 6 0 0 0 12 0v-9" />
-          <path d="M98 46v18" />
-          <!-- knife -->
-          <path d="M114 30c5 8 5 18 0 26v20" />
-        </svg>
-        <span class="nf-q">?</span>
-      </div>
+      <NotFoundIllustration />
 
       <h1 class="nf-code" aria-label="404">
         <span>4</span><span class="nf-hollow">0</span><span>4</span>
@@ -63,6 +47,7 @@
 import { ref } from "vue";
 import { useRoute } from "vue-router";
 import { useI18nStore } from "@/stores/i18n";
+import NotFoundIllustration from "@/components/NotFoundIllustration.vue";
 
 const i18n = useI18nStore();
 const route = useRoute();
@@ -159,51 +144,6 @@ const triedPath = ref(route.fullPath === "/" ? "" : route.fullPath);
     opacity: 1;
     transform: none;
   }
-}
-
-/* ── floating cracked-plate illustration ── */
-.nf-art {
-  position: relative;
-  color: #16a34a;
-  filter: drop-shadow(0 10px 14px rgba(22, 163, 74, 0.18));
-  animation: nfBob 4.5s ease-in-out infinite;
-  margin-bottom: 4px;
-}
-
-.nf-art svg {
-  width: 132px;
-  height: 132px;
-}
-
-@keyframes nfBob {
-
-  0%,
-  100% {
-    transform: translateY(0) rotate(-3deg);
-  }
-
-  50% {
-    transform: translateY(-10px) rotate(3deg);
-  }
-}
-
-/* amber "?" chip pinned on the plate's edge */
-.nf-q {
-  position: absolute;
-  top: -4px;
-  right: -2px;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #f59e0b;
-  color: #fff;
-  font-size: 18px;
-  font-weight: 900;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.18), 0 6px 18px rgba(180, 83, 9, 0.25);
-  animation: nfBob 4.5s ease-in-out infinite reverse;
 }
 
 /* gradient "404" — solid glowing digits with a hollow zero */
@@ -342,11 +282,6 @@ const triedPath = ref(route.fullPath === "/" ? "" : route.fullPath);
     padding: 24px 16px;
   }
 
-  .nf-art svg {
-    width: 108px;
-    height: 108px;
-  }
-
   .nf-actions {
     width: 100%;
   }
@@ -360,8 +295,6 @@ const triedPath = ref(route.fullPath === "/" ? "" : route.fullPath);
 @media (prefers-reduced-motion: reduce) {
 
   .nf-glow,
-  .nf-art,
-  .nf-q,
   .nf-hollow,
   .nf-inner {
     animation: none;

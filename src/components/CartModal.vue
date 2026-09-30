@@ -120,6 +120,7 @@ import { ref, reactive, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useCartStore } from "@/stores/cart";
 import { useCurrencyStore } from "@/stores/currency";
+import { useI18nStore } from "@/stores/i18n";
 import AppIcon from "@/components/AppIcon.vue";
 import axios from "axios";
 
@@ -135,6 +136,7 @@ const emit = defineEmits(["close"]);
 const cart = useCartStore();
 const router = useRouter();
 const currencyStore = useCurrencyStore();
+const i18n = useI18nStore();
 
 const tableNo = ref("");
 const note = ref("");
@@ -163,7 +165,7 @@ function showFeedback(type, msg = "") {
 
 async function submitOrder() {
   if (!tableNo.value.trim()) {
-    showFeedback("error", "សូមបញ្ចូលលេខតុជាមុន");
+    showFeedback("error", i18n.t.table_number_required);
     return;
   }
   sending.value = true;
@@ -203,7 +205,7 @@ async function submitOrder() {
       }, 1400);
     }
   } catch (err) {
-    const msg = err?.response?.data?.message || "មានបញ្ហា សូមព្យាយាមម្ដងទៀត";
+    const msg = err?.response?.data?.error || i18n.t.generic_error;
     showFeedback("error", msg);
   } finally {
     sending.value = false;

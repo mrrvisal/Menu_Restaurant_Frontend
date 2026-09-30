@@ -313,20 +313,36 @@ function onVisibility() {
   isPaused = document.hidden;
 }
 
+function onContextLost(event) {
+  event.preventDefault();
+  isPaused = true;
+  cancelAnimationFrame(rafId);
+  renderer = null;
+}
+
 onMounted(() => {
   try {
-    if (!window.WebGLRenderingContext) return;
+    const canvas = canvasEl.value;
+    const context = canvas?.getContext("webgl2", {
+      alpha: true,
+      antialias: true,
+      powerPreference: "high-performance",
+    });
+    if (!context) return;
+
     reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     const isMobile = window.innerWidth < 768;
     const dpr = Math.min(window.devicePixelRatio || 1, isMobile ? 1.5 : 2);
 
     renderer = new THREE.WebGLRenderer({
-      canvas: canvasEl.value,
+      canvas,
+      context,
       alpha: true,
       antialias: true,
       powerPreference: "high-performance",
     });
+    canvas.addEventListener("webglcontextlost", onContextLost);
     renderer.setPixelRatio(dpr);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
@@ -338,7 +354,9 @@ onMounted(() => {
     window.addEventListener("resize", onResize, { passive: true });
     document.addEventListener("visibilitychange", onVisibility);
   } catch (err) {
-    console.warn("[Hero3D] WebGL scene disabled:", err);
+    if (!/webgl context/i.test(err?.message || "")) {
+      console.warn("[Hero3D] Scene initialization failed:", err);
+    }
     renderer = null;
   }
 });
@@ -348,6 +366,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("pointermove", onPointerMove);
   window.removeEventListener("resize", onResize);
   document.removeEventListener("visibilitychange", onVisibility);
+  canvasEl.value?.removeEventListener("webglcontextlost", onContextLost);
 
   disposables.forEach((d) => d.dispose());
   disposables.length = 0;
