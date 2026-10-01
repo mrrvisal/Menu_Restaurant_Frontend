@@ -336,6 +336,7 @@ const onSearch = (event) => emit("update:search", event.target.value);
 @media (max-width: 480px) {
   .panel-head {
     padding: 14px;
+    flex-direction: column;
   }
 
   .panel-title {

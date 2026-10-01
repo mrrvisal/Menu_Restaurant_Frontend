@@ -50,10 +50,16 @@
           <h1 class="page-title"><AppIcon name="sparkle" :size="18" class="hdr-title-i" /> {{ pageTitle }}</h1>
           <p class="page-sub">{{ t.super_admin }} · {{ t.manage_system }}</p>
         </div>
+        <div class="tab-bar">
+        <button v-if="tab == 'dashboard'" class="icon-refresh" :class="{ spinning: loading }" :disabled="loading" :title="t.refresh"
+          :aria-label="t.refresh" @click="refreshAll">
+          <AppIcon name="refresh" :size="16" />
+        </button>
+      </div>
       </header>
 
       <!-- Slim bar: one line of figures for the current tab + a quiet refresh -->
-      <div class="tab-bar">
+      <div v-if="tab !== 'dashboard'" class="tab-bar">
         <SummaryStrip v-if="tab !== 'dashboard'" :items="summaryItems" />
         <button class="icon-refresh" :class="{ spinning: loading }" :disabled="loading" :title="t.refresh"
           :aria-label="t.refresh" @click="refreshAll">
@@ -468,9 +474,9 @@
         <div class="field field-full">
           <span class="field-label">{{ t.link_code }}</span>
           <span class="field-value link-row">
-            <code class="code">{{ selectedRestaurant.telegram_link_code || "—" }}</code>
+            <code class="code">{{ `/link ${selectedRestaurant.telegram_link_code || "—"}` }}</code>
             <button v-if="selectedRestaurant.telegram_link_code" class="copy-btn"
-              @click="copyText(selectedRestaurant.telegram_link_code)">
+              @click="copyText(`/link ${selectedRestaurant.telegram_link_code}`)">
               <AppIcon name="copy" :size="12" /> {{ t.copy_link }}
             </button>
           </span>
@@ -1437,7 +1443,6 @@ function listEmptyText(kind) {
 .shell {
   display: grid;
   grid-template-columns: 252px 1fr;
-  min-height: 100vh;
   background: var(--sa-canvas);
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 14px;
@@ -1634,7 +1639,7 @@ function listEmptyText(kind) {
 
 .topbar {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 28px;
@@ -2261,14 +2266,13 @@ function listEmptyText(kind) {
   }
 
   .topbar {
-    flex-direction: column;
     align-items: stretch;
     gap: 12px;
   }
 
   /* Summary wraps under the title; the refresh keeps its 44px hit area */
   .tab-bar {
-    flex-wrap: wrap;
+    /* flex-wrap: wrap; */
     justify-content: space-between;
     gap: 10px;
   }

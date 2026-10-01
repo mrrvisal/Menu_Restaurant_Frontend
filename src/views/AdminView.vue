@@ -852,6 +852,18 @@
                 </svg>
                 {{ i18n.t.connect_telegram }}<br />
               </div>
+
+              <!-- Jump straight into the bot chat (new tab). web.telegram.org
+                   also works without the desktop app; on mobile Telegram
+                   offers "Open in app". -->
+              <a class="btn btn-primary btn-b tg-open" :href="TELEGRAM_BOT_URL" target="_blank"
+                rel="noopener noreferrer">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="m21 4-4.5 16-5.2-5.1L7 19l1.2-6L3 10.8 21 4Z" />
+                </svg>
+                {{ i18n.t.tg_step_open || "Open Telegram" }}
+              </a>
+
               <div class="tg-code">
                 <span class="tg-lbl">{{
                   i18n.t.link_code || "Link Code"
@@ -885,7 +897,7 @@
                   <div class="tg-step">
                     <span class="step-n">4</span>
                     {{ i18n.t.tg_step_send_link }}
-                    <code>/link {{ displayLinkCode }}</code>
+                    <code>{{ displayLinkCode }}</code>
                   </div>
                   <div class="tg-step">
                     <span class="step-n">5</span> {{ i18n.t.tg_step_done }}
@@ -1616,8 +1628,14 @@ const tgSuccess = ref("");
 const tgError = ref("");
 const copied = ref(false);
 const tgLoading = ref(false);
-const displayLinkCode = computed(() => auth.linkCode || "------");
+const displayLinkCode = computed(() => `/link ${auth.linkCode || "------"}`);
 const isLinked = computed(() => auth.isTelegramLinked);
+
+// Direct chat with our Telegram bot — the "Open Telegram" button in the
+// Telegram settings modal opens this in a new tab. The web-client form
+// works in any desktop/mobile browser (Telegram shows "Open in app" on
+// mobile); the app-first equivalent is https://t.me/digital_menu_khmer_bot
+const TELEGRAM_BOT_URL = "https://web.telegram.org/a/#8731785855";
 
 const previewLinkCopied = ref(false);
 const previewMenuUrl = computed(() => {
@@ -2082,14 +2100,14 @@ async function openTelegramSettings() {
 }
 async function copyLinkCode() {
   try {
-    await navigator.clipboard.writeText(auth.linkCode || "");
+    await navigator.clipboard.writeText(`/link ${auth.linkCode || ""}`);
     copied.value = true;
     setTimeout(() => {
       copied.value = false;
     }, 2000);
   } catch {
     const el = document.createElement("textarea");
-    el.value = auth.linkCode || "";
+    el.value = `/link ${auth.linkCode || ""}`;
     document.body.appendChild(el);
     el.select();
     document.execCommand("copy");
@@ -5132,6 +5150,12 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 6px;
+}
+
+/* "Open Telegram" — <a> reusing the primary-button styling; opens the bot
+   chat in a new tab (anchors are underlined by default → remove that) */
+.tg-open {
+  text-decoration: none;
 }
 
 .tg-code {
