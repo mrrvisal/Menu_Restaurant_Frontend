@@ -32,7 +32,10 @@ export async function fetchOrders() {
     });
     orders.value = res.data;
   } catch (err) {
-    console.error(err);
+    console.error(
+      "Failed to fetch orders:",
+      err?.response?.data?.error || err.message,
+    );
   } finally {
     ordersLoading.value = false;
   }

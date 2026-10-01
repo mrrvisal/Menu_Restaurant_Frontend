@@ -38,15 +38,11 @@ const hint = ref("");
 
 // One Tap fallback if redirect URI is unlisted in Google Cloud Console
 async function fallbackToOneTap() {
-  console.warn(
-    `[GoogleSignIn] Popup flow refused — make sure this URL is listed under ` +
-    `"Authorized redirect URIs" in Google Cloud Console:\n  ${getRedirectUri()}`
-  );
   try {
     const token = await signInWithOneTap();
     emit("credential", token);
-  } catch (err) {
-    console.warn("[GoogleSignIn] One Tap unavailable:", err?.message);
+  } catch {
+    // One Tap not available (no FedCM prompt) — point the owner at the fix
     hint.value = import.meta.env.DEV
       ? `Google sign-in blocked. Add this URL in Google Cloud Console → Authorized redirect URIs: ${getRedirectUri()}`
       : i18n.t.google_unavailable;
@@ -72,7 +68,7 @@ async function signIn() {
     if (code === "popup_closed" && Date.now() - startedAt < 5000) {
       await fallbackToOneTap();
     } else if (code === "popup_closed" || code === "access_denied") {
-      console.warn("[GoogleSignIn] sign-in cancelled:", code);
+      // User cancelled the popup — expected, nothing to report
     } else {
       console.error("[GoogleSignIn]", err);
       emit("error", err);
@@ -86,7 +82,6 @@ async function signIn() {
 <style scoped>
 .gsi-wrap {
   width: 100%;
-  min-height: 56px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -105,8 +100,8 @@ async function signIn() {
 }
 
 .google-btn {
-  width: 45px;
-  height: 45px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: #fff;
   border: 1px solid #dadce0;
@@ -137,8 +132,8 @@ async function signIn() {
 }
 
 .g-logo {
-  width: 26px;
-  height: 26px;
+  width: 20px;
+  height: 20px;
   display: block;
 }
 </style>

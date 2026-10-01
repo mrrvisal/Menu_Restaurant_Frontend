@@ -86,6 +86,54 @@ async function submitAddRestaurant() {
   }
 }
 
+// ─── DELETE RESTAURANT (typed-name confirmation) ───────────
+// The confirm modal requires the exact restaurant name before the delete
+// button unlocks, so a mis-click can never wipe a restaurant.
+const showDeleteRestaurant = ref(false);
+const deleteRestaurantConfirm = ref("");
+const deleteRestaurantSubmitting = ref(false);
+const deleteRestaurantMsg = ref("");
+const deleteRestaurantError = ref("");
+
+function openDeleteRestaurant() {
+  deleteRestaurantConfirm.value = "";
+  deleteRestaurantMsg.value = "";
+  deleteRestaurantError.value = "";
+  showDeleteRestaurant.value = true;
+}
+
+async function submitDeleteRestaurant() {
+  const target = auth.restaurant;
+  if (!target) return;
+  const typed = deleteRestaurantConfirm.value.trim().toLowerCase();
+  if (typed !== String(target.name || "").trim().toLowerCase()) {
+    deleteRestaurantError.value = i18n.t.del_rest_type_name;
+    return;
+  }
+  deleteRestaurantMsg.value = "";
+  deleteRestaurantError.value = "";
+  deleteRestaurantSubmitting.value = true;
+  try {
+    await axios.delete(`${API_BASE}/api/auth/restaurants/${target.id}`);
+    // fetchMe() reconciles the selection: the deleted restaurant disappears
+    // and the store falls back to the next owned one (or null when none).
+    await auth.fetchMe();
+    syncRestaurantTheme();
+    currencyStore.setFrom(auth.restaurant);
+    await initForRestaurant();
+    deleteRestaurantMsg.value = i18n.t.restaurant_deleted;
+    setTimeout(() => {
+      showDeleteRestaurant.value = false;
+    }, 1100);
+  } catch (err) {
+    // apiErrors.js flattens the backend's bilingual error into a string
+    deleteRestaurantError.value =
+      err.response?.data?.error || i18n.t.generic_error;
+  } finally {
+    deleteRestaurantSubmitting.value = false;
+  }
+}
+
 // ─── MENU HANDLING (one menu per restaurant) ───────────────
 async function ensureDefaultMenu() {
   if (!auth.restaurantId) return;
@@ -156,6 +204,13 @@ export function useAdminRestaurant() {
     addRestaurantError,
     openAddRestaurant,
     submitAddRestaurant,
+    showDeleteRestaurant,
+    deleteRestaurantConfirm,
+    deleteRestaurantSubmitting,
+    deleteRestaurantMsg,
+    deleteRestaurantError,
+    openDeleteRestaurant,
+    submitDeleteRestaurant,
     onSwitchRestaurant,
     initForRestaurant,
     ensureDefaultMenu,

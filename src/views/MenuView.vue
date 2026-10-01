@@ -253,8 +253,8 @@ onMounted(async () => {
         { params: { rid: encryptedToken.value } }
       );
       restaurantId.value = res.data.restaurantId;
-    } catch (err) {
-      console.error("Failed to decrypt token:", err);
+    } catch {
+      // Invalid or expired QR token — fall back to the id/param path below
       restaurantId.value = null;
     }
   } else {
@@ -349,8 +349,8 @@ async function loadRestaurant() {
         `${import.meta.env.VITE_API_URL}/api/restaurants/${restaurantId.value}`
       );
       merged = res.data;
-    } catch (err) {
-      console.error("Failed to fetch restaurant:", err);
+    } catch {
+      // Public fetch failed (bad id / network) — fall back to cached/owner data
       merged = null;
     }
   }

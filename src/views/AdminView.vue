@@ -32,6 +32,13 @@
         <button class="side-add-rest" @click="openAddRestaurant">
           + {{ i18n.t.add_restaurant || "បន្ថែមភោជនីយដ្ឋាន" }}
         </button>
+        <button v-if="auth.restaurantId" class="side-del-rest" @click="openDeleteRestaurant">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <polyline points="3 6 5 6 21 6" />
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+          </svg>
+          {{ i18n.t.delete_restaurant || "លុបភោជនីយដ្ឋាន" }}
+        </button>
       </div>
 
       <nav class="side-nav">
@@ -511,6 +518,47 @@
                     ? i18n.t.loading
                     : i18n.t.add_restaurant
                 }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Delete Restaurant (owner removes one of their own; type the name to confirm) -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="showDeleteRestaurant" class="overlay" @click.self="showDeleteRestaurant = false">
+          <div class="sheet">
+            <div class="sheet-h">
+              <span><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="1.5">
+                  <polyline points="3 6 5 6 21 6" />
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                </svg>
+                {{ i18n.t.delete_restaurant || "Delete Restaurant" }}</span><button class="ic" aria-label="Close"
+                @click="showDeleteRestaurant = false">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+            <div class="sheet-b">
+              <div v-if="deleteRestaurantMsg" class="msg msg-s">{{ deleteRestaurantMsg }}</div>
+              <div v-if="deleteRestaurantError" class="msg msg-e">{{ deleteRestaurantError }}</div>
+              <p class="del-rest-warn">{{ i18n.t.del_rest_warning }}</p>
+              <div class="fld">
+                <label class="fld-l">
+                  {{ i18n.t.del_rest_type_name }} — <b>{{ auth.restaurant?.name }}</b>
+                </label>
+                <input v-model="deleteRestaurantConfirm" class="fld-i" :placeholder="auth.restaurant?.name || ''"
+                  @keyup.enter="submitDeleteRestaurant" />
+              </div>
+              <button class="btn btn-r btn-b"
+                :disabled="deleteRestaurantSubmitting || !deleteRestaurantConfirmMatches"
+                @click="submitDeleteRestaurant">
+                {{ deleteRestaurantSubmitting ? i18n.t.loading : i18n.t.delete_restaurant }}
               </button>
             </div>
           </div>
@@ -1259,6 +1307,7 @@
     <AdminSettingsModal
       :show="showSettings"
       :i18n="i18n"
+      :has-restaurant="!!auth.restaurantId"
       v-model:settings-tab="settingsTab"
       :theme="theme"
       :on-preset-color="onPresetColor"
@@ -1293,6 +1342,7 @@
       :account-submitting="accountSubmitting"
       :save-account="saveAccount"
       @close="showSettings = false"
+      @add-restaurant="openAddRestaurantFromSettings"
     />
 
     <!-- ═══ INSTALL APP (PWA download for owners) ═══
@@ -1457,7 +1507,7 @@ const { showQR, qrTableNumber, qrCodeDataUrl, qrLoading, qrError, qrInfo, savedQ
 const { showDevices, devicesList, devicesLoading, devicesError, devicesMsg, deletingDevice, revokingDeviceId, expandedDeviceId, loginHistory, historyLoading, historyError, activeDevicesCount, openDevices, confirmRevokeDevice, doRevokeDevice, revokeAllOthers, fetchLoginHistory, toggleDeviceDetails, deviceMethodLabel } = useAdminDevices();
 const { report, reportLoading, reportError, reportGroup, reportPreset, reportStartDate, reportEndDate, reportDataset, reportFormat, reportExporting, reportExportMsg, reportExportError, reportPresets, reportGroups, reportDatasets, reportFormats, applyReportPreset, openReports, fetchReport, exportReport, reportSeriesPoints, reportHourPoints, chartColor, fmtAxis, topItemWidth, tableBarWidth, statusBarWidth } = useAdminReports();
 const { connectOrderStream, disconnectOrderStream } = useAdminStream();
-const { showAddRestaurant, addRestaurantName, addRestaurantSubmitting, addRestaurantMsg, addRestaurantError, openAddRestaurant, submitAddRestaurant, onSwitchRestaurant, initForRestaurant, ensureDefaultMenu, refreshCurrentMenuSelection, loadCategories, syncRestaurantTheme } = useAdminRestaurant();
+const { showAddRestaurant, addRestaurantName, addRestaurantSubmitting, addRestaurantMsg, addRestaurantError, openAddRestaurant, submitAddRestaurant, onSwitchRestaurant, initForRestaurant, ensureDefaultMenu, refreshCurrentMenuSelection, loadCategories, syncRestaurantTheme, showDeleteRestaurant, deleteRestaurantConfirm, deleteRestaurantSubmitting, deleteRestaurantMsg, deleteRestaurantError, openDeleteRestaurant, submitDeleteRestaurant } = useAdminRestaurant();
 // ─── RESET ON EVERY MOUNT ──────────────────────────────────
 // The domain composables keep their state in module-level singletons so
 // every part of the dashboard shares it. The original view owned per-instance
@@ -1504,6 +1554,12 @@ function resetSingletonState() {
   addRestaurantSubmitting.value = false;
   addRestaurantMsg.value = "";
   addRestaurantError.value = "";
+
+  showDeleteRestaurant.value = false;
+  deleteRestaurantConfirm.value = "";
+  deleteRestaurantSubmitting.value = false;
+  deleteRestaurantMsg.value = "";
+  deleteRestaurantError.value = "";
 
   searchDate.value = "";
   expandedDays.value = {};
@@ -1638,6 +1694,11 @@ function openSettings() {
 // Saves the display-currency choice (៛ / $) + exchange rate.
 async function saveCurrency() {
   if (currencySubmitting.value) return;
+  if (!auth.restaurantId) {
+    settingsCurrencyError.value =
+      i18n.t.need_restaurant || "Create a restaurant first";
+    return;
+  }
   currencySubmitting.value = true;
   settingsCurrencyMsg.value = "";
   settingsCurrencyError.value = "";
@@ -1743,6 +1804,11 @@ const trackingError = ref("");
 
 async function toggleOrderTracking() {
   const next = !orderTracking.value;
+  if (!auth.restaurantId) {
+    trackingError.value =
+      i18n.t.need_restaurant || "Create a restaurant first";
+    return;
+  }
   orderTracking.value = next; // optimistic — reverted below on failure
   trackingSubmitting.value = true;
   trackingMsg.value = "";
@@ -1828,13 +1894,18 @@ function applyThemeColor(color, opts = {}) {
   return true;
 }
 async function saveThemeToServer(color) {
+  if (!auth.restaurantId) return; // no restaurant on this account — nothing to persist
   try {
     await axios.patch(`${API_BASE}/api/auth/theme`, {
       themeColor: color,
       restaurant_id: auth.restaurantId,
     });
   } catch (err) {
-    console.error("Failed to save theme to server:", err);
+    // Surface the server's reason — a bare AxiosError only reports the status.
+    console.error(
+      "Failed to save theme to server:",
+      err?.response?.data?.error || err.message,
+    );
   }
 }
 function onCustomColor(e) {
@@ -1870,14 +1941,40 @@ function applySidebarPosition(pos) {
   clearTimeout(sidebarSaveTimer.value);
   sidebarSaveTimer.value = setTimeout(() => saveSidebarToServer(pos), 400);
 }
+// Delete-restaurant modal: the button unlocks only when the typed name
+// matches the current restaurant exactly (case-insensitive) — so a mis-click
+// can never wipe a restaurant.
+const deleteRestaurantConfirmMatches = computed(() => {
+  const current = String(auth.restaurant?.name || "").trim().toLowerCase();
+  return (
+    !!current &&
+    deleteRestaurantConfirm.value.trim().toLowerCase() === current
+  );
+});
+
+// From the settings modal: close it and open the create-restaurant dialog —
+// per-restaurant settings need a restaurant to write into.
+function openAddRestaurantFromSettings() {
+  showSettings.value = false;
+  openAddRestaurant();
+}
+
 async function saveSidebarToServer(pos) {
+  // The settings modal disables these controls while the account has no
+  // restaurant (the setting is stored per restaurant, so the backend would
+  // 404); keep the guard as a safety net for other callers.
+  if (!auth.restaurantId) return;
   try {
     await axios.patch(`${API_BASE}/api/auth/sidebar`, {
       sidebarPosition: pos,
       restaurant_id: auth.restaurantId,
     });
   } catch (err) {
-    console.error("Failed to save sidebar position:", err);
+    // Surface the server's reason — a bare AxiosError only reports the status.
+    console.error(
+      "Failed to save sidebar position:",
+      err?.response?.data?.error || err.message,
+    );
   }
 }
 function onLogoChange(e) {
@@ -1975,7 +2072,10 @@ async function openTelegramSettings() {
       auth.saveToStorage();
     }
   } catch (err) {
-    console.error(err);
+    console.error(
+      "Failed to refresh restaurant data:",
+      err?.response?.data?.error || err.message,
+    );
   } finally {
     tgLoading.value = false;
   }
@@ -2095,6 +2195,7 @@ function handleEscKey(e) {
   if (profileMenuOpen.value) {
     profileMenuOpen.value = false;
   } else if (showAddRestaurant.value) showAddRestaurant.value = false;
+  else if (showDeleteRestaurant.value) showDeleteRestaurant.value = false;
   else if (showForm.value) {
     showForm.value = false;
     editingFood.value = null;
@@ -2146,8 +2247,14 @@ async function onNotificationSelect(notification) {
 // camelCase (tableNo); DB rows fetched from /api/orders use snake_case
 // (table_no) — accept both.
 onMounted(async () => {
-  // Refresh restaurants list (in case a new one was added elsewhere)
-  await auth.fetchMe();
+  // Refresh restaurants list (in case a new one was added elsewhere).
+  // A failed refresh must not abort the rest of the mount work (menus,
+  // categories, orders, SSE) — keep the cached session and carry on.
+  try {
+    await auth.fetchMe();
+  } catch (err) {
+    console.warn("[AdminView] Could not refresh session:", err?.message);
+  }
   // Load the persisted notification history for this user (bell dropdown)
   notifications.load(auth.user?.id ?? null);
   syncRestaurantTheme();
@@ -2395,6 +2502,15 @@ onUnmounted(() => {
     white-space: nowrap;
   }
 
+  .root.layout-top .side-del-rest,
+  .root.layout-bottom .side-del-rest {
+    width: auto;
+    margin-top: 0;
+    min-height: 30px;
+    padding: 4px 12px;
+    white-space: nowrap;
+  }
+
   .root.layout-top .side-nav,
   .root.layout-bottom .side-nav {
     flex-direction: row;
@@ -2541,6 +2657,44 @@ onUnmounted(() => {
   border-style: solid;
   transform: translateY(-1px);
   box-shadow: 0 2px 8px var(--primary-glow);
+}
+
+.side-del-rest {
+  width: 100%;
+  margin-top: 8px;
+  min-height: 32px;
+  padding: 6px 10px;
+  border: 1px dashed var(--red, #ef4444);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--red, #ef4444);
+  font-family: inherit;
+  font-size: 11.5px;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.2s ease;
+}
+
+.side-del-rest:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-style: solid;
+  transform: translateY(-1px);
+}
+
+.del-rest-warn {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.07);
+  color: var(--red, #ef4444);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
 }
 
 .side-brand {

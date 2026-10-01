@@ -116,10 +116,8 @@ if ("speechSynthesis" in window) {
 }
 
 function playOrderAlert(order) {
-  if (!("speechSynthesis" in window)) {
-    console.warn("Speech synthesis not supported in this browser");
-    return;
-  }
+  // Voice alerts are best-effort: silently skip browsers without TTS.
+  if (!("speechSynthesis" in window)) return;
 
   const tableNo = order.tableNo || "1";
   const voices = ttsVoices.value;
@@ -154,9 +152,8 @@ function playOrderAlert(order) {
   utterance.onend = () => {
     isSpeaking.value = false;
   };
-  utterance.onerror = (e) => {
+  utterance.onerror = () => {
     isSpeaking.value = false;
-    console.warn("Order alert speech error:", e?.error || e);
   };
 
   // Chrome bug: speak() right after cancel() gets silently dropped.
@@ -166,8 +163,8 @@ function playOrderAlert(order) {
     try {
       window.speechSynthesis.resume();
       window.speechSynthesis.speak(utterance);
-    } catch (err) {
-      console.warn("Speech speak failed:", err);
+    } catch {
+      /* voice alert is best-effort — never break the dashboard */
     }
   }, 150);
 }
@@ -240,13 +237,11 @@ export async function connectOrderStream() {
   try {
     const probe = await probeOrderStream(url);
     if (!probe.ok) {
+      // A 404 here means the account has no (matching) restaurant in the
+      // server's database — retry slowly in case one is created later. The
+      // reason is kept in orderStreamError; no console noise on every retry.
       orderStreamError.value = probe.msg;
       streamAttempts += 1;
-      // A 404 here means the account has no (matching) restaurant in the
-      // server's database — retry slowly in case one is created later.
-      console.error(
-        `Order stream unavailable (${probe.status}): ${probe.msg} — retrying in 60s`,
-      );
       scheduleStreamRetry(60000);
       return;
     }
@@ -346,7 +341,6 @@ export async function connectOrderStream() {
     // Backoff: 5s, 10s, 15s … capped at 60s. Render's free tier can sleep
     // the service, so keep retrying — just not every 5s forever.
     const delay = Math.min(60000, 5000 * streamAttempts);
-    console.warn(`Order stream disconnected, retrying in ${delay / 1000}s…`);
     scheduleStreamRetry(delay);
   };
 

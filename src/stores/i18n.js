@@ -117,6 +117,11 @@ const translations = {
     category_created: "បន្ថែមប្រភេទបានជោគជ័យ!",
     food_created: "បន្ថែមម្ហូបបានជោគជ័យ!",
     restaurant_created: "បង្កើតភោជនីយដ្ឋានបានជោគជ័យ!",
+    delete_restaurant: "លុបភោជនីយដ្ឋាន",
+    del_rest_warning:
+      "សកម្មភាពនេះជាអចិន្ត្រៃយ៍ — មីនុយ ម្ហូប និងការបញ្ជាទិញទាំងអស់របស់ភោជនីយដ្ឋាននេះនឹងត្រូវលុបជាមួយផងដែរ។ មិនអាចត្រឡប់វិញបានទេ។",
+    del_rest_type_name: "វាយឈ្មោះភោជនីយដ្ឋានដើម្បីបញ្ជាក់",
+    restaurant_deleted: "លុបភោជនីយដ្ឋានរួចរាល់!",
     tg_unlinked: "លែងភ្ជាប់ Telegram រួចរាល់!",
     tg_unlink_confirm: "តើចង់លែងភ្ជាប់ Telegram មែនទេ?",
     menu_empty_title: "រកមិនឃើញម្ហូប",
@@ -820,6 +825,11 @@ const translations = {
     category_created: "Category added successfully!",
     food_created: "Food added successfully!",
     restaurant_created: "Restaurant created successfully!",
+    delete_restaurant: "Delete Restaurant",
+    del_rest_warning:
+      "This is permanent — all menus, foods and orders of this restaurant are deleted with it. This cannot be undone.",
+    del_rest_type_name: "Type the restaurant name to confirm",
+    restaurant_deleted: "Restaurant deleted!",
     tg_unlinked: "Telegram unlinked!",
     tg_unlink_confirm: "Unlink Telegram?",
     menu_empty_title: "No dishes found",

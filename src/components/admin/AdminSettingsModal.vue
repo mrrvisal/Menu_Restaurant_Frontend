@@ -39,6 +39,12 @@
             </div>
 
             <template v-if="settingsTab === 'appearance'">
+              <div v-if="!hasRestaurant" class="need-rest">
+                <span>{{ i18n.t.need_restaurant || "Create a restaurant first" }}</span>
+                <button type="button" class="btn btn-primary btn-sm" @click="emit('add-restaurant')">
+                  {{ i18n.t.add_restaurant || "Add Restaurant" }}
+                </button>
+              </div>
               <div class="fld">
                 <label class="fld-l">{{ i18n.t.theme_color || "Theme color" }}</label>
                 <div class="swatches">
@@ -76,7 +82,7 @@
                 <label class="fld-l">{{ i18n.t.sidebar_position || "Sidebar position" }}</label>
                 <div class="layout-options">
                   <button v-for="pos in ['left', 'right', 'top', 'bottom']" :key="pos" type="button"
-                    class="layout-opt" :class="{ active: sidebarPosition === pos }"
+                    class="layout-opt" :class="{ active: sidebarPosition === pos }" :disabled="!hasRestaurant"
                     :title="i18n.t['sb_' + pos] || pos" @click="applySidebarPosition(pos)">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                       stroke-width="1.5" stroke-linejoin="round">
@@ -223,6 +229,7 @@ const props = defineProps([
   "applyHexInput",
   "resetTheme",
   "sidebarPosition",
+  "hasRestaurant",
   "applySidebarPosition",
   "settingsCurrencyMsg",
   "settingsCurrencyError",
@@ -252,6 +259,7 @@ const props = defineProps([
 ]);
 const emit = defineEmits([
   "close",
+  "add-restaurant",
   "update:settingsTab",
   "update:profileCurrency",
   "update:profileRate",
@@ -269,6 +277,7 @@ const {
   applyHexInput,
   resetTheme,
   sidebarPosition,
+  hasRestaurant,
   applySidebarPosition,
   settingsCurrencyMsg,
   settingsCurrencyError,
@@ -392,6 +401,36 @@ function close() {
   font-size: 10px;
   font-weight: 600;
   transition: all 0.15s ease;
+}
+
+.need-rest {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 9px 12px;
+  margin-bottom: 14px;
+  border: 1px solid var(--border, #e2e8e2);
+  border-radius: 10px;
+  background: var(--surface-green, #f0fdf4);
+  color: var(--text-light, #4a6b4a);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.need-rest .btn {
+  flex-shrink: 0;
+}
+
+.layout-opt:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.layout-opt:disabled:hover {
+  border-color: var(--border);
+  color: var(--muted);
+  transform: none;
 }
 
 .layout-opt:hover {
