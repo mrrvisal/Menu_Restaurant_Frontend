@@ -251,6 +251,7 @@ function buildScene() {
 /* ------------------------------ render loop ------------------------------ */
 
 function startLoop() {
+  cancelAnimationFrame(rafId); // safe to re-run (e.g. after a context restore)
   clock = new THREE.Timer();
 
   // Paint one frame immediately so the canvas is never blank.
@@ -314,10 +315,24 @@ function onVisibility() {
 }
 
 function onContextLost(event) {
+  // Chrome can force-lose a WebGL context at any time: GPU process reset
+  // (sleep/wake, driver hiccups), too many live contexts in the process, or
+  // GPU memory pressure. Context loss is recoverable -- preventDefault()
+  // tells the browser it is allowed to fire "webglcontextrestored" once the
+  // GPU surface is available again.
   event.preventDefault();
   isPaused = true;
   cancelAnimationFrame(rafId);
-  renderer = null;
+  rafId = null;
+  // Keep `renderer`/`scene` alive: three.js re-initializes its WebGL internals
+  // on restore and re-uploads geometry/texture resources on the next render.
+}
+
+function onContextRestored() {
+  if (!renderer || !scene) return;
+  isPaused = document.hidden;
+  onResize(); // GL state was recreated -- re-apply viewport size and aspect
+  startLoop(); // repaint immediately and resume the animation loop
 }
 
 onMounted(() => {
@@ -343,6 +358,7 @@ onMounted(() => {
       powerPreference: "high-performance",
     });
     canvas.addEventListener("webglcontextlost", onContextLost);
+    canvas.addEventListener("webglcontextrestored", onContextRestored);
     renderer.setPixelRatio(dpr);
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setClearColor(0x000000, 0);
@@ -367,6 +383,7 @@ onBeforeUnmount(() => {
   window.removeEventListener("resize", onResize);
   document.removeEventListener("visibilitychange", onVisibility);
   canvasEl.value?.removeEventListener("webglcontextlost", onContextLost);
+  canvasEl.value?.removeEventListener("webglcontextrestored", onContextRestored);
 
   disposables.forEach((d) => d.dispose());
   disposables.length = 0;
@@ -375,7 +392,15 @@ onBeforeUnmount(() => {
     if (obj.geometry) obj.geometry.dispose();
   });
 
-  renderer?.dispose();
+  if (renderer) {
+    // dispose() frees GPU resources, but the browser-side WebGL context slot
+    // stays allocated until GC. Chrome caps live WebGL contexts per process
+    // (~16) and force-loses the oldest ones ("CONTEXT_LOST_WEBGL: loseContext:
+    // context lost") once the cap is exceeded -- so release the slot now
+    // instead of leaking one on every visit to the landing route.
+    renderer.dispose();
+    renderer.forceContextLoss();
+  }
   renderer = null;
   scene = null;
   camera = null;
