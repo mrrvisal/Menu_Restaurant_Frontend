@@ -40,9 +40,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, defineAsyncComponent } from "vue";
 import { demoBlogPosts } from "@/data/demo";
-import Hero3D from "@/components/Hero3D.vue";
 import AppIcon from "@/components/AppIcon.vue";
 import LandingNavbar from "@/components/landing/LandingNavbar.vue";
 import LandingHero from "@/components/landing/LandingHero.vue";
@@ -57,6 +56,10 @@ import ScrollToTopButton from "@/components/landing/ScrollToTopButton.vue";
 import { useScrollSpy } from "@/composables/useScrollSpy";
 import { useScrollToTop } from "@/composables/useScrollToTop";
 import { useTopFade } from "@/composables/useTopFade";
+
+// Three.js is heavy (~500 kB) — load the WebGL background as its own async chunk
+// so the landing page content paints first and the 3D scene fades in when ready.
+const Hero3D = defineAsyncComponent(() => import("@/components/Hero3D.vue"));
 
 const mobileOpen = ref(false);
 const scrolled = ref(false);
