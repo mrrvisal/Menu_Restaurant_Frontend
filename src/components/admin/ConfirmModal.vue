@@ -48,7 +48,7 @@ const emit = defineEmits(["confirm", "cancel"]);
 .modal-overlay {
   position: fixed;
   inset: 0;
-  z-index: 200;
+  z-index: 220;
   display: flex;
   align-items: center;
   justify-content: center;

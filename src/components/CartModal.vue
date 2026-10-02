@@ -7,7 +7,7 @@
             <!-- HEADER -->
             <div class="modal-header">
               <span class="modal-header-title">
-                <AppIcon name="clipboard" :size="18" /> តារាងការបញ្ជាទិញ
+                <AppIcon name="clipboard" :size="18" /> {{ i18n.t.cart_title }}
               </span>
               <button class="close-btn" @click="$emit('close')">
                 <AppIcon name="x" :size="16" />
@@ -19,7 +19,7 @@
               <div class="empty-icon">
                 <AppIcon name="clipboard" :size="48" />
               </div>
-              <p>មិនមានទំនិញក្នុងកញ្ចប់</p>
+              <p>{{ i18n.t.empty_cart }}</p>
             </div>
 
             <!-- CART ITEMS -->
@@ -32,7 +32,7 @@
                       :alt="item.name" />
                   </div>
                   <div class="item-info">
-                    <div class="item-name">{{ item.name }}</div>
+                    <div class="item-name">{{ displayName(item) }}</div>
                     <div class="item-price">
                       {{ currencyStore.fmt(item.price) }}
                     </div>
@@ -58,7 +58,7 @@
               <!-- Feedback -->
               <Transition name="fade">
                 <div v-if="feedback.success" class="tg-success">
-                  <AppIcon name="check-circle" :size="14" /> បញ្ជាទិញបានជោគជ័យ!
+                  <AppIcon name="check-circle" :size="14" /> {{ i18n.t.order_success }}
                 </div>
               </Transition>
               <Transition name="fade">
@@ -69,28 +69,28 @@
 
               <!-- Summary -->
               <div class="cart-summary">
-                <span class="cart-total-label">សរុប</span>
+                <span class="cart-total-label">{{ i18n.t.total }}</span>
                 <span class="cart-total-amt">{{ currencyStore.fmt(cart.total) }}</span>
               </div>
 
               <!-- Table Number -->
               <div class="field-wrap">
-                <input v-model="tableNo" class="field-input" placeholder="លេខតុ (ចាំបាច់)" />
+                <input v-model="tableNo" class="field-input" :placeholder="i18n.t.table_no" />
               </div>
 
               <!-- Note -->
               <div class="field-wrap">
                 <span class="field-label">
-                  <AppIcon name="note" :size="14" /> កំណត់ចំណាំ (optional)
+                  <AppIcon name="note" :size="14" /> {{ i18n.t.note }}
                 </span>
                 <textarea v-model="note" class="field-textarea" rows="2"
-                  placeholder="ឧ: មិនហូបខ្ទឹម, ហឹរតិច..."></textarea>
+                  :placeholder="i18n.t.note_placeholder"></textarea>
               </div>
 
               <!-- Actions -->
               <div class="cart-actions">
                 <button class="clear-btn" @click="cart.clear()">
-                  <AppIcon name="trash" :size="14" /> សម្អាត
+                  <AppIcon name="trash" :size="14" /> {{ i18n.t.clear_cart }}
                 </button>
                 <button class="order-btn" :disabled="sending" @click="submitOrder">
                   <span v-if="sending" class="spinner">
@@ -104,7 +104,7 @@
                     <line x1="22" y1="2" x2="11" y2="13" />
                     <polygon points="22 2 15 22 11 13 2 9 22 2" />
                   </svg>
-                  {{ sending ? "កំពុងបញ្ជូន..." : "បញ្ជាទិញ" }}
+                  {{ sending ? i18n.t.sending : i18n.t.order_now }}
                 </button>
               </div>
             </div>
@@ -152,6 +152,11 @@ watch(
 );
 const sending = ref(false);
 const feedback = reactive({ success: false, error: false, errorMsg: "" });
+
+// Cart line names follow the page language when an English name was stored.
+function displayName(item) {
+  return i18n.locale === "en" ? item.name_en || item.name : item.name;
+}
 
 function showFeedback(type, msg = "") {
   feedback.success = type === "success";

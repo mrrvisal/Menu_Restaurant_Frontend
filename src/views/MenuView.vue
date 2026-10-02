@@ -6,6 +6,19 @@
       <div class="header-bg-pattern"></div>
       <div class="header-blob header-blob-1"></div>
       <div class="header-blob header-blob-2"></div>
+
+      <!-- language switch — guests read the whole menu in Khmer or English -->
+      <button
+        class="header-lang"
+        type="button"
+        :title="i18n.locale === 'km' ? 'Switch to English' : 'ប្តូរទៅភាសាខ្មែរ'"
+        :aria-label="i18n.locale === 'km' ? 'Switch to English' : 'ប្តូរទៅភាសាខ្មែរ'"
+        @click="i18n.toggleLocale"
+      >
+        <AppIcon name="globe" :size="14" />
+        {{ i18n.locale === "km" ? "EN" : "ខ្មែរ" }}
+      </button>
+
       <div class="header-content">
         <div class="header-logo-ring">
           <img :src="auth.restaurant?.logoUrl ||
@@ -32,7 +45,7 @@
         <div v-else class="tabs">
           <button v-for="cat in foods.categories" :key="cat.id" class="tab" :class="{ active: curCat === cat.id }"
             @click="switchCategory(cat.id)">
-            <span class="tab-label">{{ cat.label_km }}</span>
+            <span class="tab-label">{{ catLabel(cat) }}</span>
           </button>
         </div>
       </div>
@@ -97,8 +110,18 @@
       </button>
     </Transition>
 
+    <!-- CALL OWNER FAB (opposite the cart FAB) -->
+    <button class="call-fab" @click="showCall = true">
+      <AppIcon name="bell" :size="17" />
+      <span class="call-fab-label">{{ i18n.t.call_owner }}</span>
+    </button>
+
     <!-- CART MODAL -->
     <CartModal :show="showCart" :table-from-qr="tableFromQR" :restaurant-id="restaurantId" @close="showCart = false" />
+
+    <!-- CALL OWNER MODAL -->
+    <CallOwnerModal :show="showCall" :table-from-qr="tableFromQR" :restaurant-id="restaurantId"
+      @close="showCall = false" />
 
     <FoodDetailModal
       :selected-food="selectedFood"
@@ -119,6 +142,7 @@ import { useCurrencyStore } from "@/stores/currency";
 import { useAuthStore } from "@/stores/auth";
 import FoodCard from "@/components/FoodCard.vue";
 import CartModal from "@/components/CartModal.vue";
+import CallOwnerModal from "@/components/CallOwnerModal.vue";
 import FoodDetailModal from "@/components/FoodDetailModal.vue";
 import AppIcon from "@/components/AppIcon.vue";
 import ShareMenu from "@/components/ShareMenu.vue";
@@ -147,6 +171,7 @@ const isLoggedIn = computed(() => auth.isLoggedIn);
 const curCat = ref(null);
 const searchQ = ref("");
 const showCart = ref(false);
+const showCall = ref(false);
 const selectedFood = ref(null);
 const initialized = ref(false);
 const restaurantInfo = ref(null);
@@ -389,6 +414,15 @@ let searchTimer = null;
 
 const filteredFoods = computed(() => foods.foods);
 const cartPreviewItems = computed(() => Object.values(cart.items).slice(0, 3));
+
+// Guests switch the whole page between Khmer and English. Category names use
+// the stored English label when the owner added one, otherwise fall back to Khmer.
+function catLabel(cat) {
+  if (!cat) return "";
+  return i18n.locale === "en"
+    ? cat.label_en || cat.name_en || cat.label_km || cat.label || cat.name
+    : cat.label_km || cat.label || cat.name;
+}
 
 function getCategoryEmoji(category) {
   const icons = {
@@ -803,6 +837,54 @@ function goAdmin() {
   }
 }
 
+/* ── Language switch (top-left of the header) ────────────────
+   Mirrors the share pill on the right so guests can flip the
+   whole menu between Khmer and English.                         */
+.header-lang {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 4;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 38px;
+  padding: 0 15px;
+  border-radius: 999px;
+  color: var(--header-fg, #fff);
+  background: rgba(255, 255, 255, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-family: inherit;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    background 0.18s ease,
+    transform 0.18s ease,
+    box-shadow 0.18s ease;
+}
+
+.header-lang:hover {
+  background: rgba(255, 255, 255, 0.28);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.16);
+}
+
+.header-lang:active {
+  transform: translateY(0) scale(0.97);
+}
+
+@media (max-width: 560px) {
+  .header-lang {
+    top: 12px;
+    right: 12px;
+    height: 34px;
+    padding: 0 12px;
+  }
+}
+
 /* ============================================================
    CONTROL BAR (tabs + search grouped as a floating card)
    ============================================================ */
@@ -1035,6 +1117,48 @@ function goAdmin() {
 .empty-sub {
   font-size: 13px;
   color: var(--text-light);
+}
+
+/* ============================================================
+   CALL OWNER FAB (bottom-right — the cart FAB owns the left)
+   ============================================================ */
+.call-fab {
+  position: fixed;
+  bottom: 26px;
+  right: 16px;
+  background: linear-gradient(135deg, var(--green-mid, #16a34a), var(--green-light, #4ade80));
+  color: var(--on-primary, #fff);
+  border: none;
+  border-radius: 50px;
+  padding: 11px 18px;
+  font-size: 13.5px;
+  font-family: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 100;
+  box-shadow: 0 10px 28px var(--primary-glow-strong, rgba(22, 163, 74, 0.46));
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.call-fab:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 14px 34px var(--primary-glow-strong, rgba(22, 163, 74, 0.46));
+}
+
+.call-fab:active {
+  transform: scale(0.97);
+}
+
+@media (max-width: 480px) {
+  .call-fab {
+    bottom: 18px;
+    right: 12px;
+    padding: 9px 14px;
+    font-size: 12px;
+  }
 }
 
 /* ============================================================

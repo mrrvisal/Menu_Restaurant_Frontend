@@ -90,9 +90,6 @@
       </nav>
 
       <div class="side-foot">
-        <button class="lang" @click="i18n.toggleLocale">
-          {{ i18n.locale === "km" ? "EN" : "ខ្មែរ" }}
-        </button>
         <button class="logout" @click="loggingOut = true">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
@@ -123,6 +120,9 @@
           </h1>
         </div>
         <div class="hdr-r">
+                  <button class="lang" @click="i18n.toggleLocale">
+          {{ i18n.locale === "km" ? "EN" : "ខ្មែរ" }}
+        </button>
           <NotificationBell @select="onNotificationSelect" />
           <div class="profile-wrap" ref="profileWrap">
             <button class="ac ac-primary ac-avatar" @click="toggleProfileMenu"
@@ -419,6 +419,7 @@
         </div>
       </template>
 
+      <AdminCallsSection v-if="adminTab === 'orders'" />
       <AdminOrdersSection
         v-if="adminTab === 'orders'"
         :orders="orders"
@@ -1473,6 +1474,8 @@ import NotificationBell from "@/components/NotificationBell.vue";
 import ShareGrid from "@/components/ShareGrid.vue";
 import AdminMobileBar from "@/components/admin/AdminMobileBar.vue";
 import AdminOrdersSection from "@/components/admin/AdminOrdersSection.vue";
+import AdminCallsSection from "@/components/admin/AdminCallsSection.vue";
+import { fetchCalls } from "@/composables/useAdminCalls";
 import AdminReportsSection from "@/components/admin/AdminReportsSection.vue";
 import AdminSettingsModal from "@/components/admin/AdminSettingsModal.vue";
 import { useThemeStore } from "@/stores/theme";
@@ -2258,6 +2261,9 @@ async function onNotificationSelect(notification) {
   } else {
     // Same restaurant (or unknown) → just make sure the list is fresh.
     await fetchOrders();
+    // A "call the owner" notification points at the Guest requests panel
+    // above the orders — refresh it too so the row is already there.
+    if (notification?.type === "table-call") fetchCalls();
   }
 }
 
@@ -2846,7 +2852,7 @@ onUnmounted(() => {
 .lang,
 .logout {
   flex: 1;
-  padding: 8px 12px;
+  padding: 0px 12px;
   border-radius: 8px;
   font-size: 11px;
   font-family: inherit;
@@ -2854,7 +2860,6 @@ onUnmounted(() => {
   cursor: pointer;
   transition: all 0.2s ease;
   text-align: center;
-  min-height: 36px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2862,9 +2867,12 @@ onUnmounted(() => {
 }
 
 .lang {
+  width: 36px;
+  height: 36px;
   background: var(--surface-green);
   color: var(--ink);
   border: 1px solid var(--border-green);
+  border-radius: 50%;
 }
 
 .lang:hover {
@@ -2878,6 +2886,7 @@ onUnmounted(() => {
   background: none;
   border: 1px solid transparent;
   color: var(--red);
+  min-height: 36px;
   background: #fef2f2;
 }
 
@@ -2929,7 +2938,7 @@ onUnmounted(() => {
   /* above the tab content, below .side (100) and the modals */
   background: #f8fafc;
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 0;
   padding-bottom: 16px;
@@ -3882,6 +3891,11 @@ onUnmounted(() => {
      (margin-left:auto only makes sense on one desktop row) */
   .orders-bar .bar-refresh {
     margin-left: 0;
+  }
+
+  .lang {
+    width: 32px;
+    height: 32px;
   }
 }
 
@@ -5734,9 +5748,9 @@ onUnmounted(() => {
   }
 
   .hdr-r .ac-avatar {
-    width: 28px;
+    width: 32px;
     /* reduced from 32px */
-    height: 28px;
+    height: 32px;
     /* reduced from 32px */
     min-width: 28px;
     /* reduced from 32px */
@@ -5924,11 +5938,11 @@ onUnmounted(() => {
   }
 
   .hdr-r .ac-avatar {
-    width: 24px;
+    width: 32px;
     /* reduced from 28px */
-    height: 24px;
+    height: 32px;
     /* reduced from 28px */
-    min-width: 24px;
+    min-width: 32px;
     /* reduced from 28px */
     padding: 3px;
     /* reduced from 4px */

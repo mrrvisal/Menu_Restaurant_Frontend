@@ -21,6 +21,7 @@ export const useCartStore = defineStore("cart", () => {
       items.value[food.id] = {
         qty: 1,
         name: food.name,
+        name_en: food.name_en || null,
         price: Number(food.price),
         img: food.img || null,
         category: food.category,

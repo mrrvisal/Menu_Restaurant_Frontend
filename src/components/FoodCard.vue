@@ -9,19 +9,19 @@
     <div v-if="!isAdmin && food.status === 'available'" class="card-status">
       <span class="detail-status" :class="food.status">
         <AppIcon name="check-circle" :size="14" />
-        {{ food.status === "available" ? " មាន" : " អស់" }}
+        {{ i18n.t.available }}
       </span>
     </div>
 
     <!-- Image -->
     <div class="food-card-img">
-      <img v-if="food.img_url" :src="food.img_url" :alt="food.name" @error="imgError = true" />
+      <img v-if="food.img_url" :src="food.img_url" :alt="displayName" @error="imgError = true" />
       <span v-if="!food.img_url || imgError" class="img-fallback">
         <AppIcon name="food" :size="48" />
       </span>
       <div v-if="food.status === 'unavailable'" class="unavail-overlay">
         <span class="unavail-tag">
-          <AppIcon name="x-circle" :size="12" /> អស់
+          <AppIcon name="x-circle" :size="12" /> {{ i18n.t.unavailable }}
         </span>
       </div>
     </div>
@@ -29,7 +29,7 @@
     <!-- Body -->
     <div class="food-card-body">
       <div class="food-card-hard">
-        <div class="food-card-name">{{ food.name }}</div>
+        <div class="food-card-name">{{ displayName }}</div>
         <div class="food-card-price-hide">{{ currencyStore.fmt(food.price) }}</div>
       </div>
       <div class="food-card-footer">
@@ -38,19 +38,19 @@
         <!-- Admin: status toggle -->
         <button v-if="isAdmin" class="status-toggle-btn" :class="food.status"
           @click.stop="$emit('toggle-status', food.id)">
-          <AppIcon name="check-circle" :size="12" /> {{ food.status === 'available' ? 'មាន' : 'អស់' }}
+          <AppIcon name="check-circle" :size="12" /> {{ food.status === 'available' ? i18n.t.available : i18n.t.unavailable }}
         </button>
 
         <!-- Guest: add to cart -->
         <template v-else>
           <button v-if="food.status === 'unavailable'" class="add-cart-btn unavail" disabled>
-            <AppIcon name="x-circle" :size="14" /> អស់
+            <AppIcon name="x-circle" :size="14" /> {{ i18n.t.unavailable }}
           </button>
           <button v-else class="add-cart-btn" @click.stop="$emit('add-cart', food)">
             <template v-if="cartQty > 0">
               <AppIcon name="cart" :size="14" /> ({{ cartQty }})
             </template>
-            <template v-else>+ ដាក់</template>
+            <template v-else>+ {{ i18n.t.add }}</template>
           </button>
         </template>
       </div>
@@ -59,9 +59,10 @@
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import AppIcon from "@/components/AppIcon.vue";
 import { useCurrencyStore } from "@/stores/currency";
+import { useI18nStore } from "@/stores/i18n";
 
 const props = defineProps({
   food: { type: Object, required: true },
@@ -72,8 +73,17 @@ const props = defineProps({
 defineEmits(['detail', 'delete', 'toggle-status', 'add-cart']);
 
 const currencyStore = useCurrencyStore();
+const i18n = useI18nStore();
 
 const imgError = ref(false);
+
+// Guest reads the dish in the page language — English when the data has it,
+// otherwise the stored (Khmer) name.
+const displayName = computed(() =>
+  i18n.locale === "en"
+    ? props.food.name_en || props.food.name
+    : props.food.name || props.food.name_en,
+);
 
 function getCategoryEmoji(category) {
   return 'food';

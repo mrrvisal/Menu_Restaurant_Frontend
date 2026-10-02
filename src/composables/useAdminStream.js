@@ -11,6 +11,7 @@ import { useNotificationsStore } from "@/stores/notifications";
 import { useCurrencyStore } from "@/stores/currency";
 import { getApiErrorMessage, getCurrentLocale } from "@/utils/apiErrors";
 import { orders, fetchOrders } from "@/composables/useAdminOrders";
+import { fetchCalls } from "@/composables/useAdminCalls";
 import { fetchReport } from "@/composables/useAdminReports";
 import { fetchStats } from "@/composables/useAdminStats";
 import { adminTab } from "@/composables/useAdminTab";
@@ -41,6 +42,21 @@ function buildOrderNotifMessage(order) {
   if (order.total != null && order.total !== "") {
     msg += ` · ${currencyStore.fmt(order.total)}`;
   }
+  return msg;
+}
+
+// Message builder for table-call alerts ("bring the bill" / "needs
+// something extra"). Accepts the SSE payload (camelCase) and DB rows
+// (snake_case) like buildOrderNotifMessage does.
+function buildCallNotifMessage(call) {
+  const tableNo = call.tableNo ?? call.table_no ?? "-";
+  const template =
+    (call.type === "bill"
+      ? i18n.t.new_call_notif_bill
+      : i18n.t.new_call_notif_extra) ||
+    "Table {table} called the owner";
+  let msg = template.replace("{table}", tableNo);
+  if (call.message) msg += ` · ${call.message}`;
   return msg;
 }
 
@@ -158,6 +174,61 @@ function playOrderAlert(order) {
 
   // Chrome bug: speak() right after cancel() gets silently dropped.
   // Delay the speak slightly and make sure the engine isn't paused.
+  window.speechSynthesis.cancel();
+  setTimeout(() => {
+    try {
+      window.speechSynthesis.resume();
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      /* voice alert is best-effort — never break the dashboard */
+    }
+  }, 150);
+}
+
+// 🔊 Voice alert for a guest's call request ("table 5 wants the bill" /
+// "table 5 needs something extra"). Same best-effort rules as the order
+// alert: no TTS → silently skip, no Khmer voice → English sentence.
+function playCallAlert(call) {
+  if (!("speechSynthesis" in window)) return;
+
+  const tableNo = call.tableNo || "1";
+  const voices = ttsVoices.value;
+  const kmVoice = voices.find(
+    (v) => v.lang && v.lang.toLowerCase().startsWith("km"),
+  );
+
+  const wantBill = call.type === "bill";
+  const text = kmVoice
+    ? wantBill
+      ? `តុលេខ ${tableNo} សុំគិតលុយ`
+      : `តុលេខ ${tableNo} សុំអ្វីបន្ថែម`
+    : wantBill
+      ? `Table number ${tableNo} requests the bill`
+      : `Table number ${tableNo} requests something extra`;
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  if (kmVoice) {
+    utterance.lang = "km-KH";
+    utterance.voice = kmVoice;
+  } else {
+    utterance.lang = "en-US";
+  }
+  utterance.rate = 1;
+  utterance.pitch = 1;
+  utterance.volume = 1;
+
+  utterance.onstart = () => {
+    isSpeaking.value = true;
+  };
+  utterance.onend = () => {
+    isSpeaking.value = false;
+  };
+  utterance.onerror = () => {
+    isSpeaking.value = false;
+  };
+
+  // Same Chrome quirk as playOrderAlert: speak() right after cancel() is
+  // dropped, so delay slightly and resume first.
   window.speechSynthesis.cancel();
   setTimeout(() => {
     try {
@@ -295,6 +366,45 @@ export async function connectOrderStream() {
       if (badgeEl) badgeEl.classList.add("pulse-fast");
     } catch (err) {
       console.error("Failed to parse new-order event:", err);
+    }
+  });
+
+  // ─── GUEST CALLS (bill / something extra) ────────────────
+  // A guest at a table pressed "Call the owner" on the public menu. The
+  // bell gets an entry, the Khmer voice alert plays and the pending calls
+  // list refreshes so the owner can mark it handled.
+  es.addEventListener("table-call", (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      if (!data.callId) return;
+
+      notifications.push({
+        id: `table-call-${data.callId}`,
+        type: "table-call",
+        callType: data.type,
+        title: i18n.t.new_call || "New call",
+        message: buildCallNotifMessage(data),
+        callId: data.callId,
+        restaurantId: data.restaurantId ?? auth.restaurantId ?? null,
+        restaurantName:
+          data.restaurantName ||
+          restaurantNameFor(data.restaurantId ?? auth.restaurantId),
+        tableNo: data.tableNo,
+        createdAt: data.createdAt || new Date().toISOString(),
+      });
+
+      // 🔊 "តុលេខ X សុំគិតលុយ" / "Table X requests the bill"
+      playCallAlert(data);
+
+      // Refresh the pending calls panel when the owner is watching it
+      if (adminTab.value === "orders") {
+        fetchCalls();
+      }
+
+      const badgeEl = document.querySelector(".nav-badge");
+      if (badgeEl) badgeEl.classList.add("pulse-fast");
+    } catch (err) {
+      console.error("Failed to parse table-call event:", err);
     }
   });
 

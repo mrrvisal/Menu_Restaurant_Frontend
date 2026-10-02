@@ -6,53 +6,112 @@
     <div class="nf-glow g1" aria-hidden="true"></div>
     <div class="nf-glow g2" aria-hidden="true"></div>
 
+    <!-- language switch — same pill used across the other public pages -->
+    <button
+      class="nf-lang"
+      type="button"
+      :title="i18n.locale === 'km' ? 'Switch to English' : 'ប្តូរទៅភាសាខ្មែរ'"
+      @click="i18n.toggleLocale"
+    >
+      <AppIcon name="globe" :size="14" />
+      {{ i18n.locale === "km" ? "EN" : "ខ្មែរ" }}
+    </button>
+
     <main class="nf-inner">
+      <!-- brand — logo + name -->
+      <router-link to="/" class="nf-brand" :aria-label="`${i18n.t.app_name} home`">
+        <img class="nf-logo" :src="DEMO_LOGO_URL" :alt="i18n.t.app_name" />
+        <span class="nf-brand-name">{{ i18n.t.app_name }}</span>
+      </router-link>
+
       <NotFoundIllustration />
 
-      <h1 class="nf-code" aria-label="404">
-        <span>4</span><span class="nf-hollow">0</span><span>4</span>
-      </h1>
-
-      <p class="nf-title">{{ i18n.t.nf_title }}</p>
+      <h1 class="nf-title">{{ i18n.t.nf_title }}</h1>
       <p class="nf-desc">{{ i18n.t.nf_desc }}</p>
 
-      <!-- the exact path the user tried to visit -->
-      <code v-if="triedPath" class="nf-path">{{ triedPath }}</code>
+      <!-- auto-redirect countdown -->
+      <div v-if="redirecting" class="nf-count" role="status" aria-live="polite">
+        <svg class="nf-ring" viewBox="0 0 80 80" aria-hidden="true">
+          <defs>
+            <linearGradient id="nfRingGreen" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#22c55e" />
+              <stop offset="1" stop-color="#15803d" />
+            </linearGradient>
+          </defs>
+          <circle class="nf-ring-track" cx="40" cy="40" r="34" />
+          <circle
+            class="nf-ring-bar"
+            cx="40"
+            cy="40"
+            r="34"
+            :style="{ strokeDashoffset: ringOffset }"
+          />
+        </svg>
+        <span class="nf-count-num">{{ countdown }}</span>
+      </div>
+      <p v-if="redirecting" class="nf-redirect">{{ i18n.t.nf_redirect }}</p>
 
       <div class="nf-actions">
-        <router-link to="/" class="nf-btn nf-btn-primary">
-          {{ i18n.t.nf_gohome }}
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <line x1="5" y1="12" x2="19" y2="12" />
-            <polyline points="12 5 19 12 12 19" />
-          </svg>
-        </router-link>
-        <router-link to="/login" class="nf-btn nf-btn-ghost">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
-            stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-          </svg>
-          {{ i18n.t.nf_login }}
-        </router-link>
+        <router-link to="/" class="nf-btn nf-btn-primary">{{ i18n.t.nf_gohome }}</router-link>
+        <button v-if="redirecting" class="nf-btn nf-btn-ghost" type="button" @click="stayHere">
+          {{ i18n.t.nf_stay }}
+        </button>
       </div>
 
-      <span class="nf-foot">© {{ new Date().getFullYear() }} {{ i18n.t.app_name }}</span>
+      <span class="nf-foot">© {{ year }} {{ i18n.t.app_name }}</span>
     </main>
   </div>
 </template>
 
 <script setup>
-import { ref } from "vue";
-import { useRoute } from "vue-router";
+import { ref, computed, onMounted, onBeforeUnmount } from "vue";
+import { useRouter } from "vue-router";
 import { useI18nStore } from "@/stores/i18n";
 import NotFoundIllustration from "@/components/NotFoundIllustration.vue";
+import AppIcon from "@/components/AppIcon.vue";
+import { DEMO_LOGO_URL } from "@/data/demo";
 
 const i18n = useI18nStore();
-const route = useRoute();
-// Show what the user actually typed — helpful for typos in QR/track links
-const triedPath = ref(route.fullPath === "/" ? "" : route.fullPath);
+const router = useRouter();
+
+// The reference design counts down, then sends the visitor home.
+const REDIRECT_SECONDS = 15;
+const countdown = ref(REDIRECT_SECONDS);
+const redirecting = ref(true);
+let timer = null;
+
+// Progress-ring geometry — matches r="34" in the template.
+const RING_RADIUS = 34;
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+const ringOffset = computed(
+  () => RING_CIRCUMFERENCE * (1 - countdown.value / REDIRECT_SECONDS),
+);
+
+// "Stay here" — the visitor cancels the auto-redirect.
+function stayHere() {
+  redirecting.value = false;
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+}
+
+onMounted(() => {
+  timer = setInterval(() => {
+    countdown.value -= 1;
+    if (countdown.value <= 0) {
+      stayHere();
+      router.push("/");
+    }
+  }, 1000);
+});
+
+onBeforeUnmount(() => {
+  if (timer) clearInterval(timer);
+});
+
+// Stable year — avoids re-evaluating on every render.
+const year = new Date().getFullYear();
 </script>
 
 <style scoped>
@@ -70,6 +129,35 @@ const triedPath = ref(route.fullPath === "/" ? "" : route.fullPath);
   font-family: "Kantumruy Pro", "Hanuman", "Noto Sans Khmer", system-ui, sans-serif;
   position: relative;
   overflow: hidden;
+}
+
+/* language switch — same pill used on the other public pages */
+.nf-lang {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 13px;
+  border: 1.5px solid rgba(22, 101, 52, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  color: #33543b;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 0.2s, color 0.2s, transform 0.2s;
+}
+
+.nf-lang:hover {
+  border-color: #22c55e;
+  color: #166534;
+  transform: translateY(-1px);
 }
 
 /* dotted grid backdrop — like a chalk/kitchen board */
@@ -125,13 +213,47 @@ const triedPath = ref(route.fullPath === "/" ? "" : route.fullPath);
 .nf-inner {
   position: relative;
   z-index: 1;
-  max-width: 560px;
   width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
   animation: nfIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.nf-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px 8px 8px;
+  margin-bottom: 22px;
+  border: 1px solid rgba(22, 101, 52, 0.1);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 8px 24px rgba(22, 101, 52, 0.08);
+  text-decoration: none;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.nf-brand:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(22, 101, 52, 0.14);
+}
+
+.nf-logo {
+  display: block;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.nf-brand-name {
+  font-size: 15px;
+  font-weight: 800;
+  color: #14532d;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 @keyframes nfIn {
@@ -146,77 +268,70 @@ const triedPath = ref(route.fullPath === "/" ? "" : route.fullPath);
   }
 }
 
-/* gradient "404" — solid glowing digits with a hollow zero */
-.nf-code {
-  margin: 0 0 10px;
-  font-size: clamp(84px, 22vw, 140px);
+.nf-title {
+  margin: 18px 0 12px;
+  font-size: clamp(26px, 5.4vw, 40px);
   font-weight: 900;
-  line-height: 1;
+  line-height: 1.15;
   letter-spacing: -0.02em;
-  display: flex;
-  align-items: center;
-}
-
-.nf-code span {
   background: linear-gradient(135deg, #166534, #22c55e);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
-/* the middle "0" is a hollow outline — a "missing" digit */
-.nf-hollow {
-  background: none !important;
-  -webkit-background-clip: initial !important;
-  background-clip: initial !important;
-  color: transparent !important;
-  -webkit-text-stroke: 3px rgba(22, 163, 74, 0.55);
-  margin: 0 6px;
-  animation: nfBlink 2.6s ease-in-out infinite;
-}
-
-@keyframes nfBlink {
-
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.45;
-  }
-}
-
-.nf-title {
-  margin: 0 0 10px;
-  font-size: clamp(20px, 4vw, 26px);
-  font-weight: 900;
-  color: #14532d;
-  letter-spacing: -0.02em;
-}
-
 .nf-desc {
-  margin: 0 0 18px;
-  font-size: 14px;
+  margin: 0 0 26px;
+  font-size: 15px;
   line-height: 1.7;
   color: #4a6650;
 }
 
-/* the path that doesn't exist, shown in mono for clarity */
-.nf-path {
-  display: inline-block;
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 11.5px;
-  color: #b45309;
-  background: #fffbeb;
-  border: 1px dashed #fcd34d;
-  border-radius: 8px;
-  padding: 5px 12px;
-  margin-bottom: 28px;
+/* auto-redirect countdown ring */
+.nf-count {
+  position: relative;
+  width: 84px;
+  height: 84px;
+  display: grid;
+  place-items: center;
+  margin-bottom: 12px;
+}
+
+.nf-ring {
+  width: 84px;
+  height: 84px;
+  transform: rotate(-90deg);
+}
+
+.nf-ring-track {
+  fill: none;
+  stroke: #e3efe6;
+  stroke-width: 6;
+}
+
+.nf-ring-bar {
+  fill: none;
+  stroke: url(#nfRingGreen);
+  stroke-width: 6;
+  stroke-linecap: round;
+  stroke-dasharray: 213.63;
+  transition: stroke-dashoffset 1s linear;
+}
+
+.nf-count-num {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 26px;
+  font-weight: 900;
+  color: #15803d;
+}
+
+.nf-redirect {
+  margin: 0 0 26px;
+  font-size: 13px;
+  color: #6b7f70;
 }
 
 .nf-actions {
@@ -232,9 +347,11 @@ const triedPath = ref(route.fullPath === "/" ? "" : route.fullPath);
   gap: 8px;
   padding: 12px 24px;
   border-radius: 999px;
+  font-family: inherit;
   font-size: 14px;
   font-weight: 800;
   text-decoration: none;
+  cursor: pointer;
   transition: all 0.25s ease;
 }
 
@@ -282,12 +399,18 @@ const triedPath = ref(route.fullPath === "/" ? "" : route.fullPath);
     padding: 24px 16px;
   }
 
+  .nf-lang {
+    top: 14px;
+    right: 14px;
+  }
+
   .nf-actions {
     width: 100%;
+    flex-direction: column;
   }
 
   .nf-btn {
-    flex: 1;
+    width: 100%;
     justify-content: center;
   }
 }
@@ -295,9 +418,12 @@ const triedPath = ref(route.fullPath === "/" ? "" : route.fullPath);
 @media (prefers-reduced-motion: reduce) {
 
   .nf-glow,
-  .nf-hollow,
   .nf-inner {
     animation: none;
+  }
+
+  .nf-ring-bar {
+    transition: none;
   }
 }
 </style>

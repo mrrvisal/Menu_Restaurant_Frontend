@@ -507,6 +507,20 @@
     <line x1="12" y1="11.6" x2="12.01" y2="11.6" />
     <line x1="15.4" y1="11.6" x2="15.41" y2="11.6" />
   </svg>
+  <svg v-else-if="name === 'money-bag'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M9 7 6.5 3h11L15 7" />
+    <path d="M9 7h6a6.5 6.5 0 1 1 0 13H9a6.5 6.5 0 1 1 0-13Z" />
+    <path d="M14.5 11.5h-3.5a1.5 1.5 0 0 0 0 3h2a1.5 1.5 0 0 1 0 3H9.5" />
+    <line x1="12" y1="10.5" x2="12" y2="19.5" />
+  </svg>
+  <svg v-else-if="name === 'hand'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+    stroke-linecap="round" stroke-linejoin="round" class="app-icon" :width="size" :height="size">
+    <path d="M18 11V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2" />
+    <path d="M14 10V4a2 2 0 0 0-2-2 2 2 0 0 0-2 2v2" />
+    <path d="M10 10.5V6a2 2 0 0 0-2-2 2 2 0 0 0-2 2v8" />
+    <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+  </svg>
 </template>
 
 <script setup>

@@ -167,12 +167,15 @@ function onSelect(n) {
 function iconName(n) {
   if (n.type === "order-status")
     return n.status === "cancelled" ? "x-circle" : "check-circle";
+  // A guest "call the owner" request — bell for the bill, phone for extras
+  if (n.type === "table-call") return n.callType === "bill" ? "bell" : "phone";
   return "clipboard";
 }
 function iconClass(n) {
   if (n.type === "order-status") {
     return n.status === "cancelled" ? "nb-ico-red" : "nb-ico-green";
   }
+  // table-call and new-order both read best on the amber chip
   return "nb-ico-amber";
 }
 
