@@ -62,6 +62,13 @@ const routes = [
     meta: { requiresAuth: true },
   },
   {
+    // Menu Studio — generate the menu as a sized image / PDF
+    path: "/menu-studio",
+    name: "MenuStudio",
+    component: () => import("@/views/MenuStudioView.vue"),
+    meta: { requiresAuth: true },
+  },
+  {
     path: "/admin",
     redirect: "/dashboard",
   },

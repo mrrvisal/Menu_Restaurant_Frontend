@@ -5,7 +5,7 @@ import { formatMoney } from "@/utils/currency.mjs";
 // Manages display currency (KHR / USD) and exchange rate conversion
 export const useCurrencyStore = defineStore("currency", () => {
   const currency = ref("KHR"); // "KHR" | "USD"
-  const rate = ref(4100); // Riel per 1 USD
+  const rate = ref(4000); // Riel per 1 USD
 
   // Sync display settings from any restaurant source object
   function setFrom(source) {

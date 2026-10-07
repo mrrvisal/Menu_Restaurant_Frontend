@@ -82,6 +82,11 @@
           <AppIcon name="chart" :size="18" />
           <span>{{ i18n.t.reports || "Reports" }}</span>
         </button>
+        <!-- Menu Studio — the menu as a printable / shareable image -->
+        <button class="nav-i"  @click="openMenuStudio">
+          <AppIcon name="image" :size="18" />
+          <span>{{ i18n.t.menu_studio || "Menu Studio" }}</span>
+        </button>
         <!-- Kitchen Display System — opens on its own (wall) screen -->
         <button class="nav-i" @click="openKds">
           <AppIcon name="chef" :size="18" />
@@ -200,6 +205,11 @@
                       <circle cx="12" cy="12" r="3" />
                     </svg>
                     <span>{{ i18n.t.owner_preview }}</span>
+                  </button>
+                  <!-- Generate the menu as an image / PDF (Menu Studio) -->
+                  <button class="pm-item" @click="runProfileAction(openMenuStudio)">
+                    <AppIcon name="image" :size="15" />
+                    <span>{{ i18n.t.menu_studio || "Menu Studio" }}</span>
                   </button>
                   <!-- Share the menu to every platform (Facebook, Messenger,
                        Telegram, WhatsApp, Instagram, WeChat, LinkedIn, X…) -->
@@ -1609,7 +1619,7 @@ const hdrEl = ref(null);
 let hdrResizeObserver = null;
 const profileName = ref("");
 const profileCurrency = ref("KHR");
-const profileRate = ref(4100);
+const profileRate = ref(4000);
 const profileLogoFile = ref(null);
 const profileLogoPreview = ref(null);
 const profileSubmitting = ref(false);
@@ -1702,7 +1712,7 @@ function openSettings() {
   settingsCurrencyMsg.value = "";
   settingsCurrencyError.value = "";
   profileCurrency.value = auth.restaurant?.currency || "KHR";
-  profileRate.value = Number(auth.restaurant?.exchangeRate) || 4100;
+  profileRate.value = Number(auth.restaurant?.exchangeRate) || 4000;
   orderTracking.value = Boolean(auth.restaurant?.orderTracking ?? 0);
   trackingMsg.value = "";
   trackingError.value = "";
@@ -1726,12 +1736,12 @@ async function saveCurrency() {
   try {
     await axios.patch(`${API_BASE}/api/auth/currency`, {
       currency: profileCurrency.value,
-      exchangeRate: Number(profileRate.value) || 4100,
+      exchangeRate: Number(profileRate.value) || 4000,
       restaurant_id: auth.restaurantId,
     });
     if (auth.restaurant) {
       auth.restaurant.currency = profileCurrency.value;
-      auth.restaurant.exchangeRate = Number(profileRate.value) || 4100;
+      auth.restaurant.exchangeRate = Number(profileRate.value) || 4000;
       auth.saveToStorage();
     }
     currencyStore.setFrom(auth.restaurant);
@@ -2206,6 +2216,11 @@ function openShare() {
 // KDS runs on its own screen/tab — never inside the dashboard SPA
 function openKds() {
   window.open("/kds", "_blank", "noopener");
+}
+// Menu Studio — the "generate menu image" page (in-app, own route)
+function openMenuStudio() {
+  showMobile.value = false;
+  window.open("/menu-studio","_blank", "noopener");
 }
 function confirmLogout() {
   auth.logout();
@@ -5697,17 +5712,36 @@ onUnmounted(() => {
   }
 
   .bar-acts {
-    flex-wrap: wrap;
+    width: 100%;
+    min-width: 0;
+    flex-wrap: nowrap;
+  }
+
+  .bar-acts .srch {
+    flex: 1 1 0;
+    width: auto;
+    max-width: none;
+    min-width: 0;
+  }
+
+  .bar-acts > .ac-primary {
+    flex: 0 0 auto;
+  }
+
+  .bar-acts .ac-primary .btn-text {
+    max-width: none;
+    overflow: visible;
   }
 
   .bar-scroll {
     order: 2;
+    width: 100%;
   }
 
   .srch {
     min-width: 0;
     flex: 1;
-    max-width: none;
+    max-width: 80%;
   }
 
   /* Orders - 1 column */

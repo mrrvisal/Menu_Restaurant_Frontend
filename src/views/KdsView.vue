@@ -282,7 +282,7 @@ function syncTheme() {
 // Kitchen screens live in very different lighting (bright hall vs.
 // dim prep corner), so the board can be flipped with the sun/moon button.
 // The choice is stored per account — same pattern as the theme color.
-const lightMode = ref(false);
+const lightMode = ref(true);
 
 function kdsModeKey() {
   try {

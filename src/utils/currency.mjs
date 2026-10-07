@@ -1,8 +1,8 @@
 // Money formatting — prices stored in riel (KHR), with optional USD display
-export function formatMoney(riel, currency = "KHR", rate = 4100) {
+export function formatMoney(riel, currency = "KHR", rate = 4000) {
   const amount = Number(riel) || 0;
   if (String(currency).toUpperCase() === "USD") {
-    const r = Number(rate) > 0 ? Number(rate) : 4100;
+    const r = Number(rate) > 0 ? Number(rate) : 4000;
     const usd = amount / r;
     return (
       "$" +

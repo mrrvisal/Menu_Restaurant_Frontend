@@ -121,7 +121,7 @@
               <div v-if="profileCurrency === 'USD'" class="fld">
                 <label class="fld-l">{{ i18n.t.exchange_rate || "Exchange rate" }}</label>
                 <input v-model.number="profileRateModel" type="number" min="1" step="50" class="fld-i"
-                  placeholder="4100" />
+                  placeholder="4000" />
               </div>
               <button class="btn btn-primary btn-b" :disabled="currencySubmitting" @click="saveCurrency">
                 {{ currencySubmitting ? i18n.t.loading : i18n.t.save }}

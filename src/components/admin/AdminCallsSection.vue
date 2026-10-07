@@ -216,7 +216,7 @@ watch(
   gap: 8px;
   font-size: 12.5px;
   color: var(--muted, #6b7280);
-  padding: 6px 2px;
+  padding: 6px 0px;
 }
 
 .calls-list {
