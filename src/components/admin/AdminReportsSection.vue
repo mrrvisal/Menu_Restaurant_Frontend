@@ -51,9 +51,28 @@
     </div>
 
     <div class="rep-main-col">
-      <div v-if="reportLoading" class="empty">
-        <div class="spinner"></div>
-        <p>{{ i18n.t.loading }}</p>
+      <div v-if="reportLoading" class="rep-loading" role="status" :aria-label="i18n.t.loading">
+        <div class="rep-loading-cards">
+          <div v-for="n in 5" :key="n" class="rep-loading-card">
+            <span class="rep-skeleton rep-loading-icon"></span>
+            <span class="rep-loading-card-copy">
+              <span class="rep-skeleton rep-loading-value"></span>
+              <span class="rep-skeleton rep-loading-label"></span>
+            </span>
+          </div>
+        </div>
+        <div class="rep-loading-panel">
+          <span class="rep-skeleton rep-loading-heading"></span>
+          <span class="rep-skeleton rep-loading-chart"></span>
+        </div>
+        <div class="rep-loading-lower">
+          <div v-for="n in 2" :key="n" class="rep-loading-panel">
+            <span class="rep-skeleton rep-loading-heading"></span>
+            <span class="rep-skeleton rep-loading-row"></span>
+            <span class="rep-skeleton rep-loading-row"></span>
+            <span class="rep-skeleton rep-loading-row"></span>
+          </div>
+        </div>
       </div>
       <div v-else-if="reportError" class="empty">
         <AppIcon name="alert-circle" :size="34" />
@@ -322,6 +341,108 @@ const reportFormatModel = computed({
 </script>
 
 <style scoped>
+.rep-loading {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.rep-loading-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.rep-loading-card,
+.rep-loading-panel {
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.rep-loading-card {
+  align-items: center;
+}
+
+.rep-loading-card-copy {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rep-loading-panel {
+  flex-direction: column;
+}
+
+.rep-loading-lower {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.rep-skeleton {
+  display: block;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e8edf0 25%, #f5f7f8 37%, #e8edf0 63%);
+  background-size: 400% 100%;
+  animation: report-skeleton-shimmer 1.4s ease infinite;
+}
+
+.rep-loading-icon {
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: 50%;
+}
+
+.rep-loading-value {
+  width: 75%;
+  height: 20px;
+}
+
+.rep-loading-label {
+  width: 55%;
+  height: 12px;
+}
+
+.rep-loading-heading {
+  width: 38%;
+  height: 16px;
+  margin-bottom: 4px;
+}
+
+.rep-loading-chart {
+  width: 100%;
+  height: 220px;
+}
+
+.rep-loading-row {
+  width: 100%;
+  height: 18px;
+}
+
+@keyframes report-skeleton-shimmer {
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (max-width: 700px) {
+  .rep-loading-lower {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rep-skeleton {
+    animation: none;
+  }
+}
+
 /* Filter panel (left) + summary cards (right) — stacks when resized */
 .rep-top {
   display: grid;

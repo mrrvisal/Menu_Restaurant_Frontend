@@ -39,10 +39,13 @@
     <!-- STICKY CONTROL BAR (tabs + search) -->
     <div class="control-bar">
       <div class="tabs-wrap">
-        <div v-if="!foods.categories.length" class="tabs">
+        <div v-if="!initialized" class="tabs">
           <div v-for="n in 5" :key="n" class="sk tab-sk"></div>
         </div>
         <div v-else class="tabs">
+          <button class="tab" :class="{ active: !curCat }" @click="switchCategory(null)">
+            <span class="tab-label">{{ i18n.t.all }}</span>
+          </button>
           <button v-for="cat in foods.categories" :key="cat.id" class="tab" :class="{ active: curCat === cat.id }"
             @click="switchCategory(cat.id)">
             <span class="tab-label">{{ catLabel(cat) }}</span>
@@ -111,7 +114,8 @@
     </Transition>
 
     <!-- CALL OWNER FAB (opposite the cart FAB) -->
-    <button class="call-fab" @click="showCall = true">
+    <button v-if="initialized && Boolean(restaurantInfo?.callButtonEnabled)"
+      class="call-fab" @click="showCall = true">
       <AppIcon name="bell" :size="17" />
       <span class="call-fab-label">{{ i18n.t.call_owner }}</span>
     </button>
@@ -291,9 +295,6 @@ onMounted(async () => {
   }
 
   await foods.fetchCategories(getRestaurantParams());
-  if (foods.categories.length) {
-    curCat.value = foods.categories[0].id;
-  }
   await loadRestaurant();
   currencyStore.setFrom(restaurantInfo.value);
   await load();

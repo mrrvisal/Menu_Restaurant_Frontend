@@ -295,16 +295,17 @@ function kdsModeKey() {
 
 function loadMode() {
   try {
-    lightMode.value = localStorage.getItem(kdsModeKey()) === "light";
+    const savedMode = localStorage.getItem(kdsModeKey());
+    lightMode.value = savedMode === null || savedMode === "light";
   } catch {
-    lightMode.value = false;
+    lightMode.value = true;
   }
 }
 
 function toggleMode() {
   lightMode.value = !lightMode.value;
   try {
-    localStorage.setItem(kdsModeKey(), lightMode.value ? "dark" : "light");
+    localStorage.setItem(kdsModeKey(), lightMode.value ? "light" : "dark");
   } catch {
     /* storage unavailable — mode still applies for this session */
   }
@@ -378,7 +379,7 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
-/* ═══ KDS — wall-board theme, dark by default + light variant ═══ */
+/* ═══ KDS — wall-board theme, light by default + dark variant ═══ */
 .kds {
   /* Palette — flipped by .kds.light below */
   --bg: #0d1526;

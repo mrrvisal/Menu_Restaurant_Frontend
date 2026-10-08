@@ -20,9 +20,19 @@
       </button>
     </div>
   </div>
-  <div v-if="ordersLoading" class="empty">
-    <div class="spinner"></div>
-    <p>{{ i18n.t.loading }}</p>
+  <div v-if="ordersLoading" class="order-grid orders-skeleton" role="status" :aria-label="i18n.t.loading">
+    <div v-for="n in 3" :key="n" class="order-c order-skeleton">
+      <div class="order-skeleton-head">
+        <span class="order-skeleton-line order-skeleton-id"></span>
+        <span class="order-skeleton-line order-skeleton-status"></span>
+      </div>
+      <span class="order-skeleton-line order-skeleton-item"></span>
+      <span class="order-skeleton-line order-skeleton-item order-skeleton-item-short"></span>
+      <div class="order-skeleton-foot">
+        <span class="order-skeleton-line order-skeleton-total"></span>
+        <span class="order-skeleton-line order-skeleton-action"></span>
+      </div>
+    </div>
   </div>
   <div v-else-if="searchActive" class="order-search">
     <header class="search-head">
@@ -232,6 +242,68 @@ const searchDateModel = computed({
 </script>
 
 <style scoped>
+.orders-skeleton {
+  margin-bottom: 16px;
+}
+
+.order-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  min-height: 164px;
+  pointer-events: none;
+}
+
+.order-skeleton-head,
+.order-skeleton-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.order-skeleton-line {
+  display: block;
+  height: 13px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e8edf0 25%, #f5f7f8 37%, #e8edf0 63%);
+  background-size: 400% 100%;
+  animation: order-skeleton-shimmer 1.4s ease infinite;
+}
+
+.order-skeleton-id {
+  width: 72px;
+}
+
+.order-skeleton-status {
+  width: 76px;
+  height: 22px;
+  border-radius: 999px;
+}
+
+.order-skeleton-item {
+  width: 92%;
+}
+
+.order-skeleton-item-short {
+  width: 64%;
+}
+
+.order-skeleton-total {
+  width: 96px;
+}
+
+.order-skeleton-action {
+  width: 82px;
+  height: 28px;
+}
+
+@keyframes order-skeleton-shimmer {
+  to {
+    background-position: -100% 0;
+  }
+}
+
 .order-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));

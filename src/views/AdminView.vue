@@ -206,11 +206,6 @@
                     </svg>
                     <span>{{ i18n.t.owner_preview }}</span>
                   </button>
-                  <!-- Generate the menu as an image / PDF (Menu Studio) -->
-                  <button class="pm-item" @click="runProfileAction(openMenuStudio)">
-                    <AppIcon name="image" :size="15" />
-                    <span>{{ i18n.t.menu_studio || "Menu Studio" }}</span>
-                  </button>
                   <!-- Share the menu to every platform (Facebook, Messenger,
                        Telegram, WhatsApp, Instagram, WeChat, LinkedIn, X…) -->
                   <button class="pm-item" @click="runProfileAction(openShare)">
@@ -263,7 +258,8 @@
             </svg>
           </div>
           <div class="metric-b">
-            <span class="metric-v">{{ currencyStore.fmt(stats.summary?.revenue ?? stats.totalRevenue) }}</span>
+            <span v-if="statsLoading" class="skeleton-block metric-skeleton" aria-hidden="true"></span>
+            <span v-else class="metric-v">{{ currencyStore.fmt(stats.summary?.revenue ?? stats.totalRevenue) }}</span>
             <span class="metric-l">{{ i18n.t.revenue }}</span>
           </div>
           <div class="metric-glow"></div>
@@ -276,7 +272,8 @@
             </svg>
           </div>
           <div class="metric-b">
-            <span class="metric-v">{{ stats.summary?.orders ?? (stats.totalOrders || 0) }}</span>
+            <span v-if="statsLoading" class="skeleton-block metric-skeleton" aria-hidden="true"></span>
+            <span v-else class="metric-v">{{ stats.summary?.orders ?? (stats.totalOrders || 0) }}</span>
             <span class="metric-l">{{ i18n.t.orders }}</span>
           </div>
           <div class="metric-glow"></div>
@@ -291,7 +288,8 @@
             </svg>
           </div>
           <div class="metric-b">
-            <span class="metric-v">{{ foods.foods.length }}</span>
+            <span v-if="foods.loading" class="skeleton-block metric-skeleton" aria-hidden="true"></span>
+            <span v-else class="metric-v">{{ foods.foods.length }}</span>
             <span class="metric-l">{{ i18n.t.foods }}</span>
           </div>
           <div class="metric-glow"></div>
@@ -307,6 +305,7 @@
             {{ i18n.t.add_restaurant || "+ បង្កើតភោជនីយដ្ឋាន" }}
           </button>
         </div>
+        <div v-else-if="foods.menusLoading" class="skeleton-block menu-skeleton" aria-hidden="true"></div>
         <template v-else-if="!foods.menus.length">
           <div class="menustrip-empty">
             <span>{{ i18n.t.need_menu || "សូមបង្កើតមីនុយជាមុន" }}</span>
@@ -326,6 +325,9 @@
       <template v-if="adminTab === 'foods'">
         <div class="bar">
           <div class="bar-scroll">
+            <button class="chip" :class="{ active: !curCat }" @click="curCat = ''; load();">
+              {{ i18n.t.all }}
+            </button>
             <button v-for="cat in foods.categories" :key="cat.id" class="chip" :class="{ active: curCat === cat.id }"
               @click="
                 curCat = cat.id;
@@ -363,9 +365,14 @@
           </div>
         </div>
 
-        <div v-if="foods.loading" class="empty">
-          <div class="spinner"></div>
-          <p>{{ i18n.t.loading }}</p>
+        <div v-if="foods.loading" class="grid food-skeleton-grid" role="status" :aria-label="i18n.t.loading">
+          <div v-for="n in 10" :key="n" class="food-skeleton">
+            <div class="skeleton-block food-skeleton-image"></div>
+            <div class="food-skeleton-body">
+              <div class="skeleton-block food-skeleton-name"></div>
+              <div class="skeleton-block food-skeleton-price"></div>
+            </div>
+          </div>
         </div>
         <div v-else-if="!foods.foods.length" class="empty">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
@@ -401,7 +408,17 @@
             </button>
           </div>
         </div>
-        <div v-if="!foods.categories.length" class="empty">
+        <div v-if="foods.categoriesLoading" class="cat-grid category-skeleton-grid" role="status"
+          :aria-label="i18n.t.loading">
+          <div v-for="n in 6" :key="n" class="cat-c category-skeleton">
+            <span class="skeleton-block category-skeleton-name"></span>
+            <span class="category-skeleton-actions">
+              <span class="skeleton-block category-skeleton-action"></span>
+              <span class="skeleton-block category-skeleton-action"></span>
+            </span>
+          </div>
+        </div>
+        <div v-else-if="!foods.categories.length" class="empty">
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"
             opacity=".3">
             <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2v11z" />
@@ -1351,6 +1368,11 @@
       :tracking-msg="trackingMsg"
       :tracking-error="trackingError"
       :toggle-order-tracking="toggleOrderTracking"
+      :call-button-enabled="callButtonEnabled"
+      :call-button-submitting="callButtonSubmitting"
+      :call-button-msg="callButtonMsg"
+      :call-button-error="callButtonError"
+      :toggle-call-button="toggleCallButton"
       :push-state="pushState"
       :push-state-label="pushStateLabel"
       :push-busy="pushBusy"
@@ -1527,7 +1549,7 @@ const { adminTab } = useAdminTab();
 const { curCat, searchQ, showForm, editingFood, deletingFood, menuCreating, load, openAdd, confirmDel, doDelete } = useAdminFoods();
 const { showCatForm, editingCat, catSubmitting, catSuccess, catErrors, catLabelKm, deletingCat, openCatForm, submitCategory, confirmDelCat, doDeleteCat } = useAdminCategories();
 const { orders, ordersLoading, fetchOrders, updateOrderStatus, expandedDays, toggleDay, orderSections, dayLabel, searchDate, searchActive, searchDateOrders, clearDateSearch, scheduleNewDayCheck, stopNewDayCheck } = useAdminOrders();
-const { stats, fetchStats } = useAdminStats();
+const { stats, statsLoading, fetchStats } = useAdminStats();
 const { showQR, qrTableNumber, qrCodeDataUrl, qrLoading, qrError, qrInfo, savedQrs, qrSearch, qrListLoading, qrListError, selectedSavedNo, deletingQr, filteredSavedQrs, openQR, generateQR, previewSavedQr, downloadSavedQr, formatQrDate, confirmDelQr, doDeleteQr, downloadQR } = useAdminQr();
 const { showDevices, devicesList, devicesLoading, devicesError, devicesMsg, deletingDevice, revokingDeviceId, expandedDeviceId, loginHistory, historyLoading, historyError, activeDevicesCount, openDevices, confirmRevokeDevice, doRevokeDevice, revokeAllOthers, fetchLoginHistory, toggleDeviceDetails, deviceMethodLabel } = useAdminDevices();
 const { report, reportLoading, reportError, reportGroup, reportPreset, reportStartDate, reportEndDate, reportDataset, reportFormat, reportExporting, reportExportMsg, reportExportError, reportPresets, reportGroups, reportDatasets, reportFormats, applyReportPreset, openReports, fetchReport, exportReport, reportSeriesPoints, reportHourPoints, chartColor, fmtAxis, topItemWidth, tableBarWidth, statusBarWidth } = useAdminReports();
@@ -1716,6 +1738,9 @@ function openSettings() {
   orderTracking.value = Boolean(auth.restaurant?.orderTracking ?? 0);
   trackingMsg.value = "";
   trackingError.value = "";
+  callButtonEnabled.value = Boolean(auth.restaurant?.callButtonEnabled ?? 0);
+  callButtonMsg.value = "";
+  callButtonError.value = "";
   syncRestaurantTheme();
   refreshPushState();
   showSettings.value = true;
@@ -1863,6 +1888,44 @@ async function toggleOrderTracking() {
       err?.response?.data?.error || i18n.t.generic_error || "Error";
   } finally {
     trackingSubmitting.value = false;
+  }
+}
+
+const callButtonEnabled = ref(false);
+const callButtonSubmitting = ref(false);
+const callButtonMsg = ref("");
+const callButtonError = ref("");
+
+async function toggleCallButton() {
+  const next = !callButtonEnabled.value;
+  if (!auth.restaurantId) {
+    callButtonError.value =
+      i18n.t.need_restaurant || "Create a restaurant first";
+    return;
+  }
+  callButtonEnabled.value = next;
+  callButtonSubmitting.value = true;
+  callButtonMsg.value = "";
+  callButtonError.value = "";
+  try {
+    await axios.patch(`${API_BASE}/api/auth/call-button`, {
+      callButtonEnabled: next,
+      restaurant_id: auth.restaurantId,
+    });
+    if (auth.restaurant) {
+      auth.restaurant.callButtonEnabled = next;
+      auth.saveToStorage();
+    }
+    callButtonMsg.value = i18n.t.saved_success || "Saved successfully!";
+    setTimeout(() => {
+      callButtonMsg.value = "";
+    }, 2500);
+  } catch (err) {
+    callButtonEnabled.value = !next;
+    callButtonError.value =
+      err?.response?.data?.error || i18n.t.generic_error || "Error";
+  } finally {
+    callButtonSubmitting.value = false;
   }
 }
 
@@ -2301,7 +2364,6 @@ onMounted(async () => {
   await foods.fetchMenus();
   refreshCurrentMenuSelection();
   await loadCategories();
-  if (foods.categories.length) curCat.value = foods.categories[0].id;
   await load();
   // Fetch orders on mount: powers the Orders tab AND backfills the
   // notification bell with the most recent orders
@@ -3709,6 +3771,88 @@ onUnmounted(() => {
   font-size: 13px;
   font-weight: 600;
   color: var(--text);
+}
+
+.skeleton-block {
+  display: block;
+  background: linear-gradient(90deg, #e8edf0 25%, #f5f7f8 37%, #e8edf0 63%);
+  background-size: 400% 100%;
+  animation: admin-skeleton-shimmer 1.4s ease infinite;
+  border-radius: 6px;
+}
+
+.metric-skeleton {
+  width: 92px;
+  height: 23px;
+}
+
+.menu-skeleton {
+  width: 132px;
+  height: 28px;
+  border-radius: 999px;
+}
+
+.food-skeleton {
+  overflow: hidden;
+  background: var(--white, #fff);
+  border: 1px solid var(--border-green, #eaf5ed);
+  border-radius: var(--radius-card, var(--radius, 16px));
+  box-shadow: 0 2px 10px var(--shadow-tint-soft, rgba(0, 0, 0, 0.08));
+}
+
+.food-skeleton-image {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 0;
+}
+
+.food-skeleton-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+}
+
+.food-skeleton-name {
+  width: 72%;
+  height: 15px;
+}
+
+.food-skeleton-price {
+  width: 42%;
+  height: 13px;
+}
+
+.category-skeleton {
+  min-height: 46px;
+}
+
+.category-skeleton-name {
+  width: 45%;
+  height: 14px;
+}
+
+.category-skeleton-actions {
+  display: flex;
+  gap: 5px;
+}
+
+.category-skeleton-action {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+}
+
+@keyframes admin-skeleton-shimmer {
+  to {
+    background-position: -100% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-block {
+    animation: none;
+  }
 }
 
 .cat-acts {

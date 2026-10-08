@@ -10,6 +10,8 @@ export const useFoodsStore = defineStore("foods", () => {
   const foods = ref([]);
   const categories = ref([]);
   const menus = ref([]);
+  const menusLoading = ref(false);
+  const categoriesLoading = ref(false);
   const loading = ref(false);
   const error = ref(null);
 
@@ -35,10 +37,15 @@ export const useFoodsStore = defineStore("foods", () => {
       menus.value = [];
       return;
     }
-    const res = await axios.get(`${API_BASE_URL}/api/menus`, {
-      params: { restaurant_id: id },
-    });
-    menus.value = res.data;
+    menusLoading.value = true;
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/menus`, {
+        params: { restaurant_id: id },
+      });
+      menus.value = res.data;
+    } finally {
+      menusLoading.value = false;
+    }
   }
 
   async function addMenu(name) {
@@ -72,19 +79,24 @@ export const useFoodsStore = defineStore("foods", () => {
       categories.value = [];
       return;
     }
-    const res = await axios.get(`${API_BASE_URL}/api/categories`, {
-      params: { restaurant_id: id, ...params },
-    });
-    // Deduplicate categories by normalized name/label
-    const seen = new Set();
-    categories.value = (res.data || []).filter((cat) => {
-      const key = String(cat.label_km || cat.label || cat.name || "")
-        .trim()
-        .toLowerCase();
-      if (!key || seen.has(key)) return false;
-      seen.add(key);
-      return true;
-    });
+    categoriesLoading.value = true;
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/categories`, {
+        params: { restaurant_id: id, ...params },
+      });
+      // Deduplicate categories by normalized name/label
+      const seen = new Set();
+      categories.value = (res.data || []).filter((cat) => {
+        const key = String(cat.label_km || cat.label || cat.name || "")
+          .trim()
+          .toLowerCase();
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    } finally {
+      categoriesLoading.value = false;
+    }
   }
 
   // ─── FOODS ────────────────────────────────────────────────
@@ -172,6 +184,8 @@ export const useFoodsStore = defineStore("foods", () => {
     foods,
     categories,
     menus,
+    menusLoading,
+    categoriesLoading,
     loading,
     error,
     fetchCategories,

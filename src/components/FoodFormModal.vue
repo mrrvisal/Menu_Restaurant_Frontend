@@ -4,7 +4,7 @@
       <div v-if="show" class="modal-overlay" @click.self="$emit('close')">
         <div class="modal-card pop-in">
           <div class="modal-header">
-            <span class="modal-header-title">{{ editFood ? 'កែប្រែ' : 'បន្ថែមម្ហូប' }}</span>
+            <span class="modal-header-title">{{ editFood ? i18n.t.edit_food : i18n.t.add_food }}</span>
             <button class="close-btn" @click="$emit('close')">
               <AppIcon name="x" :size="16" />
             </button>
@@ -23,34 +23,34 @@
             <!-- Price & Category -->
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label">ថ្លៃ (៛) *</label>
+                <label class="form-label">{{ i18n.t.price }} (៛) *</label>
                 <input v-model="form.price" type="number" step="100" min="0" class="form-input"
                   :class="{ error: errors.price }" placeholder="0" @input="errors.price = ''" />
                 <div v-if="errors.price" class="field-err">{{ errors.price }}</div>
               </div>
               <div class="form-group">
-                <label class="form-label">ប្រភេទ *</label>
-                <AppSelect v-model="form.category" block size="md" tone="soft" :options="categories" option-value="id"
-                  option-label="label_km" placeholder="ជ្រើសរើសប្រភេទ" />
+                <label class="form-label">{{ i18n.t.category }} *</label>
+                <AppSelect v-model="form.category" block size="md" tone="soft" :options="categoryOptions"
+                  option-value="id" option-label="formLabel" :placeholder="i18n.t.select_category" />
               </div>
             </div>
 
             <!-- Image upload -->
             <div class="form-group">
-              <label class="form-label">រូបភាព</label>
+              <label class="form-label">{{ i18n.t.image }}</label>
               <div class="img-upload-area" @click="triggerFileInput">
                 <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif"
                   style="display:none" @change="onFileChange" />
                 <div class="img-upload-icon">
                   <AppIcon name="image" :size="36" />
                 </div>
-                <div class="img-upload-text">ចុចដើម្បីជ្រើសរូបភាព</div>
-                <div class="img-upload-sub">JPG, PNG, WEBP · max 5MB</div>
+                <div class="img-upload-text">{{ i18n.t.choose_image }}</div>
+                <div class="img-upload-sub">{{ i18n.t.image_formats_limit }}</div>
               </div>
               <div v-if="errors.img" class="field-err">{{ errors.img }}</div>
               <div v-if="previewUrl" class="img-preview-wrap">
-                <img :src="previewUrl" class="img-preview" alt="preview" />
-                <button class="img-remove-btn" @click.prevent="removeImage">
+                <img :src="previewUrl" class="img-preview" :alt="i18n.t.image_preview" />
+                <button class="img-remove-btn" :aria-label="i18n.t.remove_image" @click.prevent="removeImage">
                   <AppIcon name="x" :size="12" />
                 </button>
               </div>
@@ -58,15 +58,12 @@
 
             <!-- Status -->
             <div class="form-group">
-              <label class="form-label">ស្ថានភាព</label>
-              <AppSelect v-model="form.status" block size="md" tone="soft" :options="[
-                { value: 'available', label: 'មាន (Available)' },
-                { value: 'unavailable', label: 'អស់ (Unavailable)' },
-              ]" />
+              <label class="form-label">{{ i18n.t.status }}</label>
+              <AppSelect v-model="form.status" block size="md" tone="soft" :options="statusOptions" />
             </div>
 
             <button class="submit-btn" :disabled="submitting" @click="submit">
-              {{ submitting ? 'កំពុងរក្សាទុក...' : (editFood ? 'រក្សាទុក' : 'បន្ថែម') }}
+              {{ submitting ? i18n.t.saving : (editFood ? i18n.t.save : i18n.t.add) }}
             </button>
           </div>
         </div>
@@ -76,7 +73,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useFoodsStore } from '@/stores/foods';
 import { useI18nStore } from '@/stores/i18n';
 import AppSelect from '@/components/AppSelect.vue';
@@ -91,6 +88,19 @@ const emit = defineEmits(['close', 'saved']);
 
 const foods = useFoodsStore();
 const i18n = useI18nStore();
+const categoryOptions = computed(() =>
+  props.categories.map((category) => ({
+    ...category,
+    formLabel:
+      i18n.locale === 'en'
+        ? category.label_en || category.name_en || category.label_km || category.label || category.name
+        : category.label_km || category.label || category.name,
+  }))
+);
+const statusOptions = computed(() => [
+  { value: 'available', label: i18n.t.available },
+  { value: 'unavailable', label: i18n.t.unavailable },
+]);
 const fileInput = ref(null);
 const previewUrl = ref('');
 const selectedFile = ref(null);

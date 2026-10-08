@@ -131,6 +131,8 @@
             <template v-else-if="settingsTab === 'orders'">
               <div v-if="trackingMsg" class="msg msg-s">{{ trackingMsg }}</div>
               <div v-if="trackingError" class="msg msg-e">{{ trackingError }}</div>
+              <div v-if="callButtonMsg" class="msg msg-s">{{ callButtonMsg }}</div>
+              <div v-if="callButtonError" class="msg msg-e">{{ callButtonError }}</div>
               <div class="fld push-fld">
                 <label class="fld-l">{{ i18n.t.order_tracking || "Order tracking" }}</label>
                 <p class="push-desc">
@@ -147,6 +149,30 @@
                       trackingSubmitting
                         ? i18n.t.loading
                         : orderTracking
+                          ? i18n.t.push_disable || "Turn off"
+                          : i18n.t.push_enable || "Turn on"
+                    }}
+                  </button>
+                </div>
+              </div>
+              <div class="fld push-fld">
+                <label class="fld-l">{{ i18n.t.call_button_visibility || "Guest call button" }}</label>
+                <p class="push-desc">
+                  {{ i18n.t.call_button_visibility_desc || "Show or hide the Call owner button on your public menu." }}
+                </p>
+                <div class="push-row">
+                  <span class="push-state"
+                    :class="callButtonEnabled ? 'push-st-enabled' : 'push-st-disabled'">
+                    <AppIcon v-if="callButtonEnabled" name="check-circle" :size="12" />
+                    {{ callButtonEnabled ? (i18n.t.push_on || "On") : (i18n.t.push_off || "Off") }}
+                  </span>
+                  <button type="button" class="btn btn-sm"
+                    :class="callButtonEnabled ? 'btn-ghost' : 'btn-g'"
+                    :disabled="callButtonSubmitting" @click="toggleCallButton">
+                    {{
+                      callButtonSubmitting
+                        ? i18n.t.loading
+                        : callButtonEnabled
                           ? i18n.t.push_disable || "Turn off"
                           : i18n.t.push_enable || "Turn on"
                     }}
@@ -243,6 +269,11 @@ const props = defineProps([
   "trackingMsg",
   "trackingError",
   "toggleOrderTracking",
+  "callButtonEnabled",
+  "callButtonSubmitting",
+  "callButtonMsg",
+  "callButtonError",
+  "toggleCallButton",
   "pushState",
   "pushStateLabel",
   "pushBusy",
@@ -291,6 +322,11 @@ const {
   trackingMsg,
   trackingError,
   toggleOrderTracking,
+  callButtonEnabled,
+  callButtonSubmitting,
+  callButtonMsg,
+  callButtonError,
+  toggleCallButton,
   pushState,
   pushStateLabel,
   pushBusy,
