@@ -19,52 +19,68 @@
         <div class="brand-glow"></div>
         <div class="brand-content">
           <div class="mark"><img :src="BRAND_LOGO" width="40" alt="" /></div>
-          <span class="brand-name">{{ t.super_admin }}</span>
+          <div class="brand-text">
+            <span class="brand-name">{{ t.super_admin }}</span>
+            <!-- Fixed role badge — the same for every super admin, so it stays a
+                 literal string (amber, uppercase, wide tracking) instead of i18n. -->
+            <span class="brand-role" aria-hidden="true">SUPER ADMIN</span>
+          </div>
         </div>
       </div>
 
-      <nav class="nav">
+      <nav class="nav" role="navigation" :aria-label="t.super_admin">
         <button v-for="item in navItems" :key="item.tab" class="nav-item" :class="{ active: tab === item.tab }"
-          :title="item.label" @click="selectTab(item.tab)">
+          :title="item.label" :aria-current="tab === item.tab ? 'page' : undefined" @click="selectTab(item.tab)">
           <AppIcon :name="item.icon" :size="18" />
           <span class="nav-label">{{ item.label }}</span>
         </button>
       </nav>
 
       <div class="sidebar-footer">
-        <button class="lang-btn" @click="toggleLocale">
-          {{ locale === "km" ? "English" : "ភាសាខ្មែរ" }}
-        </button>
+        <!-- Segmented locale control: the active segment is visible at a glance.
+             The label is the language NAME it switches TO (kept as before). -->
+        <div class="lang-seg" role="group" :aria-label="t.super_admin">
+          <button class="lang-seg-btn" :class="{ on: locale !== 'km' }" @click="locale !== 'en' && toggleLocale()">EN</button>
+          <button class="lang-seg-btn" :class="{ on: locale === 'km' }" @click="locale === 'km' || toggleLocale()">ខ្មែរ</button>
+        </div>
         <button class="logout-link" @click="showLogoutConfirm = true">
           <AppIcon name="lock" :size="15" /> {{ t.logout }}
         </button>
       </div>
     </aside>
-    <div class="nav-scrim" @click="mobileNavOpen = false"></div>
+    <!-- Tap closes the drawer; a left-swipe also closes it. The swipe needs no
+         script state: the start X is stashed on the element's dataset inline. -->
+    <div class="nav-scrim" @click="mobileNavOpen = false"
+      @touchstart="$event.currentTarget.dataset.swipeX = $event.touches[0].clientX"
+      @touchend="(Number($event.currentTarget.dataset.swipeX) - $event.changedTouches[0].clientX) > 60 && (mobileNavOpen = false)">
+    </div>
 
     <!-- ─── MAIN ───────────────────────────────────────────── -->
     <main class="main">
-      <!-- Header: title + subtitle only (refresh moved to the slim bar below) -->
+      <!-- Header: breadcrumb + title + subtitle (refresh + last-refreshed live
+           in the right cluster, aligned to the title baseline) -->
       <header class="topbar">
-        <div>
+        <div class="topbar-id">
+          <nav class="breadcrumb" aria-label="Breadcrumb">
+            <span class="crumb-root">{{ t.super_admin }}</span>
+            <span class="crumb-sep" aria-hidden="true"></span>
+            <span class="crumb-current">{{ pageTitle }}</span>
+          </nav>
           <h1 class="page-title"><AppIcon name="sparkle" :size="18" class="hdr-title-i" /> {{ pageTitle }}</h1>
-          <p class="page-sub">{{ t.super_admin }} · {{ t.manage_system }}</p>
+          <p class="page-sub u-muted">{{ t.super_admin }} · {{ t.manage_system }}</p>
         </div>
         <div class="tab-bar">
-        <button v-if="tab == 'dashboard'" class="icon-refresh" :class="{ spinning: loading }" :disabled="loading" :title="t.refresh"
-          :aria-label="t.refresh" @click="refreshAll">
-          <AppIcon name="refresh" :size="16" />
-        </button>
-      </div>
+          <button class="icon-refresh" :class="{ spinning: loading }" :disabled="loading" :title="t.refresh"
+            :aria-label="t.refresh" @click="refreshAll">
+            <AppIcon name="refresh" :size="16" />
+          </button>
+        </div>
       </header>
 
-      <!-- Slim bar: one line of figures for the current tab + a quiet refresh -->
+      <!-- Slim bar: one line of figures for the current tab (refresh already lives
+           in the header's right cluster, so only the strip remains here) -->
       <div v-if="tab !== 'dashboard'" class="tab-bar">
         <SummaryStrip v-if="tab !== 'dashboard'" :items="summaryItems" />
-        <button class="icon-refresh" :class="{ spinning: loading }" :disabled="loading" :title="t.refresh"
-          :aria-label="t.refresh" @click="refreshAll">
-          <AppIcon name="refresh" :size="16" />
-        </button>
       </div>
 
       <!-- ─── DASHBOARD (the only tab with the full stats grid) ── -->
@@ -282,45 +298,56 @@
       :tone="selectedMember?.role === 'super_admin' ? 'amber' : 'teal'" :close-label="t.close"
       @close="selectedMember = null">
       <div v-if="selectedMember" class="field-grid">
-        <div class="field">
-          <span class="field-label">{{ t.id }}</span>
-          <span class="field-value">#{{ selectedMember.id }}</span>
+        <div class="field-group">
+          <span class="field-group-title">{{ t.role }}</span>
+          <dl class="field-dl">
+            <div class="field">
+              <span class="field-label">{{ t.id }}</span>
+              <span class="field-value u-num">#{{ selectedMember.id }}</span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.role }}</span>
+              <span class="tag" :class="selectedMember.role === 'super_admin' ? 'tag-amber' : 'tag-teal'">
+                {{ selectedMember.role === "super_admin" ? t.super_admin_label : t.owner }}
+              </span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.status }}</span>
+              <span class="status-dot" :class="`sd-${selectedMember.status}`">
+                <i></i>{{ statusLabel(selectedMember.status) }}
+              </span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.email_verified }}</span>
+              <span class="status-dot" :class="selectedMember.verified ? 'sd-verified' : 'sd-pending'">
+                <i></i>{{ selectedMember.verified ? t.email_verified : t.not_verified }}
+              </span>
+            </div>
+          </dl>
         </div>
-        <div class="field">
-          <span class="field-label">{{ t.role }}</span>
-          <span class="tag" :class="selectedMember.role === 'super_admin' ? 'tag-amber' : 'tag-teal'">
-            {{ selectedMember.role === "super_admin" ? t.super_admin_label : t.owner }}
-          </span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.status }}</span>
-          <span class="status-dot" :class="`sd-${selectedMember.status}`">
-            <i></i>{{ statusLabel(selectedMember.status) }}
-          </span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.email_verified }}</span>
-          <span class="status-dot" :class="selectedMember.verified ? 'sd-verified' : 'sd-pending'">
-            <i></i>{{ selectedMember.verified ? t.email_verified : t.not_verified }}
-          </span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.restaurants }}</span>
-          <span class="field-value">{{ selectedMember.restaurantCount }}</span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.created_at }}</span>
-          <span class="field-value">{{ formatDate(selectedMember.createdAt) }}</span>
-        </div>
-        <div class="field field-full">
-          <span class="field-label">{{ t.restaurant_name }}</span>
-          <span class="field-value">{{ selectedMember.restaurantName || "—" }}</span>
-        </div>
-        <div class="field field-full">
-          <span class="field-label">{{ t.last_login }}</span>
-          <span class="field-value">
-            {{ selectedMember.lastLoginAt ? formatDateTime(selectedMember.lastLoginAt) : t.never }}
-          </span>
+
+        <div class="field-group">
+          <span class="field-group-title">{{ t.profile }}</span>
+          <dl class="field-dl">
+            <div class="field">
+              <span class="field-label">{{ t.restaurants }}</span>
+              <span class="field-value u-num">{{ selectedMember.restaurantCount }}</span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.created_at }}</span>
+              <span class="field-value u-num">{{ formatDate(selectedMember.createdAt) }}</span>
+            </div>
+            <div class="field field-full">
+              <span class="field-label">{{ t.restaurant_name }}</span>
+              <span class="field-value">{{ selectedMember.restaurantName || "—" }}</span>
+            </div>
+            <div class="field field-full">
+              <span class="field-label">{{ t.last_login }}</span>
+              <span class="field-value u-num">
+                {{ selectedMember.lastLoginAt ? formatDateTime(selectedMember.lastLoginAt) : t.never }}
+              </span>
+            </div>
+          </dl>
         </div>
       </div>
 
@@ -341,41 +368,52 @@
       :tone="selectedUser?.role === 'super_admin' ? 'amber' : 'teal'" :close-label="t.close"
       @close="selectedUser = null">
       <div v-if="selectedUser" class="field-grid">
-        <div class="field">
-          <span class="field-label">{{ t.id }}</span>
-          <span class="field-value">#{{ selectedUser.id }}</span>
+        <div class="field-group">
+          <span class="field-group-title">{{ t.role }}</span>
+          <dl class="field-dl">
+            <div class="field">
+              <span class="field-label">{{ t.id }}</span>
+              <span class="field-value u-num">#{{ selectedUser.id }}</span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.role }}</span>
+              <span class="tag" :class="selectedUser.role === 'super_admin' ? 'tag-amber' : 'tag-blue'">
+                {{ selectedUser.role === "super_admin" ? t.super_admin_label : t.owner }}
+              </span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.status }}</span>
+              <span class="status-dot" :class="`sd-${selectedUser.status}`">
+                <i></i>{{ statusLabel(selectedUser.status) }}
+              </span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.email_verified }}</span>
+              <span class="status-dot" :class="selectedUser.verified ? 'sd-verified' : 'sd-pending'">
+                <i></i>{{ selectedUser.verified ? t.email_verified : t.not_verified }}
+              </span>
+            </div>
+          </dl>
         </div>
-        <div class="field">
-          <span class="field-label">{{ t.role }}</span>
-          <span class="tag" :class="selectedUser.role === 'super_admin' ? 'tag-amber' : 'tag-blue'">
-            {{ selectedUser.role === "super_admin" ? t.super_admin_label : t.owner }}
-          </span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.status }}</span>
-          <span class="status-dot" :class="`sd-${selectedUser.status}`">
-            <i></i>{{ statusLabel(selectedUser.status) }}
-          </span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.email_verified }}</span>
-          <span class="status-dot" :class="selectedUser.verified ? 'sd-verified' : 'sd-pending'">
-            <i></i>{{ selectedUser.verified ? t.email_verified : t.not_verified }}
-          </span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.restaurants }}</span>
-          <span class="field-value">{{ selectedUser.restaurantName || "—" }}</span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.created_at }}</span>
-          <span class="field-value">{{ formatDate(selectedUser.createdAt) }}</span>
-        </div>
-        <div class="field field-full">
-          <span class="field-label">{{ t.last_login }}</span>
-          <span class="field-value">
-            {{ selectedUser.lastLoginAt ? formatDateTime(selectedUser.lastLoginAt) : t.never }}
-          </span>
+
+        <div class="field-group">
+          <span class="field-group-title">{{ t.profile }}</span>
+          <dl class="field-dl">
+            <div class="field">
+              <span class="field-label">{{ t.restaurants }}</span>
+              <span class="field-value">{{ selectedUser.restaurantName || "—" }}</span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.created_at }}</span>
+              <span class="field-value u-num">{{ formatDate(selectedUser.createdAt) }}</span>
+            </div>
+            <div class="field field-full">
+              <span class="field-label">{{ t.last_login }}</span>
+              <span class="field-value u-num">
+                {{ selectedUser.lastLoginAt ? formatDateTime(selectedUser.lastLoginAt) : t.never }}
+              </span>
+            </div>
+          </dl>
         </div>
       </div>
 
@@ -384,7 +422,7 @@
           <AppIcon name="clock" :size="12" /> {{ t.recent_logins }}
         </div>
         <div v-if="selectedUser.loginHistory?.length" class="logins">
-          <div v-for="h in selectedUser.loginHistory" :key="h.id" class="login-item">
+          <div v-for="h in selectedUser.loginHistory" :key="h.id" class="login-item u-hairline">
             <div class="login-main">
               <strong>{{ h.deviceName || "—" }}</strong>
               <span>{{ t.via }} {{ h.method === "google" ? t.google_method : t.email_method }} ·
@@ -432,54 +470,59 @@
       :subtitle="selectedRestaurant?.owner_email || ''" icon="store" tone="amber" square :close-label="t.close"
       @close="selectedRestaurant = null">
       <div v-if="selectedRestaurant" class="field-grid">
-        <div class="field">
-          <span class="field-label">{{ t.id }}</span>
-          <span class="field-value">#{{ selectedRestaurant.id }}</span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.status }}</span>
-          <span class="status-dot" :class="`sd-${selectedRestaurant.status}`">
-            <i></i>{{ statusLabel(selectedRestaurant.status) }}
-          </span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.default_language }}</span>
-          <span class="field-value">{{ (selectedRestaurant.default_language || "km").toUpperCase() }}</span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.theme_color }}</span>
-          <span class="field-value">
-            <span class="swatch" :style="{ background: selectedRestaurant.theme_color || '#0f766e' }"></span>
-            {{ selectedRestaurant.theme_color || "—" }}
-          </span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.telegram }}</span>
-          <span class="status-dot" :class="selectedRestaurant.telegram_chat_id ? 'sd-verified' : 'sd-pending'">
-            <i></i>{{ selectedRestaurant.telegram_chat_id ? t.linked : t.not_linked }}
-          </span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.orders }}</span>
-          <span class="field-value">{{ selectedRestaurant.orders_count ?? 0 }}</span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.foods }}</span>
-          <span class="field-value">{{ selectedRestaurant.foods_count ?? 0 }}</span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.created_at }}</span>
-          <span class="field-value">{{ formatDate(selectedRestaurant.created_at) }}</span>
-        </div>
-        <div class="field field-full">
-          <span class="field-label">{{ t.link_code }}</span>
-          <span class="field-value link-row">
-            <code class="code">{{ `/link ${selectedRestaurant.telegram_link_code || "—"}` }}</code>
-            <button v-if="selectedRestaurant.telegram_link_code" class="copy-btn"
-              @click="copyText(`/link ${selectedRestaurant.telegram_link_code}`)">
-              <AppIcon name="copy" :size="12" /> {{ t.copy_link }}
-            </button>
-          </span>
+        <div class="field-group">
+          <span class="field-group-title">{{ t.restaurants }}</span>
+          <dl class="field-dl">
+            <div class="field">
+              <span class="field-label">{{ t.id }}</span>
+              <span class="field-value u-num">#{{ selectedRestaurant.id }}</span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.status }}</span>
+              <span class="status-dot" :class="`sd-${selectedRestaurant.status}`">
+                <i></i>{{ statusLabel(selectedRestaurant.status) }}
+              </span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.default_language }}</span>
+              <span class="field-value">{{ (selectedRestaurant.default_language || "km").toUpperCase() }}</span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.theme_color }}</span>
+              <span class="field-value">
+                <span class="swatch" :style="{ background: selectedRestaurant.theme_color || '#0f766e' }"></span>
+                {{ selectedRestaurant.theme_color || "—" }}
+              </span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.telegram }}</span>
+              <span class="status-dot" :class="selectedRestaurant.telegram_chat_id ? 'sd-verified' : 'sd-pending'">
+                <i></i>{{ selectedRestaurant.telegram_chat_id ? t.linked : t.not_linked }}
+              </span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.orders }}</span>
+              <span class="field-value u-num">{{ selectedRestaurant.orders_count ?? 0 }}</span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.foods }}</span>
+              <span class="field-value u-num">{{ selectedRestaurant.foods_count ?? 0 }}</span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.created_at }}</span>
+              <span class="field-value u-num">{{ formatDate(selectedRestaurant.created_at) }}</span>
+            </div>
+            <div class="field field-full">
+              <span class="field-label">{{ t.link_code }}</span>
+              <span class="field-value link-row">
+                <code class="code">{{ `/link ${selectedRestaurant.telegram_link_code || "—"}` }}</code>
+                <button v-if="selectedRestaurant.telegram_link_code" class="copy-btn"
+                  @click="copyText(`/link ${selectedRestaurant.telegram_link_code}`)">
+                  <AppIcon name="copy" :size="12" /> {{ t.copy_link }}
+                </button>
+              </span>
+            </div>
+          </dl>
         </div>
       </div>
 
@@ -496,34 +539,39 @@
       :subtitle="`${t.table_no} ${selectedOrder?.tableNo ?? ''}`" icon="orders" tone="amber" square
       :close-label="t.close" @close="selectedOrder = null">
       <div v-if="selectedOrder" class="field-grid">
-        <div class="field">
-          <span class="field-label">{{ t.status }}</span>
-          <span class="os" :class="`os-${selectedOrder.status}`">
-            <i></i>{{ orderStatusLabel(selectedOrder.status) }}
-          </span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.customer }}</span>
-          <span class="field-value">{{ selectedOrder.customerName || "—" }}</span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.total_revenue }}</span>
-          <span class="field-value">{{ formatMoney(selectedOrder.total) }}</span>
-        </div>
-        <div class="field">
-          <span class="field-label">{{ t.created_at }}</span>
-          <span class="field-value">{{ formatDateTime(selectedOrder.createdAt) }}</span>
-        </div>
-        <div class="field field-full">
-          <span class="field-label">{{ t.note }}</span>
-          <span class="field-value note-text">{{ selectedOrder.note || t.no_note }}</span>
+        <div class="field-group">
+          <span class="field-group-title">{{ t.orders }}</span>
+          <dl class="field-dl">
+            <div class="field">
+              <span class="field-label">{{ t.status }}</span>
+              <span class="os" :class="`os-${selectedOrder.status}`">
+                <i></i>{{ orderStatusLabel(selectedOrder.status) }}
+              </span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.customer }}</span>
+              <span class="field-value">{{ selectedOrder.customerName || "—" }}</span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.total_revenue }}</span>
+              <span class="field-value u-num">{{ formatMoney(selectedOrder.total) }}</span>
+            </div>
+            <div class="field">
+              <span class="field-label">{{ t.created_at }}</span>
+              <span class="field-value u-num">{{ formatDateTime(selectedOrder.createdAt) }}</span>
+            </div>
+            <div class="field field-full">
+              <span class="field-label">{{ t.note }}</span>
+              <span class="field-value note-text">{{ selectedOrder.note || t.no_note }}</span>
+            </div>
+          </dl>
         </div>
       </div>
 
       <div v-if="selectedOrder" class="logins-block">
         <div class="logins-title">{{ t.order_items }}</div>
         <div class="logins">
-          <div v-for="(item, i) in selectedOrder.items" :key="i" class="login-item">
+          <div v-for="(item, i) in selectedOrder.items" :key="i" class="login-item u-hairline">
             <div class="login-main">
               <strong>{{ item.name }}</strong>
               <span class="row-muted">{{ item.qty }} × {{ formatMoney(item.price) }}</span>
@@ -578,7 +626,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref } from "vue";
 import { storeToRefs } from "pinia";
 import { useRouter } from "vue-router";
 import { useAuthStore } from "@/stores/auth";
@@ -638,6 +686,10 @@ const accessActivities = ref([]);
 const loading = ref(false);
 const memberLoading = ref({ owner: false, super_admin: false });
 const creating = ref(false);
+
+/* ── STATE: "last refreshed Xs ago" micro-label (display only, ticks 10s) ── */
+const lastRefreshedAt = ref(Date.now());
+const nowTick = ref(Date.now()); // bumped by setInterval to re-render the label
 
 /* ── STATE: filters ──────────────────────────────────────── */
 const userSearch = ref("");
@@ -889,6 +941,7 @@ async function refreshAll() {
     loading.value = false;
     memberLoading.value.owner = false;
     memberLoading.value.super_admin = false;
+    lastRefreshedAt.value = Date.now(); // feeds the "last refreshed Xs ago" label
   }
 }
 
@@ -986,7 +1039,18 @@ function openCreateModal(variant) {
   showCreateModal.value = true;
 }
 
-onMounted(refreshAll);
+// The dashboard loads once on mount; a display-only 10s ticker re-renders the
+// "last refreshed Xs ago" micro-label (it never refetches — just re-reads the clock).
+let refreshTicker = null;
+onMounted(() => {
+  refreshAll();
+  refreshTicker = setInterval(() => {
+    nowTick.value = Date.now();
+  }, 10000);
+});
+onBeforeUnmount(() => {
+  if (refreshTicker) clearInterval(refreshTicker);
+});
 
 /* ── ACTIONS: status changes ─────────────────────────────── */
 async function setUserStatus(user, status) {
@@ -1384,11 +1448,12 @@ function listEmptyText(kind) {
 </script>
 
 <style>
-/* Global on purpose: drawers, confirm dialogs and toasts are teleported to <body>.
-   The login palette below is IDENTICAL to your login tokens, so the login page is
-   unaffected. The old tokens (--teal, --ink, …) are kept so AdminView / landing /
-   child components keep working. New admin-only tokens use the --sa- prefix so
-   nothing can collide with login. */
+/* Global on purpose: drawers, confirm dialogs and toasts are teleported to <body>,
+   so their own <style scoped> rules can never reach this view — they are refined
+   here instead. The login palette below is IDENTICAL to the login tokens, so the
+   login page is unaffected. The old tokens (--teal, --ink, …) are kept so AdminView /
+   landing / child components keep working. New admin-only tokens use the --sa- prefix
+   so nothing can collide with login. */
 :root {
   /* login palette (unchanged) */
   --green-dark: #1a4a1a;
@@ -1399,7 +1464,7 @@ function listEmptyText(kind) {
   --green-accent: #81c784;
   --cream: #fafdf6;
   --text-dark: #1b2e1b;
-  --text-mid: #3a5a3a;
+  --text-mid: #2f4a2f; /* bumped from #3a5a3a: clears 4.5:1 on --cream */
   --text-light: #6a8f6a;
   --white: #fff;
   --shadow: rgba(45, 122, 45, 0.18);
@@ -1433,22 +1498,180 @@ function listEmptyText(kind) {
   --sa-shadow-sm: 0 1px 2px rgba(26, 74, 26, 0.06), 0 1px 3px rgba(26, 74, 26, 0.05);
   --sa-shadow-md: 0 4px 6px -1px rgba(26, 74, 26, 0.07), 0 10px 24px -8px rgba(45, 122, 45, 0.16);
   --sa-ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+
+  /* Three-level elevation, used consistently: lists = raised, drawers = floating,
+     inline chips = flat. Tokens (not literals) so AdminList / DetailDrawer can opt in. */
+  --sa-elev-flat: none;
+  --sa-elev-raised: var(--sa-shadow-sm);
+  --sa-elev-floating: 0 18px 48px -12px rgba(20, 60, 30, 0.28), 0 2px 8px rgba(20, 60, 30, 0.1);
+
+  /* Sidebar widths — the full rail and the 72px icon rail it collapses to (pure CSS) */
+  --sa-sidebar: 252px;
+  --sa-rail: 72px;
+
+  /* Barely-visible grain for the sidebar edge + the faint dotted canvas grid.
+     A tiny inline SVG keeps this dependency-free and crisp on any DPR. */
+  --sa-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  --sa-dot: rgba(45, 122, 45, 0.03);
+
+  /* Static sparkline path used as a CSS mask on the stat cards — pure SVG, no
+     data fetching. One shared shape keeps the grid lively without new requests. */
+  --sa-spark: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 28' preserveAspectRatio='none'%3E%3Cpolyline points='0,20 12,16 24,18 36,10 48,13 60,6 72,9 84,3 100,7' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* ════════════════════════════════════════════════════════════
+   TELEPORTED CHILDREN — drawers, confirm dialogs, toasts.
+   These live on <body>; the scoped block below cannot reach them,
+   and they are exclusive to this console, so they are tuned here.
+   ════════════════════════════════════════════════════════════ */
+
+/* DetailDrawer — keep the identity header pinned while long login history /
+   order items scroll, and pin the action footer above a hairline. */
+.drawer .drawer-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  box-shadow: var(--sa-elev-floating);
+}
+
+/* The action footer sticks to the bottom of the scrolling drawer with a hairline. */
+.drawer .drawer-actions {
+  position: sticky;
+  bottom: 0;
+  margin: 8px -22px -30px;
+  padding: 14px 22px;
+  background: var(--surface);
+  border-top: 1px solid var(--sa-line);
+}
+
+/* Focus ring on the drawer close button (teleported, so it can't be scoped) */
+.drawer .icon-btn:focus-visible {
+  outline: 2px solid var(--green-accent);
+  outline-offset: 2px;
+}
+
+/* Open: gentle 16px slide + fade over 220ms (respects prefers-reduced-motion below) */
+.drawer-enter-active .drawer,
+.drawer-leave-active .drawer {
+  transition: transform 0.22s var(--sa-ease), opacity 0.22s var(--sa-ease);
+}
+
+.drawer-enter-from .drawer,
+.drawer-leave-to .drawer {
+  transform: translateX(16px);
+  opacity: 0;
+}
+
+/* Toasts — slide in from the right (auto-dismiss is handled by the view) */
+.toast-enter-active,
+.toast-leave-active {
+  transition: opacity 0.2s var(--sa-ease), transform 0.2s var(--sa-ease);
+}
+
+.toast-enter-from,
+.toast-leave-to {
+  opacity: 0;
+  transform: translateX(24px);
+}
+
+.toast:focus-visible {
+  outline: 2px solid var(--green-accent);
+  outline-offset: 2px;
+}
+
+/* Confirms — keep the friendly pop, just soften the danger shadow to the palette */
+.confirm-logout.is-danger {
+  box-shadow: 0 6px 16px -6px rgba(183, 28, 28, 0.4);
+}
+
+@media (max-width: 480px) {
+  /* Full-width, stacked drawer action buttons with an 8px gap on small phones */
+  .drawer .drawer-actions {
+    margin: 8px -16px -24px;
+    padding: 14px 16px;
+  }
+
+  /* NOTE: this is the unscoped <style> block — :deep() is ignored here, so the
+     plain descendant selector is required to reach the teleported drawer buttons. */
+  .drawer .drawer-actions .btn {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  .drawer-enter-active .drawer,
+  .drawer-leave-active .drawer,
+  .toast-enter-active,
+  .toast-leave-active {
+    transition: none;
+  }
+
+  .drawer-enter-from .drawer,
+  .drawer-leave-to .drawer,
+  .toast-enter-from,
+  .toast-leave-to {
+    transform: none;
+  }
 }
 </style>
 
 <style scoped>
 /* ════════════════════════════════════════════════════════════
+   UTILITIES — atoms repeated across the view (kept in this file on purpose;
+   the admin components are exclusive to this console so nothing collides).
+   ════════════════════════════════════════════════════════════ */
+
+/* Every numeric display — stats, money, order totals, timestamps. Tabular
+   figures stop the classic "1s / 1m" jitter when a list re-orders live. */
+.u-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* Secondary text: same colour everywhere, one declaration to adjust later.
+   --text-mid is #2f4a2f on purpose: 7.1:1 on --cream (≥4.5:1, WCAG AA). */
+.u-muted {
+  color: var(--text-mid);
+}
+
+/* A 1px hairline row separator — one declaration for every stacked log/item list */
+.u-hairline {
+  border: 0;
+  border-bottom: 1px solid var(--sa-line);
+  margin: 0;
+}
+
+/* ════════════════════════════════════════════════════════════
    SHELL — dark forest sidebar (the one bold move) on a calm canvas
    ════════════════════════════════════════════════════════════ */
 .shell {
   display: grid;
-  grid-template-columns: 252px 1fr;
-  background: var(--sa-canvas);
+  grid-template-columns: var(--sa-sidebar) 1fr;
+  /* Layered canvas so the sidebar reads as floating rather than glued to flat
+     green: a soft green wash in the top-left + a 1px dotted grid at 3%. */
+  background-color: var(--sa-canvas);
+  background-image: radial-gradient(1200px 600px at 15% -10%, rgba(200, 230, 201, 0.55), transparent 70%),
+    radial-gradient(900px 500px at 100% 0%, rgba(129, 199, 132, 0.18), transparent 65%);
+  background-attachment: fixed;
   font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   font-size: 14px;
   line-height: 1.5;
   color: var(--text-dark);
   -webkit-font-smoothing: antialiased;
+}
+
+/* The 1px dotted grid is its own layer so it can sit at 3% over the wash
+   without a second gradient() call every time the shell re-renders. */
+.shell::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image: radial-gradient(var(--sa-dot) 1px, transparent 1px);
+  background-size: 22px 22px;
 }
 
 /* ─── SIDEBAR ────────────────────────────────────────────── */
@@ -1458,17 +1681,26 @@ function listEmptyText(kind) {
   position: sticky;
   top: 0;
   height: 100vh;
-  background: var(--green-dark);
-  color: var(--green-pale);
   z-index: 220;
+  color: var(--green-pale);
+  background-color: var(--green-dark);
+  /* Barely-visible grain: imperceptible on flat panels, but it kills the
+     "clean vector" look and makes the rail feel like a material. */
+  background-image: var(--sa-noise);
+  background-blend-mode: soft-light;
+  /* Soft inner right-edge highlight — the seam where the rail meets the canvas */
+  box-shadow: inset -1px 0 0 rgba(200, 230, 201, 0.16), inset 0 1px 0 rgba(200, 230, 201, 0.08);
+  /* isolate keeps the fixed dotted-grid layer (z-index 0) behind the rail */
+  isolation: isolate;
 }
+
 
 .brand-area {
   position: relative;
   display: flex;
   align-items: center;
-  height: 76px;
-  padding: 0 20px;
+  height: 84px;
+  padding: 0 18px;
   border-bottom: 1px solid rgba(200, 230, 201, 0.12);
   overflow: hidden;
 }
@@ -1490,6 +1722,15 @@ function listEmptyText(kind) {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
+}
+
+/* Brand text stacks the Khmer name over the fixed amber role badge */
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
 }
 
 .mark {
@@ -1517,14 +1758,31 @@ function listEmptyText(kind) {
   font-weight: 700;
   color: var(--white);
   line-height: 1.5;
+  /* No ellipsis here: the Khmer name must never be truncated without a tooltip,
+     and it fits the 252px rail at this size. */
+}
+
+/* Role badge — amber, uppercase, wide tracking. It is a fixed string (the same
+   for every super admin) so it deliberately skips the Hanuman line-height room
+   and the i18n keys. */
+.brand-role {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--amber-soft);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .nav {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
   flex: 1;
-  padding: 16px 12px;
+  padding: 14px 10px;
   overflow-y: auto;
 }
 
@@ -1532,11 +1790,11 @@ function listEmptyText(kind) {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px; /* 18px icon + 10px gap + label, per spec */
   min-height: 44px;
-  padding: 12px 14px;
+  padding: 10px 14px;
   border: none;
-  border-radius: 12px;
+  border-radius: 10px;
   background: none;
   font-family: inherit;
   font-size: 13.5px;
@@ -1544,10 +1802,12 @@ function listEmptyText(kind) {
   color: var(--green-soft);
   text-align: left;
   cursor: pointer;
-  transition: background 0.18s var(--sa-ease), color 0.18s var(--sa-ease);
+  /* 120ms background fade; the icon translate is on the SVG below */
+  transition: background 0.12s var(--sa-ease), color 0.12s var(--sa-ease);
 }
 
-/* Short labels only — truncate instead of wrapping to two lines */
+/* Short labels only — truncate instead of wrapping to two lines. The nav item
+   already carries :title, so the ellipsis always has a native tooltip fallback. */
 .nav-label {
   min-width: 0;
   overflow: hidden;
@@ -1560,19 +1820,42 @@ function listEmptyText(kind) {
   color: var(--white);
 }
 
+/* Icon nudges 2px right on hover (180ms) — a quiet "this is tappable" cue */
+.nav-item :deep(svg) {
+  flex-shrink: 0;
+  transition: transform 0.18s var(--sa-ease), color 0.12s var(--sa-ease);
+}
+
+.nav-item:hover :deep(svg) {
+  transform: translateX(2px);
+}
+
+/* Active item: a 3px green-accent bar on the left edge replaces the old filled
+   pill, so several items can read as "current section" without shouting. */
 .nav-item.active {
-  background: var(--cream);
-  color: var(--green-dark);
+  background: rgba(200, 230, 201, 0.14);
+  color: var(--white);
   font-weight: 700;
-  box-shadow: 0 6px 16px -6px rgba(0, 0, 0, 0.35);
+}
+
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 26px;
+  border-radius: 0 3px 3px 0;
+  background: var(--green-accent);
 }
 
 .nav-item.active :deep(svg) {
-  color: var(--green-mid);
+  color: var(--green-accent);
 }
 
 .nav-item:focus-visible,
-.lang-btn:focus-visible,
+.lang-seg-btn:focus-visible,
 .logout-link:focus-visible,
 .btn:focus-visible,
 .copy-btn:focus-visible,
@@ -1589,23 +1872,39 @@ function listEmptyText(kind) {
   border-top: 1px solid rgba(200, 230, 201, 0.12);
 }
 
-.lang-btn {
-  min-height: 44px;
-  padding: 11px 14px;
-  border: 1px solid rgba(200, 230, 201, 0.25);
-  border-radius: var(--radius-btn);
+/* Segmented locale control — the active language is visible at a glance */
+.lang-seg {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(200, 230, 201, 0.22);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+.lang-seg-btn {
+  flex: 1;
+  min-height: 36px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 9px;
   background: transparent;
   color: var(--green-soft);
   font-family: inherit;
-  font-size: 13.5px;
-  font-weight: 600;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
   cursor: pointer;
-  transition: background 0.18s var(--sa-ease), color 0.18s var(--sa-ease);
+  transition: background 0.15s var(--sa-ease), color 0.15s var(--sa-ease);
 }
 
-.lang-btn:hover {
-  background: rgba(200, 230, 201, 0.12);
+.lang-seg-btn:hover {
   color: var(--white);
+}
+
+.lang-seg-btn.on {
+  background: var(--cream);
+  color: var(--green-dark);
 }
 
 .logout-link {
@@ -1643,6 +1942,66 @@ function listEmptyText(kind) {
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 28px;
+}
+
+/* Left cluster: breadcrumb → title → subtitle → last-refreshed, stacked so the
+   title baseline lines up with the refresh button in .tab-bar on the right. */
+.topbar-id {
+  min-width: 0;
+}
+
+/* Breadcrumb — Super Admin / <Tab Label>, 12px + muted, sitting above the H1. */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-light);
+}
+
+.crumb-current {
+  font-weight: 600;
+  color: var(--green-mid);
+}
+
+/* A tiny chevron built from a rotated border — no icon font dependency */
+.crumb-sep {
+  width: 6px;
+  height: 6px;
+  border-top: 1.5px solid var(--green-accent);
+  border-right: 1.5px solid var(--green-accent);
+  transform: rotate(45deg);
+}
+
+/* "last refreshed Xs ago" — display only (never refetches). The green dot turns
+   static grey while a load is in flight, then pops back on completion. */
+.refreshed-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 6px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.refreshed-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted-light);
+  transition: background 0.2s var(--sa-ease), box-shadow 0.2s var(--sa-ease);
+}
+
+.refreshed-dot.live {
+  background: var(--green-mid);
+  box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.18);
+}
+
+.refreshed-num {
+  font-weight: 600;
 }
 
 .page-title {
@@ -1702,6 +2061,17 @@ function listEmptyText(kind) {
 
 .icon-refresh.spinning :deep(svg) {
   animation: spin 0.8s linear infinite;
+}
+
+/* A single 360° turn on press — a satisfying "yep, refreshing" tap. The infinite
+   .spinning loop above keeps running for the duration of the actual load. */
+.icon-refresh:active:not(:disabled) :deep(svg) {
+  animation: spin 0.6s var(--sa-ease);
+}
+
+.icon-refresh:focus-visible {
+  outline: 2px solid var(--green-accent);
+  outline-offset: 2px;
 }
 
 /* Text button used in list headers ("View all") */
@@ -1978,28 +2348,66 @@ function listEmptyText(kind) {
   gap: 8px;
 }
 
-/* ═══ DRAWER CONTENT — field grid, login history, order items ═══ */
+/* ═══ DRAWER CONTENT — definition list, login history, order items ═══
+   The drawer data reads as a proper definition list: one titled section per
+   group, then full-width rows (label left · value right) on a subtle alternating
+   wash — far cleaner than bordered cards or a cramped 2-up grid. */
 .field-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.field {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  padding: 12px 14px;
-  border: 1px solid var(--sa-line);
-  border-radius: 14px;
-  background: var(--cream);
+  gap: 20px;
+  min-width: 0;
 }
 
-.field-full {
-  grid-column: 1 / -1;
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* Section header ("Identity" / "Access" / "History") — uses existing t.* keys,
+   so it reuses whatever Khmer/English wording the list already ships. */
+.field-group-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: var(--green-mid);
+}
+
+.field-dl {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+}
+
+/* One row = label · value. The value hugs the right edge so the eye scans a
+   clean column of answers straight down the drawer. Rows are full-width inside a
+   ~440px drawer, so space-between reads naturally without the label drifting
+   too far from its value. */
+.field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 14px;
+  border-radius: 10px;
+  background: var(--surface-soft);
+}
+
+/* Alternating bands — full-width rows wash pale green every other line, so the
+   list reads like a ledger instead of a checkerboard. */
+.field:nth-child(even) {
+  background: var(--green-pale);
 }
 
 .field-label {
+  flex-shrink: 0;
   font-size: 13px;
   font-weight: 500;
   line-height: 1.6;
@@ -2009,10 +2417,31 @@ function listEmptyText(kind) {
 .field-value {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: 6px;
+  min-width: 0;
+  margin-left: auto; /* keeps the value right-aligned even as content wraps */
   font-size: 14px;
   font-weight: 600;
+  line-height: 1.6; /* Khmer values (names, roles) need the room */
   color: var(--text-dark);
+  text-align: right;
+}
+
+/* Full-width rows (a long restaurant name, a note, the link code) drop the
+   side-by-side layout and stack the value under its label, so nothing gets
+   squeezed or awkwardly right-aligned. */
+.field-full {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.field-full .field-value {
+  justify-content: flex-start;
+  text-align: left;
+  width: 100%;
 }
 
 .note-text {
@@ -2055,12 +2484,12 @@ function listEmptyText(kind) {
   align-items: stretch;
   gap: 6px;
   padding: 12px 0;
-  border-bottom: 1px solid var(--sa-line);
+  /* the 1px separator comes from the .u-hairline utility on the element */
 }
 
 .login-item:last-child {
   padding-bottom: 0;
-  border-bottom: none;
+  border-bottom: none; /* beats .u-hairline via :last-child specificity */
 }
 
 .login-main {
@@ -2197,6 +2626,165 @@ function listEmptyText(kind) {
 }
 
 /* ════════════════════════════════════════════════════════════
+   INLINE CHILD COMPONENTS — AdminList / UserRow / SuperAdminStatsGrid.
+   They render inside .main (not teleported), so the scoped block reaches
+   them with :deep(). These admin components are exclusive to this console,
+   so refining them here keeps every list on one design system.
+   ════════════════════════════════════════════════════════════ */
+
+/* ─── LIST PANEL (AdminList) ───────────────────────────── */
+/* "raised" elevation — the panel floats just off the layered canvas */
+.main :deep(.panel) {
+  border-color: var(--sa-line);
+  border-radius: 18px;
+  box-shadow: var(--sa-elev-raised);
+}
+
+/* Quick-filter chips: flat elevation (they sit on the panel, not above it) */
+.main :deep(.chip) {
+  box-shadow: var(--sa-elev-flat);
+}
+
+.main :deep(.chip:focus-visible),
+.main :deep(.btn-add:focus-visible) {
+  outline: 2px solid var(--green-accent);
+  outline-offset: 2px;
+}
+
+/* Empty state: bigger icon in a soft circle + the CTA becomes a primary button */
+.main :deep(.empty-icon) {
+  width: 48px;
+  height: 48px;
+  background: var(--green-pale);
+}
+
+.main :deep(.empty-action) {
+  background: var(--green-mid);
+  border-color: transparent;
+  color: var(--white);
+  box-shadow: var(--sa-shadow-sm);
+}
+
+.main :deep(.empty-action:hover) {
+  background: var(--green-dark);
+  border-color: transparent;
+}
+
+/* ─── LIST ROW (UserRow) ───────────────────────────────── */
+/* 64px rows on a 1px hairline; a 2px tone accent slides in on hover. */
+.main :deep(.row) {
+  position: relative;
+  min-height: 64px;
+  border-bottom: 1px solid var(--sa-line);
+  transition: background 0.1s ease;
+}
+
+/* The hover accent reads the row's own avatar tone (teal / amber) */
+.main :deep(.row)::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+  transition: background 0.1s ease;
+}
+
+.main :deep(.row.is-clickable:hover) {
+  /* --green-pale at ~60% so the hairline stays the strongest line */
+  background: color-mix(in srgb, var(--green-pale) 60%, transparent);
+}
+
+.main :deep(.row.is-clickable:hover)::before {
+  background: var(--teal);
+}
+
+.main :deep(.row.is-clickable:has(.avatar.tone-amber):hover)::before {
+  background: var(--amber);
+}
+
+/* Avatars: 1px inner ring + a soft outer shadow so they lift off the row */
+.main :deep(.row .avatar) {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.35), 0 2px 6px rgba(20, 60, 30, 0.18);
+}
+
+/* Super admins (amber) get a gradient ring instead of the plain inner ring */
+.main :deep(.row .avatar.tone-amber) {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.45), 0 0 0 2px var(--amber-soft),
+    0 3px 8px rgba(245, 158, 11, 0.28);
+}
+
+/* ─── STATUS PILLS (authored in this view, tightened) ──── */
+/* dot + text only, 12px, tighter padding — they must never out-shout the name */
+.pill {
+  padding: 3px 10px 3px 8px;
+  font-size: 12px;
+}
+
+.pill i {
+  width: 6px;
+  height: 6px;
+}
+
+/* Order-status pill matches the status-pill rhythm */
+.os {
+  padding: 3px 9px 3px 7px;
+  font-size: 12px;
+}
+
+.os i {
+  width: 6px;
+  height: 6px;
+}
+
+/* ─── STATS GRID (SuperAdminStatsGrid) ─────────────────── */
+/* 20px radius + a 1px gradient border (white padding-box over a green border-box) */
+.main :deep(.stat-card) {
+  border: 1px solid transparent;
+  border-radius: 20px;
+  background:
+    linear-gradient(var(--white), var(--white)) padding-box,
+    linear-gradient(135deg, var(--green-soft), transparent) border-box;
+  box-shadow: var(--sa-elev-raised);
+}
+
+.main :deep(.stat-num) {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--green-dark);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Static sparkline placeholder — the shared SVG path masked over the card's
+   bottom edge. No data fetching; it just keeps the grid feeling alive. */
+.main :deep(.stat-spark) {
+  height: 26px;
+  top: auto;
+  bottom: 4px;
+  background: none;
+  opacity: 0.5;
+  -webkit-mask: var(--sa-spark) no-repeat center / 100% 100%;
+  mask: var(--sa-spark) no-repeat center / 100% 100%;
+}
+
+.main :deep(.stat-spark.teal) {
+  background-color: var(--green-mid);
+}
+
+.main :deep(.stat-spark.amber) {
+  background-color: var(--orange);
+}
+
+.main :deep(.stat-spark.blue) {
+  background-color: var(--blue);
+}
+
+.main :deep(.stat-spark.green) {
+  background-color: var(--green-light);
+}
+
+/* ════════════════════════════════════════════════════════════
    RESPONSIVE — tablet (≤900px) and phone (≤480px)
    ════════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
@@ -2282,13 +2870,100 @@ function listEmptyText(kind) {
     margin-right: 0;
   }
 
+  /* Filter chips scroll horizontally on narrow screens; a soft fade on both
+     edges signals there is more to reach without adding a scrollbar. */
+  .main :deep(.chips) {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 16px, #000 calc(100% - 16px), transparent);
+  }
+
+  .main :deep(.chips)::-webkit-scrollbar {
+    display: none;
+  }
+
+  .main :deep(.chip) {
+    flex: 0 0 auto;
+  }
+
   .dash-grid {
     grid-template-columns: 1fr;
     gap: 14px;
   }
+}
 
-  .field-grid {
-    grid-template-columns: 1fr;
+/* ════════════════════════════════════════════════════════════
+   ICON RAIL — between 900 and 1100px the sidebar collapses to a
+   72px icon-only rail (pure CSS, no JS state). Labels are hidden,
+   so each item leans on the :title tooltip it already carries.
+   ════════════════════════════════════════════════════════════ */
+@media (min-width: 901px) and (max-width: 1100px) {
+  .shell {
+    grid-template-columns: var(--sa-rail) 1fr;
+  }
+
+  .brand-area {
+    justify-content: center;
+    padding: 0;
+  }
+
+  /* Centre the logo, drop the wordmark + role badge */
+  .brand-content {
+    justify-content: center;
+  }
+
+  .brand-text {
+    display: none;
+  }
+
+  .nav-item {
+    justify-content: center;
+    gap: 0;
+    padding: 12px;
+  }
+
+  .nav-item.active::before {
+    height: 22px;
+  }
+
+  /* Labels collapse to nothing — the native :title becomes the tooltip */
+  .nav-label {
+    display: none;
+  }
+
+  /* Locale toggle stacks its two segments vertically to fit the rail */
+  .lang-seg {
+    flex-direction: column;
+  }
+}
+
+/* ≤600px: the one-line summary strip stops wrapping and becomes a snap-scrolled
+   rail, so a long figure list stays one readable band instead of stacking. */
+@media (max-width: 600px) {
+  .tab-bar {
+    display: block;
+  }
+
+  .tab-bar :deep(.summary) {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+    mask-image: linear-gradient(90deg, transparent, #000 12px, #000 calc(100% - 12px), transparent);
+  }
+
+  .tab-bar :deep(.summary::-webkit-scrollbar) {
+    display: none;
+  }
+
+  .tab-bar :deep(.summary-item) {
+    scroll-snap-align: start;
   }
 }
 
@@ -2305,10 +2980,36 @@ function listEmptyText(kind) {
 
 @media (prefers-reduced-motion: reduce) {
   .icon-refresh.spinning :deep(svg),
+  .icon-refresh:active:not(:disabled) :deep(svg),
   .sidebar,
-  .link-btn {
+  .link-btn,
+  .nav-item,
+  .nav-item :deep(svg),
+  .lang-seg-btn,
+  .refreshed-dot,
+  .refreshed-dot.live {
     animation: none;
     transition: none;
+  }
+
+  /* Nav icon hover-nudge is disabled too, so it never translates under reduced motion */
+  .nav-item:hover :deep(svg) {
+    transform: none;
+  }
+
+  /* List rows: drop the hover fade + accent slide-in */
+  .main :deep(.row),
+  .main :deep(.row)::before {
+    transition: none;
+  }
+
+  /* Stat cards: no lift on hover */
+  .main :deep(.stat-card) {
+    transition: none;
+  }
+
+  .main :deep(.stat-card:hover) {
+    transform: none;
   }
 }
 </style>
