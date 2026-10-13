@@ -373,12 +373,244 @@ function close() {
 </script>
 
 <style scoped>
+/* ══ OVERLAY + SHELL ══════════════════════════════════════
+   The structural classes below (.overlay, .sheet, .fld, .btn,
+   .msg …) previously came from the dated global admin-ui.css.
+   They're redefined here — scoped styles win on the teleported
+   node — so the sheet matches the modernized CreateAdminModal /
+   ConfirmModal. Brand tokens keep fallbacks so it renders even
+   before the restaurant theme is applied. */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: rgba(17, 24, 20, 0.5);
+  -webkit-backdrop-filter: blur(6px) saturate(110%);
+  backdrop-filter: blur(6px) saturate(110%);
+}
+
+.sheet {
+  width: 100%;
+  max-width: 560px;
+  /* margin:auto (not flex centering) keeps a tall sheet reachable on small screens. */
+  margin: auto;
+  background: var(--surface, #fff);
+  border: 1px solid var(--sa-line, var(--border, #e2e8f0));
+  border-radius: 18px;
+  box-shadow: var(--sa-elev-floating, 0 20px 60px rgba(0, 0, 0, 0.15));
+  overflow: hidden;
+}
+
+.sheet-h {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 15px 18px;
+  background: linear-gradient(180deg, var(--surface-soft, #f8fdf9), var(--surface, #fff));
+  border-bottom: 1px solid var(--sa-line, var(--border, #e2e8f0));
+}
+
+/* Title keeps Hanuman so Khmer glyphs (e.g. ការកំណត់) render correctly. */
+.sheet-h > span {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: "Hanuman", serif;
+  font-size: 15.5px;
+  font-weight: 700;
+  color: var(--ink, #14532d);
+  line-height: 1.6;
+}
+
+.sheet-h svg {
+  color: var(--primary, #0f766e);
+  flex: none;
+}
+
+.ic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: 9px;
+  background: none;
+  color: var(--muted, #6b7280);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ic:hover {
+  background: rgba(20, 60, 30, 0.07);
+  color: var(--ink, #14532d);
+}
+
+.sheet-b {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+}
+
+/* ══ FIELDS ═══════════════════════════════════════════════ */
+.fld {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fld-l {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text, #374151);
+  line-height: 1.6;
+}
+
+.fld-i {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border, #e2e8f0);
+  border-radius: 10px;
+  background: var(--surface, #fff);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--text, #374151);
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.fld-i:hover {
+  border-color: #cbd5e1;
+}
+
+.fld-i:focus {
+  border-color: var(--primary, #0f766e);
+  /* Soft halo instead of jumping the border weight — keeps the hairline look. */
+  box-shadow: 0 0 0 3px var(--primary-glow, rgba(15, 118, 110, 0.13));
+}
+
+.fld-i::placeholder {
+  color: var(--muted-light, #9ca3af);
+}
+
+.fld-hint {
+  font-size: 11.5px;
+  color: var(--muted, #6b7280);
+  line-height: 1.6;
+}
+
+/* ══ INLINE MESSAGES ══════════════════════════════════════ */
+.msg {
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.6;
+}
+
+.msg-s {
+  border: 1px solid var(--green-soft, #c8e6c9);
+  background: var(--green-pale, #e8f5e9);
+  color: var(--green-dark, #1a4a1a);
+}
+
+.msg-e {
+  border: 1px solid #f8c9c4;
+  background: #fdecea;
+  color: var(--red, #c62828);
+}
+
+/* ══ BUTTONS ══════════════════════════════════════════════ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease,
+    filter 0.15s ease, transform 0.15s ease;
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn:disabled {
+  cursor: not-allowed;
+}
+
+.btn-primary,
+.btn-g {
+  background: var(--primary, #0f766e);
+  color: var(--on-primary, #fff);
+  box-shadow: 0 4px 12px -4px var(--primary-glow, rgba(15, 118, 110, 0.45));
+}
+
+.btn-primary:hover:not(:disabled),
+.btn-g:hover:not(:disabled) {
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+}
+
+.btn-primary:disabled,
+.btn-g:disabled {
+  background: #9ca3af;
+  box-shadow: none;
+}
+
+/* Secondary = white + hairline (Stripe/Linear style). */
+.btn-ghost {
+  border: 1px solid var(--border, #e2e8f0);
+  background: var(--surface, #fff);
+  color: var(--text, #374151);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--surface-warm, #f0fdf4);
+  border-color: #cbd5e1;
+}
+
+.btn-sm {
+  padding: 6px 12px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+
+.btn-b {
+  width: 100%;
+}
+
+/* ══ FOCUS RINGS (a11y) ═══════════════════════════════════ */
+.ic:focus-visible,
+.st-tab:focus-visible,
+.swatch:focus-visible,
+.layout-opt:focus-visible,
+.btn:focus-visible {
+  outline: 2px solid var(--primary, #0f766e);
+  outline-offset: 2px;
+}
+
+/* ══ TABS ═════════════════════════════════════════════════ */
 .st-tabs {
   display: flex;
   align-items: center;
   gap: 6px;
   flex-wrap: wrap;
-  padding-bottom: 2px;
 }
 
 .st-tab {
@@ -602,9 +834,26 @@ function close() {
   opacity: 0;
 }
 
-.st-tabs {
+/* ─── PHONE (≤480px): tighten the tab row + controls so five tabs fit.
+   These rules were orphaned outside any @media before — they applied at
+   EVERY screen size and overrode the base .st-tab/.swatch sizes above. */
+@media (max-width: 480px) {
+  .overlay {
+    padding: 12px;
+  }
+
+  .sheet {
+    border-radius: 16px;
+  }
+
+  .sheet-b {
+    padding: 14px;
+    gap: 12px;
+  }
+
+  .st-tabs {
     gap: 4px;
-}
+  }
 
   .st-tab {
     padding: 6px 10px;
@@ -619,12 +868,13 @@ function close() {
   .layout-opt {
     padding: 7px 3px;
     font-size: 9.5px;
+  }
 }
 
 @media (max-width: 900px) {
-    .sidebar-fld {
-        display: none
-    }
+  .sidebar-fld {
+    display: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
