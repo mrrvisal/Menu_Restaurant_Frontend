@@ -102,7 +102,7 @@ export async function enablePush(token) {
         applicationServerKey: urlBase64ToUint8Array(key),
       }));
   } catch (err) {
-    console.error("Push subscribe error:", err);
+    console.error("Push subscribe error:", err?.response?.data?.error || err?.message);
     return { ok: false, reason: "subscribe_failed" };
   }
 
@@ -114,7 +114,7 @@ export async function enablePush(token) {
       { headers: authHeaders(token) },
     );
   } catch (err) {
-    console.error("Push save error:", err);
+    console.error("Push save error:", err?.response?.data?.error || err?.message);
     return { ok: false, reason: "save_failed" };
   }
 
@@ -137,7 +137,7 @@ export async function disablePush(token) {
     }
     return { ok: true };
   } catch (err) {
-    console.error("Push disable error:", err);
+    console.error("Push disable error:", err?.response?.data?.error || err?.message);
     return { ok: false, reason: "unsubscribe_failed" };
   }
 }

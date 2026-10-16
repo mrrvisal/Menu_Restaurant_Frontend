@@ -194,7 +194,7 @@ async function exportReport() {
       reportExportMsg.value = "";
     }, 2500);
   } catch (err) {
-    console.error("Sales export error:", err);
+    console.error("Sales export error:", err?.response?.data?.error || err?.message);
     reportExportMsg.value =
       (await localizedExportError(err)) || i18n.t.report_export_err;
     reportExportError.value = true;

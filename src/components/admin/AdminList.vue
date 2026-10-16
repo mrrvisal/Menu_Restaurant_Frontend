@@ -41,15 +41,23 @@
     </div>
     <div v-else-if="items.length" class="rows">
       <template v-for="item in items" :key="item[itemKey]">
-        <slot name="row" :item="item" />
+        <slot name="row" :item="item"></slot>
       </template>
     </div>
-    <!-- Empty state: icon + message + one action (Refresh / Clear filters) -->
+    <!-- Empty state: icon + message + one action (Refresh / Clear filters).
+         The CTA renders only when the parent passes emptyActionLabel — the
+         props, the "empty-action" emit and the .empty-action styles all
+         existed already, only the button itself was missing. -->
     <div v-else class="empty">
       <div class="empty-icon">
         <AppIcon :name="emptyIcon" :size="26" />
       </div>
       <p>{{ emptyText }}</p>
+      <button v-if="emptyActionLabel" type="button" class="empty-action"
+        @click="emit('empty-action')">
+        <AppIcon :name="emptyActionIcon" :size="14" />
+        {{ emptyActionLabel }}
+      </button>
     </div>
   </section>
 </template>
@@ -255,6 +263,10 @@ const onSearch = (event) => emit("update:search", event.target.value);
 .rows {
   display: flex;
   flex-direction: column;
+  max-height: 250px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
 }
 
 /* Empty state — icon + message + one action (Refresh / Clear filters) */

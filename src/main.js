@@ -13,6 +13,7 @@ import "./assets/main.css";
 import "./assets/selection.css";
 import "./assets/select.css";
 import "./assets/admin-ui.css";
+import "./assets/form-validation.css"; // global inline-error styles (utils/formValidation.js)
 
 const app = createApp(App);
 installApiErrorHandling(axios);

@@ -7,6 +7,14 @@
     <!-- ─── TOP BAR ─── -->
     <header class="ms-hdr">
       <div class="ms-hdr-l">
+        <div class="side-icon">
+          <img v-if="restaurantLogo" :src="restaurantLogo" alt="" @error="logoLoadError = true" />
+          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
         <div class="ms-title-b">
           <h1 class="ms-title">
             <AppIcon name="sparkle" :size="17" class="ms-title-i" />
@@ -134,11 +142,15 @@
         {{ i18n.t.back }}
       </button>
     </div>
-    <div v-else-if="dataLoading && !menuData.categories.length" class="ms-empty">
+    <!-- Loading / "no dishes at all" gate on the STORE (foods.foods), never on
+         menuData.categories — that array is the category FILTER result, and
+         gating on it used to replace the whole workspace (chips included)
+         with this dead end whenever a chip matched zero dishes. -->
+    <div v-else-if="dataLoading && !foods.foods.length" class="ms-empty">
       <div class="spinner"></div>
       <p>{{ i18n.t.ms_loading }}</p>
     </div>
-    <div v-else-if="!menuData.categories.length" class="ms-empty">
+    <div v-else-if="!foods.foods.length" class="ms-empty">
       <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" opacity=".3" aria-hidden="true">
         <path d="M3 11h18M3 11v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-8M3 11V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v4" />
       </svg>
@@ -150,6 +162,21 @@
 
     <!-- ─── WORKSPACE ─── -->
     <div v-else class="ms-body">
+      <!-- Category selection matched nothing: keep the workspace (and the
+           chips needed to undo the selection) on screen — the old
+           `!menuData.categories.length` gate turned this into a dead end. -->
+      <div v-if="!dataLoading && foods.foods.length && !menuData.categories.length" class="ms-body-empty"
+        role="status">
+        <AppIcon name="alert-circle" :size="16" />
+        <span>{{ i18n.t.ms_no_match }}</span>
+        <button v-if="design.categoryIds.length" class="ms-mini" @click="patchDesign({ categoryIds: [] })">
+          {{ i18n.t.ms_show_all }}
+        </button>
+        <button v-else-if="design.hideUnavailable" class="ms-mini" @click="patchDesign({ hideUnavailable: false })">
+          {{ i18n.t.ms_include_unavailable }}
+        </button>
+      </div>
+
       <!-- LEFT: controls (fixed bottom sheet on mobile, inline on desktop) -->
       <aside ref="sideEl" class="ms-side" :class="{ open: sideOpen }" id="ms-side"
         :inert="isMobileView && !sideOpen"
@@ -404,7 +431,10 @@
               </button>
               <button v-for="cat in foods.categories" :key="cat.id" class="ms-chip"
                 :class="{ active: design.categoryIds.includes(String(cat.id)) }"
-                :aria-pressed="design.categoryIds.includes(String(cat.id))" @click="toggleCategory(cat.id)">
+                :aria-pressed="design.categoryIds.includes(String(cat.id))"
+                :disabled="!categoryHasDishes(cat.id)"
+                :title="categoryHasDishes(cat.id) ? null : (i18n.t.ms_cat_no_dishes || '')"
+                @click="toggleCategory(cat.id)">
                 {{ cat.label_km }}
               </button>
             </div>
@@ -550,9 +580,9 @@
     </div>
 
     <!-- Mobile controls bottom sheet -->
-    <div v-if="sideOpen && auth.restaurantId && menuData.categories.length" class="ms-side-backdrop"
+    <div v-if="sideOpen && auth.restaurantId && foods.foods.length" class="ms-side-backdrop"
       @click="closeSidePanel()"></div>
-    <button v-if="auth.restaurantId && menuData.categories.length && !sideOpen" ref="sideToggleEl" class="ms-fab"
+    <button v-if="auth.restaurantId && foods.foods.length && !sideOpen" ref="sideToggleEl" class="ms-fab"
       aria-controls="ms-side"
       :aria-label="i18n.t.ms_templates || 'Menu editor'"
       @click="toggleSidePanel">
@@ -678,6 +708,17 @@ const router = useRouter();
 const auth = useAuthStore();
 const foods = useFoodsStore();
 const i18n = useI18nStore();
+const logoLoadError = ref(false);
+const restaurantLogo = computed(() => {
+  if (logoLoadError.value) return "";
+  return auth.restaurant?.logoUrl || "";
+});
+watch(
+  () => auth.restaurant?.logoUrl,
+  () => {
+    logoLoadError.value = false;
+  }
+);
 
 const {
   design,
@@ -1326,6 +1367,12 @@ function toggleCategory(id) {
   patchDesign({ categoryIds: [...current] });
 }
 
+// A category chip with no dishes would filter the preview to nothing —
+// grey it out (same String() normalisation buildData() uses).
+function categoryHasDishes(catId) {
+  return foods.foods.some((f) => String(f.category) === String(catId));
+}
+
 function templateLabel(id) {
   const tpl = templateById(id);
   return i18n.t[tpl.nameKey] || tpl.id;
@@ -1712,7 +1759,7 @@ onUnmounted(() => {
      Khmer font whose line metrics inflate every control only in km locale */
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
     "Helvetica Neue", Arial, "Kantumruy Pro", sans-serif;
-  padding: 0 26px 48px;
+  padding: 0 16px 48px;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -1762,7 +1809,7 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 14px;
   flex-wrap: wrap;
-  padding: 16px 0 14px;
+  padding: 10px 0 10px;
   /* frosted sticky bar: page content slides under it cleanly */
   background: #f8fafc;
   backdrop-filter: saturate(180%) blur(12px);
@@ -1776,6 +1823,26 @@ onUnmounted(() => {
   gap: 14px;
   min-width: 0;
   flex: 1 1 auto; /* allows the title block to shrink so ellipsis kicks in */
+}
+
+.side-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--surface-green);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--border-green);
+  color: var(--primary);
+}
+
+.side-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .ms-back {
@@ -2014,6 +2081,23 @@ onUnmounted(() => {
   padding-top: 18px;
 }
 
+/* Category filter matched nothing — notice spanning both columns so the
+   workspace (and the chips needed to undo the selection) stay usable */
+.ms-body-empty {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  border: 1px dashed #fde68a;
+  background: #fffbeb;
+  border-radius: 12px;
+  color: #92400e;
+  font-size: 12px;
+  font-weight: 600;
+}
+
 .ms-side {
   display: flex;
   flex-direction: column;
@@ -2033,7 +2117,7 @@ onUnmounted(() => {
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 3px;
   padding: 4px;
-  /* border-radius: 13px; */
+  border-radius: 13px;
   background: #f1f5f9;
 }
 
@@ -2712,6 +2796,20 @@ onUnmounted(() => {
   background: var(--ms-primary);
   border-color: var(--ms-primary);
   color: #fff;
+}
+
+/* Categories with no dishes can't filter anything — greyed out */
+.ms-chip:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  border-color: var(--ms-border);
+  color: var(--ms-muted);
+  background: var(--ms-surface);
+}
+
+.ms-chip:disabled:hover {
+  border-color: var(--ms-border);
+  color: var(--ms-muted);
 }
 
 /* ── Saved designs ── */

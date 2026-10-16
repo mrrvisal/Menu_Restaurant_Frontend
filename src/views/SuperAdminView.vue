@@ -258,7 +258,7 @@
 
         <div class="stack">
           <!-- live sessions -->
-          <AdminList :title="t.sessions_label" icon="clock" :items="accessSessions" :count="accessSessions.length"
+          <AdminList :title="t.sessions_label" icon="clock" :items="sortedSessions" :count="accessSessions.length"
             :loading="loading" :empty-text="t.no_data" empty-icon="lock"
             :empty-action-label="emptyActionLabel('sessions')" @empty-action="runEmptyAction('sessions')">
             <template #row="{ item }">
@@ -276,7 +276,7 @@
           </AdminList>
 
           <!-- actions feed (audit trail) -->
-          <AdminList :title="t.actions_feed" icon="clipboard" :items="accessActivities"
+          <AdminList :title="t.actions_feed" icon="clipboard" :items="sortedActivities"
             :count="accessActivities.length" :loading="loading" :empty-text="t.no_data" empty-icon="clipboard"
             :empty-action-label="emptyActionLabel('activities')" @empty-action="runEmptyAction('activities')">
             <template #row="{ item }">
@@ -893,6 +893,27 @@ const filteredAccessLogins = computed(() => {
     "browser",
   ]);
 });
+
+/* ── COMPUTED: access-tab secondary lists ────────────────── */
+// Live sessions sorted online-first, then most-recently-active: the raw API
+// order made the "who is online right now" rows hard to find. The computed
+// also reads nowTick (bumped every 10s) so the online/offline pills and the
+// amber/teal avatars re-evaluate live without refetching anything.
+const sortedSessions = computed(() => {
+  void nowTick.value;
+  return [...accessSessions.value].sort((a, b) => {
+    const live = Number(isOnline(b.lastActiveAt)) - Number(isOnline(a.lastActiveAt));
+    if (live) return live;
+    return new Date(b.lastActiveAt || 0) - new Date(a.lastActiveAt || 0);
+  });
+});
+
+// Audit trail always newest-first, whatever order the API happens to return
+const sortedActivities = computed(() =>
+  [...accessActivities.value].sort(
+    (a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0),
+  ),
+);
 
 /* ── API: loaders ────────────────────────────────────────── */
 function applyAccess(access) {
@@ -2095,7 +2116,8 @@ function listEmptyText(kind) {
 /* Dashboard: two compact preview panels under the stats grid */
 .dash-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  /* min(340px, 100%): a hard 340px floor would overflow a 320px phone */
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
   gap: 16px;
 }
 
@@ -2105,11 +2127,44 @@ function listEmptyText(kind) {
   }
 }
 
+/* Expanding ring behind the "online" dot in the live-sessions list */
+@keyframes sa-live-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.45);
+  }
+
+  60% {
+    box-shadow: 0 0 0 5px rgba(76, 175, 80, 0);
+  }
+}
+
+/* Access tab: the two SECONDARY lists (live sessions + audit trail) sit SIDE
+   BY SIDE instead of stacking — same auto-fit pattern as .dash-grid, so they
+   collapse to one column on narrow screens. `align-items: start` keeps each
+   panel at its natural height instead of stretching the shorter one to match. */
 .stack {
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  margin-top: 24px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(340px, 100%), 1fr));
+  gap: 16px;
+  margin-top: 16px;
+  align-items: start;
+}
+
+/* Cap the secondary lists with an internal scroll so the whole access tab fits
+   in roughly one screen — an unbounded audit trail used to push everything
+   below an endless page. Overscroll containment stops the wheel from scrolling
+   the page once a list hits its end. */
+.stack :deep(.rows) {
+  max-height: 250px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+}
+
+/* "Online" dot breathes while the session is live (killed by reduced motion) */
+.stack :deep(.pill-active i) {
+  animation: sa-live-pulse 2.2s var(--sa-ease) infinite;
 }
 
 /* ─── MOBILE BAR + SCRIM (shown ≤900px) ──────────────────── */
@@ -3001,6 +3056,11 @@ function listEmptyText(kind) {
   .main :deep(.row),
   .main :deep(.row)::before {
     transition: none;
+  }
+
+  /* Live-sessions "online" dot: no breathing ring */
+  .stack :deep(.pill-active i) {
+    animation: none;
   }
 
   /* Stat cards: no lift on hover */

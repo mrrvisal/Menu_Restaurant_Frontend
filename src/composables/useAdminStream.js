@@ -291,12 +291,29 @@ export async function connectOrderStream() {
   clearTimeout(streamRetryTimer);
   streamRetryTimer = null;
 
-  // Renew the access token first when it's close to expiring — EventSource
-  // bakes the token into its URL and can't swap it without a reconnect.
+  // Renew the access token first, then exchange it for a SHORT-LIVED (5 min)
+  // SSE-only stream token (#11) — the 24h access token must never appear in
+  // a URL (proxy logs, browser history). Every reconnect mints a fresh one.
   await auth.ensureFreshToken();
   if (!auth.token) return; // session ended while renewing
 
-  const params = new URLSearchParams({ token: auth.token });
+  let streamToken = "";
+  try {
+    const res = await fetch(`${API_BASE}/api/auth/stream-token`, {
+      headers: { Authorization: `Bearer ${auth.token}` },
+      cache: "no-store",
+    });
+    if (res.ok) streamToken = (await res.json()).token || "";
+  } catch {
+    /* offline / server waking up — the retry loop will try again */
+  }
+  if (!streamToken) {
+    streamAttempts += 1;
+    scheduleStreamRetry(30000);
+    return;
+  }
+
+  const params = new URLSearchParams({ stream_token: streamToken });
   // Stream the restaurant the owner selected in the dashboard; when omitted,
   // the server streams every restaurant the account owns.
   if (auth.restaurant?.id) {

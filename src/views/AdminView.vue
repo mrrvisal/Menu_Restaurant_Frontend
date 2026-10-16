@@ -938,13 +938,39 @@
                     <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
                     <polyline points="22 4 12 14.01 9 11.01" />
                   </svg>
-                  {{ i18n.t.connected }}</span><button class="btn btn-g" @click="unlinkTelegram">
+                  {{ i18n.t.connected }}</span><button class="btn btn-g" @click="tgUnlinkConfirm = true">
                   {{ i18n.t.unlink || "Unlink" }}
                 </button>
               </div>
               <div v-else class="tg-warn">
                 <AppIcon name="alert-circle" :size="14" /> {{ i18n.t.not_connected_yet }}
               </div>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
+    <!-- Unlink Telegram (confirm) — in-app dialog replacing the native
+         browser confirm(). Nested inside the Telegram sheet, so it must be
+         closed first on Escape (see handleEscKey). -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="tgUnlinkConfirm" class="overlay" @click.self="tgUnlinkConfirm = false">
+          <div class="dlg">
+            <div class="dlg-i dlg-i-r">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="m21 4-4.5 16-5.2-5.1L7 19l1.2-6L3 10.8 21 4Z" />
+              </svg>
+            </div>
+            <div class="dlg-t">{{ i18n.t.tg_unlink_confirm }}</div>
+            <div class="dlg-d">{{ i18n.t.tg_unlink_desc }}</div>
+            <div v-if="tgError" class="msg msg-e">{{ tgError }}</div>
+            <div class="dlg-acts">
+              <button class="btn btn-g" :disabled="tgSubmitting" @click="tgUnlinkConfirm = false">
+                {{ i18n.t.cancel }}</button><button class="btn btn-r" :disabled="tgSubmitting" @click="unlinkTelegram">
+                {{ tgSubmitting ? i18n.t.loading : i18n.t.unlink }}
+              </button>
             </div>
           </div>
         </div>
@@ -1661,6 +1687,8 @@ const logoLoadError = ref(false);
 const tgSubmitting = ref(false);
 const tgSuccess = ref("");
 const tgError = ref("");
+// Unlink-confirmation dialog (in-app replacement for the native confirm())
+const tgUnlinkConfirm = ref(false);
 const copied = ref(false);
 const tgLoading = ref(false);
 const displayLinkCode = computed(() => `/link ${auth.linkCode || "------"}`);
@@ -1840,7 +1868,7 @@ async function togglePush() {
       }
     }
   } catch (err) {
-    console.error("Push toggle error:", err);
+    console.error("Push toggle error:", err?.response?.data?.error || err?.message);
     pushError.value = i18n.t.generic_error || "Something went wrong";
   } finally {
     pushBusy.value = false;
@@ -2195,19 +2223,32 @@ async function copyLinkCode() {
   }
 }
 async function unlinkTelegram() {
-  if (!confirm(i18n.t.tg_unlink_confirm)) return;
+  if (tgSubmitting.value) return; // ignore double-clicks while in flight
+  tgSubmitting.value = true;
+  tgError.value = "";
+  tgSuccess.value = "";
   try {
-    await axios.patch(`${API_BASE}/api/auth/unlink-telegram`);
-    if (auth.restaurant) {
-      auth.restaurant.telegramChatId = null;
-      auth.saveToStorage();
-    }
+    const res = await axios.patch(`${API_BASE}/api/auth/unlink-telegram`, {
+      restaurant_id: auth.restaurantId,
+    });
+    // Update the store's current restaurant: chat id clears (isLinked flips
+    // the whole sheet back to "not connected") and the backend rotates the
+    // link code on unlink, so whoever saw the old code can no longer silently
+    // re-link this restaurant to their own Telegram chat.
+    auth.updateCurrentRestaurant({
+      telegramChatId: null,
+      ...(res.data?.linkCode ? { telegramLinkCode: res.data.linkCode } : {}),
+    });
+    tgUnlinkConfirm.value = false;
     tgSuccess.value = i18n.t.tg_unlinked;
     setTimeout(() => {
       tgSuccess.value = "";
-    }, 2000);
+    }, 2500);
   } catch (err) {
+    // Keep the dialog open so the reason is visible right where the user clicked.
     tgError.value = err.response?.data?.error || i18n.t.generic_error;
+  } finally {
+    tgSubmitting.value = false;
   }
 }
 
@@ -2305,6 +2346,7 @@ function handleEscKey(e) {
   else if (showQR.value) showQR.value = false;
   else if (deletingDevice.value) deletingDevice.value = null;
   else if (showDevices.value) showDevices.value = false;
+  else if (tgUnlinkConfirm.value) tgUnlinkConfirm.value = false;
   else if (showTelegramSettings.value) showTelegramSettings.value = false;
   else if (loggingOut.value) loggingOut.value = false;
   else if (showCatForm.value) showCatForm.value = false;
@@ -4746,14 +4788,26 @@ onUnmounted(() => {
 }
 
 .dlg {
-  background: white;
-  border-radius: 16px;
+  background: var(--surface, #fff);
+  border-radius: 18px;
   width: 90%;
-  max-width: 320px;
-  padding: 24px 20px;
+  max-width: 340px;
+  padding: 26px 22px 22px;
   text-align: center;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
-  border: 1px solid var(--border-green);
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.18);
+  animation: dlg-pop 0.2s ease;
+}
+
+@keyframes dlg-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .sheet {
@@ -4797,34 +4851,54 @@ onUnmounted(() => {
   gap: 14px;
 }
 
+/* Icon badge — tinted rounded square (matches ConfirmModal's .modal-icon),
+   not the old bare floating SVG. */
 .dlg-i {
-  color: var(--red);
-  margin-bottom: 8px;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border-radius: 14px;
   display: flex;
+  align-items: center;
   justify-content: center;
+  background: rgba(198, 40, 40, 0.1);
+  border: 1px solid rgba(198, 40, 40, 0.22);
+  color: var(--red);
 }
 
 .dlg-i-r {
+  background: rgba(183, 28, 28, 0.12);
+  border-color: rgba(183, 28, 28, 0.26);
   color: var(--red-dark);
 }
 
+/* Title is neutral dark ink — the danger signal lives on the badge + button,
+   not splashed across the whole heading. */
 .dlg-t {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--red);
-  margin-bottom: 4px;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.35;
 }
 
 .dlg-d {
-  font-size: 12px;
-  color: #374151;
-  margin-bottom: 16px;
-  line-height: 1.5;
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 18px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .dlg-acts {
   display: flex;
   gap: 8px;
+}
+
+/* error/success message inside a confirm dialog (e.g. unlink Telegram failed)
+   — .dlg-d already leaves 18px below itself, so pull the gap back to ~8px */
+.dlg .msg {
+  margin: -10px 0 14px;
 }
 
 .dlg-acts .btn {
@@ -4877,12 +4951,13 @@ onUnmounted(() => {
 }
 
 .btn-r {
-  background: var(--red);
+  background: linear-gradient(135deg, var(--red-dark), var(--red));
   color: white;
+  box-shadow: 0 4px 12px -4px rgba(183, 28, 28, 0.45);
 }
 
 .btn-r:hover {
-  background: var(--red-dark);
+  filter: brightness(1.06);
 }
 
 .btn-primary {

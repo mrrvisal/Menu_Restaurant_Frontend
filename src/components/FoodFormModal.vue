@@ -225,7 +225,7 @@ async function submit() {
     emit('saved');
     setTimeout(() => emit('close'), 1000);
   } catch (error) {
-    console.error('Submit error:', error);
+    console.error('Submit error:', error?.response?.data?.error || error?.message);
     errors.value.name = error.response?.data?.error || i18n.t.generic_error;
   } finally {
     submitting.value = false;

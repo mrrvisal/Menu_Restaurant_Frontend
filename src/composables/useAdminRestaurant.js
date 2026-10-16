@@ -146,7 +146,7 @@ async function ensureDefaultMenu() {
     await refreshCurrentMenuSelection();
     await initForRestaurant();
   } catch (err) {
-    console.error("Could not create menu:", err);
+    console.error("Could not create menu:", err?.response?.data?.error || err?.message);
   } finally {
     menuCreating.value = false;
   }

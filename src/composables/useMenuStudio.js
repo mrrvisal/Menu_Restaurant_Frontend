@@ -52,7 +52,10 @@ export const menuData = ref({
   brandText: "",
 });
 
-export const dataLoading = ref(false);
+// Starts TRUE: onMounted runs AFTER the first paint, so starting at false
+// made a cold load flash the "add dishes first" empty state for a frame
+// before initStudio() set it. initStudio's finally always clears it.
+export const dataLoading = ref(true);
 export const assetsReady = ref(false);
 export const assetTick = ref(0);
 export const fitState = ref({ fit: 1, overflow: false });
@@ -644,17 +647,26 @@ export async function deleteSaved(row) {
 
 // ─── INIT + WATCHERS ────────────────────────────────────────
 export async function initStudio() {
-  loadDraftForRestaurant();
-  await ensureFonts();
+  dataLoading.value = true;
   try {
-    if (!foods.categories.length) await foods.fetchCategories({});
-    if (!foods.foods.length) {
-      dataLoading.value = true;
-      await foods.fetchFoods({});
+    loadDraftForRestaurant();
+    await ensureFonts();
+    try {
+      // ALWAYS refetch the full, unfiltered lists — never reuse what the
+      // shared store already holds. The dashboard's load() runs with its own
+      // filters (curCat / searchQ / currentMenuId), so the old
+      // `if (!length)` guards could hand the studio a SUBSET of foods while
+      // the chips listed every category: selecting an outside category
+      // matched zero dishes and the view replaced the whole workspace with
+      // the "add dishes first" dead end.
+      await Promise.all([
+        foods.fetchCategories({}),
+        foods.fetchFoods({}),
+      ]);
+    } catch (err) {
+      // The workspace shows its own "add dishes first" empty state
+      console.warn("[MenuStudio] could not load menu data:", err?.message);
     }
-  } catch (err) {
-    // The workspace shows its own "add dishes first" empty state
-    console.warn("[MenuStudio] could not load menu data:", err?.message);
   } finally {
     dataLoading.value = false;
   }

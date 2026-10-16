@@ -10,11 +10,9 @@
         {{ i18n.t.restricted_area }}
       </div>
       <div class="icon">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-          stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          <path d="M9 12l2 2 4-4" />
-        </svg>
+        <img
+              src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png"
+              width="60" alt="">
       </div>
       <div class="title">{{ i18n.t.super_admin_login }}</div>
 

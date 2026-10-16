@@ -70,7 +70,7 @@ async function signIn() {
     } else if (code === "popup_closed" || code === "access_denied") {
       // User cancelled the popup — expected, nothing to report
     } else {
-      console.error("[GoogleSignIn]", err);
+      console.error("[GoogleSignIn]", err?.message || String(err));
       emit("error", err);
     }
   } finally {

@@ -1272,8 +1272,17 @@ export function clearDraft(restaurantId) {
 export function slugify(value, fallback = "menu") {
   const s = String(value || "")
     .normalize("NFKD")
-    .replace(/[^\p{L}\p{N}]+/gu, "-")
+    // Strip Latin/Greek/Cyrillic combining diacritics only (é → e). Khmer
+    // must keep its marks: dependent vowels (ា ី ុ ូ…) and coeng (្) are
+    // \p{M}, not \p{L} — dropping them shredded "សាលាមីនុយហាងម្ហូប" into
+    // "ម-បស-ក-ម-ហ-ន-ស-ម-ន" in the downloaded PNG/PDF name.
+    .replace(/[\u0300-\u036f]/g, "")
+    // Keep letters, combining marks and numbers; everything else separates
+    .replace(/[^\p{L}\p{M}\p{N}]+/gu, "-")
     .replace(/^-+|-+$/g, "")
-    .toLowerCase();
+    .toLowerCase()
+    // Long restaurant names must not produce unusable 300-char filenames
+    .slice(0, 100)
+    .replace(/-+$/g, "");
   return s || fallback;
 }

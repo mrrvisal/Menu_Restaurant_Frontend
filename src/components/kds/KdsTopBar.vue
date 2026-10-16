@@ -1,7 +1,14 @@
 <template>
     <header class="kds-top">
       <div class="kds-brand">
-        <AppIcon name="chef" :size="22" />
+        <div class="kds-brand-icon">
+          <img v-if="restaurantLogo" :src="restaurantLogo" alt="" @error="$emit('logo-error')" />
+          <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+            aria-hidden="true">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+        </div>
         <strong class="kds-name">{{
           auth.restaurant?.name || i18n.t.kds_title
           }}</strong>
@@ -53,8 +60,9 @@ defineProps({
   lightMode: { type: Boolean, default: false },
   showDone: { type: Boolean, default: true },
   isFullscreen: { type: Boolean, default: false },
+  restaurantLogo: { type: String, default: "" },
 });
-defineEmits(["toggle-mode", "toggle-show-done", "toggle-fullscreen", "switch-restaurant"]);
+defineEmits(["logo-error", "toggle-mode", "toggle-show-done", "toggle-fullscreen", "switch-restaurant"]);
 </script>
 <style scoped>
 /* ─── Top bar ─── */
@@ -75,6 +83,26 @@ defineEmits(["toggle-mode", "toggle-show-done", "toggle-fullscreen", "switch-res
   gap: 10px;
   min-width: 0;
   color: var(--primary-light, #5eead4);
+}
+
+.kds-brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+  color: var(--primary-light, #5eead4);
+}
+
+.kds-brand-icon img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .kds-name {

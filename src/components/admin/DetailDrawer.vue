@@ -119,7 +119,13 @@ const emit = defineEmits(["close"]);
 .drawer-actions :deep(.btn) {
   flex: 1;
   justify-content: center;
-  min-width: 120px;
+  /* max-content, NOT a fixed px floor: `min-width: 120px` overrode flex's
+     automatic content-based minimum (min-width auto = min-content), so long
+     labels ("Reset password", Khmer "កំណត់ពាក្យសម្ងាត់ថ្មី") were squeezed to
+     the ~127px third and clipped. max-content keeps each button at least as
+     wide as its text; when the row no longer fits, the wrap above moves the
+     button to the next line instead of cutting it. */
+  min-width: max-content;
 }
 
 .icon-btn {

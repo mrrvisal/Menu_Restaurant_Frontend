@@ -175,8 +175,12 @@ async function submitOrder() {
   }
   sending.value = true;
   try {
-    // Build order payload with restaurant context
-    const orderItems = Object.values(cart.items).map((v) => ({
+    // Build order payload with restaurant context.
+    // `id` lets the SERVER recompute the price from the foods table —
+    // client-supplied prices are no longer trusted (audit fix #15).
+    // The cart object is keyed by food id, so entries() gives us that key.
+    const orderItems = Object.entries(cart.items).map(([foodId, v]) => ({
+      id: Number.isFinite(Number(foodId)) ? Number(foodId) : Number(v.id) || null,
       name: v.name,
       price: v.price,
       qty: v.qty,

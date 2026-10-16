@@ -7,7 +7,10 @@
         </div>
         <div class="features-grid">
           <article v-for="feature in features" :key="feature.key" class="feature-card">
-            <div class="feature-icon" v-html="feature.icon"></div>
+          <!-- SECURITY (audit #23): this is the only v-html in the app. The
+               icons come from the STATIC src/data/landing.js module — NEVER
+               switch this binding to user/DB-controlled data (stored XSS). -->
+          <div class="feature-icon" v-html="feature.icon"></div>
             <h3>{{ i18n.t[feature.key + "_title"] }}</h3>
             <p>{{ i18n.t[feature.key + "_desc"] }}</p>
           </article>

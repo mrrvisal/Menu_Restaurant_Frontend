@@ -166,14 +166,27 @@
 }
 
 .overlay .dlg {
-  background: white;
-  border-radius: 16px;
+  background: var(--surface, #fff);
+  border-radius: 18px;
   width: 90%;
-  max-width: 320px;
-  padding: 24px 20px;
+  max-width: 340px;
+  padding: 26px 22px 22px;
   text-align: center;
-  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 24px 64px rgba(15, 23, 42, 0.18);
   border: 1px solid var(--border-green);
+  animation: dlg-pop 0.2s ease;
+}
+
+@keyframes dlg-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
 }
 
 .overlay .sheet {
@@ -218,28 +231,38 @@
 }
 
 .overlay .dlg-i {
-  color: var(--red);
-  margin-bottom: 8px;
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  border-radius: 14px;
   display: flex;
+  align-items: center;
   justify-content: center;
+  background: rgba(198, 40, 40, 0.1);
+  border: 1px solid rgba(198, 40, 40, 0.22);
+  color: var(--red);
 }
 
 .overlay .dlg-i-r {
+  background: rgba(183, 28, 28, 0.12);
+  border-color: rgba(183, 28, 28, 0.26);
   color: var(--red-dark);
 }
 
 .overlay .dlg-t {
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 700;
-  color: var(--red);
-  margin-bottom: 4px;
+  color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.35;
 }
 
 .overlay .dlg-d {
-  font-size: 12px;
-  color: #374151;
-  margin-bottom: 16px;
-  line-height: 1.5;
+  font-size: 13px;
+  color: #475569;
+  margin-bottom: 18px;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
 }
 
 .overlay .dlg-acts {
@@ -304,13 +327,14 @@
 
 .root .btn-r,
 .overlay .btn-r {
-  background: var(--red);
+  background: linear-gradient(135deg, var(--red-dark), var(--red));
   color: white;
+  box-shadow: 0 4px 12px -4px rgba(183, 28, 28, 0.45);
 }
 
 .root .btn-r:hover,
 .overlay .btn-r:hover {
-  background: var(--red-dark);
+  filter: brightness(1.06);
 }
 
 .root .btn-primary,
@@ -900,6 +924,16 @@
     /* reduced from 40px */
   }
 }
+
+/* ═══ REDUCED MOTION ═══
+   The confirm dialog (.dlg) pops in via `dlg-pop`; disable it for users who
+   ask the OS to reduce motion (matches ConfirmModal's .pop-in guard). */
+@media (prefers-reduced-motion: reduce) {
+  .overlay .dlg {
+    animation: none;
+  }
+}
+
 
 @media (max-height: 600px) and (orientation: landscape) {
   .root .metric-v,

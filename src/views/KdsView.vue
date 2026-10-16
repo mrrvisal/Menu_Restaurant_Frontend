@@ -12,7 +12,8 @@
 
     <!-- ─── TOP BAR ─── -->
     <KdsTopBar v-else :connected="connected" :light-mode="lightMode" :show-done="showDone"
-      :is-fullscreen="isFullscreen" @toggle-mode="toggleMode" @toggle-show-done="showDone = !showDone"
+      :is-fullscreen="isFullscreen" :restaurant-logo="restaurantLogo"
+      @logo-error="logoLoadError = true" @toggle-mode="toggleMode" @toggle-show-done="showDone = !showDone"
       @toggle-fullscreen="toggleFullscreen" @switch-restaurant="onSwitchRestaurant" />
 
     <!-- ─── NO RESTAURANT ─── -->
@@ -24,7 +25,7 @@
 </template>
 
 <script setup>
-import { ref, watch, onMounted, onUnmounted } from "vue";
+import { ref, computed, watch, onMounted, onUnmounted } from "vue";
 import axios from "axios";
 import { useAuthStore } from "@/stores/auth";
 import { useI18nStore } from "@/stores/i18n";
@@ -45,6 +46,17 @@ const connected = ref(false);
 const showDone = ref(true);
 const busyId = ref(null);
 const ready = ref(false);
+const logoLoadError = ref(false);
+const restaurantLogo = computed(() => {
+  if (logoLoadError.value) return "";
+  return auth.restaurant?.logoUrl || "";
+});
+watch(
+  () => auth.restaurant?.logoUrl,
+  () => {
+    logoLoadError.value = false;
+  }
+);
 
 let es = null;
 let retryTimer = null;
@@ -85,7 +97,7 @@ async function fetchOrders() {
     });
     orders.value = res.data || [];
   } catch (err) {
-    console.error("KDS fetchOrders failed:", err);
+    console.error("KDS fetchOrders failed:", err?.response?.data?.error || err?.message);
   }
 }
 
@@ -108,10 +120,10 @@ async function setStatus(order, status) {
         orders.value[idx] = { ...orders.value[idx], ...res.data };
       }
     } catch (refreshErr) {
-      console.error("KDS: Failed to refresh order after status update:", refreshErr);
+      console.error("KDS: Failed to refresh order after status update:", refreshErr?.response?.data?.error || refreshErr?.message);
     }
   } catch (err) {
-    console.error("KDS setStatus failed:", err);
+    console.error("KDS setStatus failed:", err?.response?.data?.error || err?.message);
     alert(err.response?.data?.error || i18n.t.error || "Error");
   } finally {
     busyId.value = null;
@@ -140,8 +152,21 @@ async function connect() {
   // bakes the token into its URL and can't swap it without a reconnect.
   await auth.ensureFreshToken();
   if (!auth.token || es) return; // session ended (or reconnected) while waiting
+  // #11 — mint a 5-minute SSE-only token instead of baking the 24h access
+  // token into the URL (EventSource URLs end up in logs/history).
+  let streamToken = "";
+  try {
+    const res = await axios.get(`${API_BASE}/api/auth/stream-token`);
+    streamToken = res.data?.token || "";
+  } catch {
+    /* retry loop below will try again */
+  }
+  if (!streamToken || es) {
+    retryTimer = setTimeout(connect, Math.min(30000, 3000 * ++retryAttempts));
+    return;
+  }
   const params = new URLSearchParams({
-    token: auth.token,
+    stream_token: streamToken,
     restaurant_id: String(auth.restaurantId),
   });
   es = new EventSource(`${API_BASE}/api/orders/stream?${params.toString()}`);
@@ -174,7 +199,7 @@ async function connect() {
             orders.value[idx] = { ...orders.value[idx], ...res.data };
           }
         } catch (refreshErr) {
-          console.error("KDS: Failed to refresh order from SSE event:", refreshErr);
+          console.error("KDS: Failed to refresh order from SSE event:", refreshErr?.response?.data?.error || refreshErr?.message);
         }
       }
     } catch {
@@ -347,7 +372,7 @@ onMounted(async () => {
   try {
     await auth.fetchMe();
   } catch (err) {
-    console.error("KDS: Failed to fetch auth data:", err);
+    console.error("KDS: Failed to fetch auth data:", err?.response?.data?.error || err?.message);
   }
 
   // Initialize currency and theme from restaurant data (now available)

@@ -1,0 +1,58 @@
+/* ═══════════════════════════════════════════════════════════════
+   Inline validation errors — injected by utils/formValidation.js.
+   These nodes live OUTSIDE Vue's vdom, so the styles must be global
+   (scoped component CSS cannot reach them). Visuals match the
+   `.field-error` convention already used in CreateAdminModal.vue.
+   ═══════════════════════════════════════════════════════════════ */
+
+.field-error {
+  color: #c62828;
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 5px 0 0;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 5px;
+  animation: fv-inline-in 0.15s ease;
+}
+
+.field-error::before {
+  content: "⚠";
+  flex-shrink: 0;
+  line-height: 1.35;
+}
+
+/* Out-specify the per-component scoped `.input` rules (class + attr +
+   pseudo = 0,3,0) — the red border is the primary "invalid" signal. */
+input.is-invalid.input,
+textarea.is-invalid.input,
+select.is-invalid.input {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+  background-color: #fef2f2;
+}
+
+input.is-invalid.input:focus,
+textarea.is-invalid.input:focus,
+select.is-invalid.input:focus {
+  border-color: #dc2626 !important;
+}
+
+@keyframes fv-inline-in {
+  from {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .field-error {
+    animation: none;
+  }
+}
