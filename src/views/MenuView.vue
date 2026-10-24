@@ -214,6 +214,8 @@ const menuThemeStyle = computed(() => {
   return {
     ...vars,
     ...primaryVars(hex, vars["--green-strong"]),
+    "--surface-green": lighten(hex, 0.94),
+    "--border-green": lighten(hex, 0.76),
     "--header-grad": `linear-gradient(145deg, ${darken(hex, 0.12)} 0%, ${lighten(hex, 0.12)} 55%, ${hex} 100%)`,
   };
 });
@@ -413,7 +415,9 @@ async function loadRestaurant() {
 
 let searchTimer = null;
 
-const filteredFoods = computed(() => foods.foods);
+const filteredFoods = computed(() =>
+  foods.foods.filter((food) => food.status !== "unavailable"),
+);
 const cartPreviewItems = computed(() => Object.values(cart.items).slice(0, 3));
 
 // Guests switch the whole page between Khmer and English. Category names use

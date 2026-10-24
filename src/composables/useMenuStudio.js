@@ -31,7 +31,6 @@ import {
   downloadBlob,
   jpegsToPdfBlob,
   printSheets,
-  copyCanvasToClipboard,
 } from "@/utils/menuExport.mjs";
 import { buildShareLinks } from "@/utils/share.mjs";
 
@@ -438,7 +437,11 @@ export async function exportPdf() {
       heightMm,
       title: designName.value || auth.restaurant?.name || "Menu",
     });
-    downloadBlob(blob, `${exportBaseName()}.pdf`);
+    const sizeName =
+      sheet.value.key === "custom"
+        ? `${Math.round(sheet.value.w)}x${Math.round(sheet.value.h)}`
+        : sheet.value.key;
+    downloadBlob(blob, `menu-${slugify(sizeName, "menu")}.pdf`);
     exportMsg.value = i18n.t.ms_pdf_saved || "PDF downloaded";
   } catch (err) {
     console.error("PDF export failed:", err);
@@ -477,27 +480,6 @@ export async function printMenu() {
     exporting.value = false;
   }
 }
-
-export async function copyPng() {
-  if (exporting.value) return;
-  exporting.value = true;
-  exportMsg.value = "";
-  exportError.value = "";
-  try {
-    const pages = getMenuPages();
-    const { canvas } = await renderExportCanvas(pages[currentPage.value]);
-    const ok = await copyCanvasToClipboard(canvas);
-    if (!ok) throw new Error("clipboard");
-    exportMsg.value = i18n.t.ms_copied || "Copied to clipboard";
-  } catch (err) {
-    console.error("Copy failed:", err);
-    exportError.value = i18n.t.ms_copy_failed || "Could not copy the image";
-  } finally {
-    exporting.value = false;
-  }
-}
-
-
 
 // Everything in the design that changes WHAT is on the menu (as opposed to
 // how it looks) — used to rebuild the data only when needed.
@@ -756,6 +738,5 @@ export function useMenuStudio() {
     exportPng,
     exportPdf,
     printMenu,
-    copyPng,
   };
 }

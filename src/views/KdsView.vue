@@ -298,9 +298,8 @@ function toggleFullscreen() {
 // KDS reuses the account's chosen brand color for column accents
 function syncTheme() {
   const theme = useThemeStore();
-  theme.load();
-  const c = auth.restaurant?.themeColor;
-  if (c) theme.setPrimary(c, { persist: false });
+  const color = auth.restaurant?.themeColor || theme.presets[0].value;
+  theme.setPrimary(color, { persist: false });
 }
 
 // ─── DARK / LIGHT MODE ─────────────────────────────────────
@@ -360,9 +359,10 @@ function scheduleNewDayCheck() {
 
 // ─── LIFECYCLE ─────────────────────────────────────────────
 watch(
-  () => auth.restaurantId,
-  (id, old) => {
-    if (id !== old && old != null) reconnect();
+  [() => auth.restaurantId, () => auth.restaurant?.themeColor],
+  ([id], [oldId]) => {
+    syncTheme();
+    if (id !== oldId && oldId != null) reconnect();
   },
 );
 

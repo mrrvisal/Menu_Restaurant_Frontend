@@ -69,7 +69,10 @@ async function submitAddRestaurant() {
     });
     // Refresh the restaurants list
     await auth.fetchMe();
-    if (res.data.restaurant) auth.setCurrentRestaurant(res.data.restaurant.id);
+    if (res.data.restaurant) {
+      auth.setCurrentRestaurant(res.data.restaurant.id);
+      syncRestaurantTheme();
+    }
     await initForRestaurant();
     addRestaurantMsg.value = i18n.t.restaurant_created;
     setTimeout(() => {

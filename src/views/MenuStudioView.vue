@@ -518,13 +518,6 @@
                 </svg>
               </button>
             </div>
-            <button class="ms-mini" :disabled="exporting" @click="copyPng">
-              <AppIcon name="copy" :size="12" />{{ i18n.t.ms_copy }}
-            </button>
-            <button class="ms-mini" :aria-label="i18n.t.ms_shortcuts || 'Keyboard shortcuts'"
-              :title="(i18n.t.ms_shortcuts || 'Keyboard shortcuts') + ' (?)'" @click="openHelp">
-              ?
-            </button>
             <div class="ms-seg ms-zoom" role="radiogroup" :aria-label="i18n.t.ms_zoom || 'Zoom'">
               <button role="radio" :class="{ active: zoom === 'fit' }" :aria-checked="zoom === 'fit'" @click="zoom = 'fit'">
                 {{ i18n.t.ms_zoom_fit || "Fit" }}
@@ -603,15 +596,15 @@
     <Teleport to="body">
       <!-- delete design (confirm) -->
       <Transition name="fade">
-        <div v-if="deleting" class="ms-overlay" @click.self="deleting = null">
-          <div class="ms-dlg" ref="dlgEl" tabindex="-1" role="alertdialog" aria-modal="true"
+        <div v-if="deleting" class="overlay ms-delete-overlay" @click.self="deleting = null">
+          <div class="dlg" ref="dlgEl" tabindex="-1" role="alertdialog" aria-modal="true"
             aria-labelledby="ms-dlg-title" aria-describedby="ms-dlg-desc">
-            <div class="ms-dlg-i"><AppIcon name="trash" :size="26" /></div>
-            <div id="ms-dlg-title" class="ms-dlg-t">{{ i18n.t.ms_delete_confirm }}</div>
-            <div id="ms-dlg-desc" class="ms-dlg-d">{{ deleting.name }}</div>
-            <div class="ms-dlg-acts">
-              <button class="ms-btn" @click="deleting = null">{{ i18n.t.cancel }}</button>
-              <button class="ms-btn ms-btn-danger" @click="doDelete">
+            <div class="dlg-i dlg-i-r"><AppIcon name="trash" :size="26" /></div>
+            <div id="ms-dlg-title" class="dlg-t">{{ i18n.t.ms_delete_confirm }}</div>
+            <div id="ms-dlg-desc" class="dlg-d">{{ deleting.name }}</div>
+            <div class="dlg-acts">
+              <button class="btn btn-g" @click="deleting = null">{{ i18n.t.cancel }}</button>
+              <button class="btn btn-r" @click="doDelete">
                 {{ i18n.t.delete }}
               </button>
             </div>
@@ -690,6 +683,7 @@ import AppSelect from "@/components/AppSelect.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useFoodsStore } from "@/stores/foods";
 import { useI18nStore } from "@/stores/i18n";
+import { useThemeStore } from "@/stores/theme";
 import { useMenuStudio } from "@/composables/useMenuStudio";
 import { useFocusTrap } from "@/composables/useFocusTrap";
 import {
@@ -708,6 +702,7 @@ const router = useRouter();
 const auth = useAuthStore();
 const foods = useFoodsStore();
 const i18n = useI18nStore();
+const theme = useThemeStore();
 const logoLoadError = ref(false);
 const restaurantLogo = computed(() => {
   if (logoLoadError.value) return "";
@@ -753,7 +748,6 @@ const {
   exportPng,
   exportPdf,
   printMenu,
-  copyPng,
 } = useMenuStudio();
 
 const previewEl = ref(null);
@@ -763,7 +757,7 @@ const thumbEls = [];
 const textHotspots = ref([]);
 const activeField = ref(null);
 const zoom = ref("fit"); // 'fit' | 50 | 75 | 100 | 125 | 150
-const ZOOMS = [50, 75, 100, 125, 150];
+const ZOOMS = [50, 75, 100];
 const deleting = ref(null);
 let renderTimer = null;
 let unmounted = false;
@@ -1681,6 +1675,10 @@ watch(sideOpen, (open) => {
 onMounted(async () => {
   window.addEventListener("keydown", onKeydown);
   document.addEventListener("pointerdown", onDocumentPointerDown);
+  theme.setPrimary(
+    auth.restaurant?.themeColor || theme.presets[0].value,
+    { persist: false },
+  );
   await initStudio();
   if (unmounted) return;
   await nextTick();
@@ -2960,7 +2958,7 @@ onUnmounted(() => {
 .ms-stage-h {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 10px;
   flex-wrap: wrap;
   padding: 10px 14px;
@@ -2991,7 +2989,8 @@ onUnmounted(() => {
 .ms-stage-r {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -3006,10 +3005,17 @@ onUnmounted(() => {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  height: 34px;
   padding: 2px 4px;
+  box-sizing: border-box;
   border: 1px solid var(--ms-border);
   border-radius: 8px;
   background: var(--ms-surface);
+}
+
+.ms-zoom {
+  height: 34px;
+  box-sizing: border-box;
 }
 
 .ms-page-btn {
@@ -3155,6 +3161,26 @@ onUnmounted(() => {
   padding: 20px;
 }
 
+.ms-delete-overlay .dlg-i-r {
+  color: var(--red-dark, #b71c1c);
+}
+
+.ms-delete-overlay .btn-g {
+  background: var(--surface-green, #f0fdf4);
+  color: var(--ink, #14532d);
+  border: 1px solid var(--border-green, #bbf7d0);
+}
+
+.ms-delete-overlay .btn-r {
+  background: linear-gradient(
+    135deg,
+    var(--red-dark, #b71c1c),
+    var(--red, #c62828)
+  );
+  color: #fff;
+  box-shadow: 0 4px 12px -4px rgba(183, 28, 28, 0.45);
+}
+
 .ms-dlg {
   background: #fff;
   border-radius: 16px;
@@ -3165,27 +3191,6 @@ onUnmounted(() => {
   box-shadow: 0 24px 64px rgba(0, 0, 0, 0.15);
   border: 1px solid var(--border-green, #bbf7d0);
   outline: none;
-}
-
-.ms-dlg-i {
-  color: var(--ms-red);
-  margin-bottom: 8px;
-  display: flex;
-  justify-content: center;
-}
-
-.ms-dlg-t {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--ms-red);
-  margin-bottom: 4px;
-}
-
-.ms-dlg-d {
-  font-size: 12px;
-  color: #374151;
-  margin-bottom: 16px;
-  word-break: break-word;
 }
 
 .ms-dlg-acts {
@@ -3730,24 +3735,9 @@ onUnmounted(() => {
     min-width: 0;
   }
 
-  .ms-stage-h {
-    align-items: stretch;
-    flex-direction: column;
-    gap: 8px;
-    padding: 10px;
-  }
-
   .ms-fit {
     align-items: flex-start;
     line-height: 1.4;
-  }
-
-  .ms-stage-r {
-    display: grid;
-    width: 100%;
-    grid-template-columns: minmax(0, 1fr) auto auto;
-    align-items: center;
-    gap: 8px;
   }
 
   .ms-dims {
@@ -3758,21 +3748,16 @@ onUnmounted(() => {
   }
 
   .ms-page-control {
-    justify-self: start;
+    grid-column: 1 / -1;
+    justify-self: center;
     max-width: 100%;
-  }
-
-  .ms-stage-r > .ms-mini {
-    min-height: 40px;
-    justify-self: end;
-    white-space: nowrap;
   }
 
   /* Zoom choices scroll horizontally rather than wrapping into extra rows. */
   .ms-zoom {
     grid-column: 1 / -1;
     display: flex;
-    width: 100%;
+    /* width: 100%; */
     max-width: 100%;
     overflow-x: auto;
     justify-content: space-between;
@@ -3786,7 +3771,6 @@ onUnmounted(() => {
   .ms-zoom button {
     flex: 0 0 auto;
     min-width: 44px;
-    min-height: 40px;
     padding-inline: 8px;
   }
 }
@@ -4010,6 +3994,11 @@ onUnmounted(() => {
   .ms-page-btn {
     width: 36px;
     height: 36px;
+  }
+
+  .ms-page-control,
+  .ms-zoom {
+    height: 50px;
   }
 
   .ms-toggle {

@@ -99,15 +99,6 @@
             </div>
           </div>
           <div class="rep-card">
-            <div class="rep-card-i rep-i-blue">
-              <AppIcon name="chart" :size="18" />
-            </div>
-            <div class="metric-b">
-              <span class="metric-v">{{ currencyStore.fmt(report.summary?.avgOrderValue) }}</span>
-              <span class="metric-l">{{ i18n.t.report_avg_order }}</span>
-            </div>
-          </div>
-          <div class="rep-card">
             <div class="rep-card-i rep-i-amber">
               <AppIcon name="food" :size="18" />
             </div>
@@ -586,10 +577,6 @@ const reportFormatModel = computed({
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
   margin-bottom: 16px;
-}
-
-.rep-cards .rep-card:last-child {
-  grid-column: 1 / -1;
 }
 
 .rep-card {

@@ -216,18 +216,43 @@
                   :placeholder="i18n.t.email_address || 'Email address'" />
               </div>
               <div class="fld">
-                <label class="fld-l">{{ i18n.t.current_password || "Current password" }}</label>
-                <input v-model="accountCurrentPasswordModel" type="password" class="fld-i"
-                  autocomplete="current-password"
-                  :placeholder="i18n.t.current_password || 'Current password'" />
+                <label class="fld-l" for="settings-current-password">
+                  {{ i18n.t.current_password || "Current password" }}
+                </label>
+                <div class="password-wrap">
+                  <input id="settings-current-password" v-model="accountCurrentPasswordModel"
+                    :type="showCurrentPassword ? 'text' : 'password'" class="fld-i password-input"
+                    autocomplete="current-password"
+                    :placeholder="i18n.t.current_password || 'Current password'" />
+                  <button type="button" class="password-toggle"
+                    :aria-label="showCurrentPassword ? i18n.t.hide_password : i18n.t.show_password"
+                    :aria-pressed="showCurrentPassword"
+                    :title="showCurrentPassword ? i18n.t.hide_password : i18n.t.show_password"
+                    @click="showCurrentPassword = !showCurrentPassword">
+                    <AppIcon :name="showCurrentPassword ? 'eye-off' : 'eye'" :size="17" />
+                  </button>
+                </div>
                 <p v-if="auth.user?.hasPassword === false" class="fld-hint">
                   {{ i18n.t.google_no_password_hint || "This account was created with Google — leave “Current password” empty to set your first password." }}
                 </p>
               </div>
               <div class="fld">
-                <label class="fld-l">{{ i18n.t.new_password || "New password" }}</label>
-                <input v-model="accountNewPasswordModel" type="password" class="fld-i" autocomplete="new-password"
-                  :placeholder="i18n.t.new_password || 'New password'" />
+                <label class="fld-l" for="settings-new-password">
+                  {{ i18n.t.new_password || "New password" }}
+                </label>
+                <div class="password-wrap">
+                  <input id="settings-new-password" v-model="accountNewPasswordModel"
+                    :type="showNewPassword ? 'text' : 'password'" class="fld-i password-input"
+                    autocomplete="new-password"
+                    :placeholder="i18n.t.new_password || 'New password'" />
+                  <button type="button" class="password-toggle"
+                    :aria-label="showNewPassword ? i18n.t.hide_password : i18n.t.show_password"
+                    :aria-pressed="showNewPassword"
+                    :title="showNewPassword ? i18n.t.hide_password : i18n.t.show_password"
+                    @click="showNewPassword = !showNewPassword">
+                    <AppIcon :name="showNewPassword ? 'eye-off' : 'eye'" :size="17" />
+                  </button>
+                </div>
               </div>
               <button class="btn btn-primary btn-b" :disabled="accountSubmitting" @click="saveAccount">
                 {{ accountSubmitting ? i18n.t.loading : i18n.t.update_account || "Update email / password" }}
@@ -241,7 +266,7 @@
 </template>
 
 <script setup>
-import { computed, toRefs } from "vue";
+import { computed, ref, toRefs, watch } from "vue";
 import AppIcon from "@/components/AppIcon.vue";
 import AppSelect from "@/components/AppSelect.vue";
 
@@ -341,6 +366,16 @@ const {
   accountSubmitting,
   saveAccount,
 } = toRefs(props);
+
+const showCurrentPassword = ref(false);
+const showNewPassword = ref(false);
+
+watch(show, (isOpen) => {
+  if (!isOpen) {
+    showCurrentPassword.value = false;
+    showNewPassword.value = false;
+  }
+});
 
 const settingsTabModel = computed({
   get: () => settingsTab.value,
@@ -487,6 +522,43 @@ function close() {
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+.password-wrap {
+  position: relative;
+}
+
+.password-input {
+  padding-right: 42px;
+}
+
+.password-toggle {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--muted, #6b7280);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.password-toggle:hover {
+  color: var(--primary, #0f766e);
+  background: var(--surface-warm, #f0fdf4);
+}
+
+.password-toggle:focus-visible {
+  outline: 2px solid var(--primary, #0f766e);
+  outline-offset: 2px;
+}
+
 .fld-i:hover {
   border-color: #cbd5e1;
 }
@@ -563,6 +635,7 @@ function close() {
 
 .btn-primary:hover:not(:disabled),
 .btn-g:hover:not(:disabled) {
+  background: var(--primary, #0f766e);
   filter: brightness(1.07);
   transform: translateY(-1px);
 }

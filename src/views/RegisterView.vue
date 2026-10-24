@@ -1,5 +1,8 @@
 <template>
   <div class="page">
+    <button class="lang-toggle" @click="i18n.toggleLocale">
+      {{ i18n.locale === "km" ? "English" : "ភាសាខ្មែរ" }}
+    </button>
     <div class="card pop-in">
       <div class="icon">
         <img
@@ -30,8 +33,6 @@
       <GoogleSignInButton @credential="onGoogleCredential" />
 
       <div class="links">{{ i18n.t.have_account }} <router-link to="/login">{{ i18n.t.login }}</router-link></div>
-      <button class="lang-toggle" @click="i18n.toggleLocale">{{ i18n.locale === 'km' ? 'English' : 'ភាសាខ្មែរ'
-      }}</button>
     </div>
   </div>
 </template>
@@ -250,7 +251,10 @@ async function onGoogleCredential(credential) {
 }
 
 .lang-toggle {
-  margin-top: 14px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
   background: none;
   border: 1.5px solid #bbf7d0;
   border-radius: 20px;

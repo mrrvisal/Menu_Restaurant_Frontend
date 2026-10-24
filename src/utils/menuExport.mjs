@@ -41,19 +41,6 @@ export function downloadDataUrl(dataUrl, filename) {
   downloadBlob(dataUrlToBlob(dataUrl), filename);
 }
 
-export async function copyCanvasToClipboard(canvas) {
-  try {
-    if (!navigator.clipboard?.write || typeof ClipboardItem === "undefined")
-      return false;
-    const blob = await canvasToBlob(canvas, "image/png");
-    if (!blob) return false;
-    await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export function dataUrlToBytes(dataUrl) {
   const body = String(dataUrl).split(",")[1] || "";
   const bin = atob(body);
@@ -65,6 +52,22 @@ export function dataUrlToBytes(dataUrl) {
 // Keep PDF strings simple/safe (text is optional metadata only)
 function pdfString(value) {
   return String(value).replace(/[\\()]/g, " ").slice(0, 120);
+}
+
+function pdfUnicodeString(value) {
+  const codePoints = Array.from(String(value || "")).slice(0, 120);
+  let hex = "FEFF";
+  for (const character of codePoints) {
+    const point = character.codePointAt(0);
+    if (point <= 0xffff) {
+      hex += point.toString(16).padStart(4, "0");
+    } else {
+      const value = point - 0x10000;
+      hex += (0xd800 + (value >> 10)).toString(16);
+      hex += (0xdc00 + (value & 0x3ff)).toString(16);
+    }
+  }
+  return `<${hex.toUpperCase()}>`;
 }
 
 
@@ -133,7 +136,7 @@ export function buildPdfFromJpegs(jpegs, widthMm, heightMm, title = "Menu") {
   const infoId = 3 + jpegs.length * 3;
   object(
     infoId,
-    `<< /Title (${pdfString(title)}) /Producer (Digital Menu) /Creator (Digital Menu) >>`,
+    `<< /Title ${pdfUnicodeString(title)} /Producer (Digital Menu) /Creator (Digital Menu) >>`,
   );
 
   const count = infoId + 1;

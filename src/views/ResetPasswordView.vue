@@ -1,5 +1,8 @@
 <template>
   <div class="page">
+    <button class="lang-toggle" @click="i18n.toggleLocale">
+      {{ i18n.locale === "km" ? "English" : "ភាសាខ្មែរ" }}
+    </button>
     <div class="card pop-in">
       <div class="icon">
         <img
@@ -120,6 +123,21 @@ async function submit() {
   align-items: center;
   justify-content: center;
   padding: 20px;
+}
+
+.lang-toggle {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
+  background: none;
+  border: 1.5px solid #bbf7d0;
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-size: 12px;
+  font-family: inherit;
+  color: #16a34a;
+  cursor: pointer;
 }
 
 .card {

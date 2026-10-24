@@ -1,5 +1,8 @@
 <template>
   <div class="page">
+    <button class="lang-toggle" @click="i18n.toggleLocale">
+      {{ i18n.locale === "km" ? "English" : "ភាសាខ្មែរ" }}
+    </button>
     <div class="card pop-in">
       <div class="icon">
         <img
@@ -16,8 +19,6 @@
         @submit="submit"
       />
       <div class="links"><router-link to="/login">{{ i18n.t.back }} {{ i18n.t.login }}</router-link></div>
-      <button class="lang-toggle" @click="i18n.toggleLocale">{{ i18n.locale === 'km' ? 'English' : 'ភាសាខ្មែរ'
-        }}</button>
     </div>
   </div>
 </template>
@@ -100,7 +101,10 @@ async function submit() {
 }
 
 .lang-toggle {
-  margin-top: 14px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
   background: none;
   border: 1.5px solid #bbf7d0;
   border-radius: 20px;

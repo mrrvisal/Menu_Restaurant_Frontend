@@ -259,7 +259,7 @@
           </div>
           <div class="metric-b">
             <span v-if="statsLoading" class="skeleton-block metric-skeleton" aria-hidden="true"></span>
-            <span v-else class="metric-v">{{ currencyStore.fmt(stats.summary?.revenue ?? stats.totalRevenue) }}</span>
+            <span v-else class="metric-v">{{ currencyStore.fmt(stats.totalRevenue) }}</span>
             <span class="metric-l">{{ i18n.t.revenue }}</span>
           </div>
           <div class="metric-glow"></div>
@@ -273,7 +273,7 @@
           </div>
           <div class="metric-b">
             <span v-if="statsLoading" class="skeleton-block metric-skeleton" aria-hidden="true"></span>
-            <span v-else class="metric-v">{{ stats.summary?.orders ?? (stats.totalOrders || 0) }}</span>
+            <span v-else class="metric-v">{{ stats.totalOrders || 0 }}</span>
             <span class="metric-l">{{ i18n.t.orders }}</span>
           </div>
           <div class="metric-glow"></div>
@@ -1052,7 +1052,7 @@
                     </div>
                     <div class="dev-meta">
                       <span class="dev-kv">
-                        <strong>{{ device.browser
+                        <strong>{{ device.browser || i18n.t.device_unknown
                         }}{{
                             device.browserVersion
                               ? " " + device.browserVersion.split(".")[0]
@@ -1060,108 +1060,25 @@
                           }}</strong>
                         · {{ device.os
                         }}{{ device.osVersion ? " " + device.osVersion : "" }}
-                        <template v-if="device.screen">· {{ device.screen }}</template>
                       </span>
-                      <span class="dev-kv">
-                        {{ i18n.t.device_ip }}:
+                      <span v-if="device.city || device.region || device.country" class="dev-kv">
                         <strong>{{
-                          device.ipAddress || i18n.t.device_unknown
-                          }}</strong>
-                        <template v-if="device.city || device.region || device.country">
-                          · {{ i18n.t.device_location }}:
-                          <strong>{{
-                            [device.city, device.region, device.country]
-                              .filter(Boolean)
-                              .join(", ")
-                          }}</strong>
-                        </template>
-                        <template v-if="device.isp">· {{ device.isp }}</template>
-                      </span>
-                      <span class="dev-kv">
-                        {{ i18n.t.device_first_seen }}:
-                        <strong>{{
-                          device.firstSeenAt
-                            ? formatDate(device.firstSeenAt)
-                            : i18n.t.device_unknown
-                        }}</strong>
-                        · {{ i18n.t.device_last_login }}:
-                        <strong>{{
-                          device.lastLoginAt
-                            ? formatDate(device.lastLoginAt)
-                            : i18n.t.device_unknown
+                          [device.city, device.region, device.country]
+                            .filter(Boolean)
+                            .join(", ")
                         }}</strong>
                       </span>
                       <span class="dev-kv">
                         {{ i18n.t.device_last_active }}:
                         <strong>{{
-                          device.lastActiveAt
-                            ? formatDate(device.lastActiveAt)
+                          device.lastActiveAt || device.lastLoginAt
+                            ? formatDate(device.lastActiveAt || device.lastLoginAt)
                             : i18n.t.device_unknown
                         }}</strong>
-                        · {{ i18n.t.device_logins }}:
-                        <strong>{{ device.loginCount || 1 }}</strong>
                       </span>
                       <span v-if="device.revoked" class="dev-kv dev-kv-rev">
                         {{ i18n.t.device_revoked_note }}:
                         {{ formatDate(device.revokedAt) }}
-                      </span>
-                      <span v-if="device.isProxy || device.isHosting" class="dev-flags">
-                        <span v-if="device.isProxy" class="dev-flag">
-                          <AppIcon name="alert-circle" :size="11" />
-                          {{
-                            i18n.t.device_vpn_flag || "VPN / Proxy"
-                          }}
-                        </span>
-                        <span v-if="device.isHosting" class="dev-flag">
-                          <AppIcon name="alert-circle" :size="11" />
-                          {{
-                            i18n.t.device_hosting_flag || "Server / Hosting IP"
-                          }}
-                        </span>
-                      </span>
-                    </div>
-                    <button type="button" class="dev-details-btn" :aria-expanded="expandedDeviceId === device.id"
-                      @click="toggleDeviceDetails(device.id)">
-                      {{
-                        expandedDeviceId === device.id
-                          ? i18n.t.device_hide_details || "Hide details"
-                          : i18n.t.device_more_details || "More details"
-                      }}
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                        :class="{ flip: expandedDeviceId === device.id }">
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    </button>
-                    <div v-if="expandedDeviceId === device.id" class="dev-details">
-                      <span v-if="device.platform" class="dev-kv">
-                        {{ i18n.t.device_platform }}:
-                        <strong>{{ device.platform }}</strong>
-                      </span>
-                      <span v-if="device.hardware" class="dev-kv">
-                        {{ i18n.t.device_hardware }}:
-                        <strong>{{ device.hardware }}</strong>
-                      </span>
-                      <span v-if="device.timezone || device.language" class="dev-kv">
-                        <template v-if="device.timezone">{{ i18n.t.device_timezone }}:
-                          <strong>{{ device.timezone }}</strong></template>
-                        <template v-if="device.timezone && device.language">
-                          · </template><template v-if="device.language">{{ i18n.t.device_language }}:
-                          <strong>{{ device.language }}</strong></template>
-                      </span>
-                      <span v-if="device.latitude != null && device.longitude" class="dev-kv">
-                        {{ i18n.t.device_coords }}:
-                        <strong>{{ Number(device.latitude).toFixed(4) }},
-                          {{ Number(device.longitude).toFixed(4) }}</strong>
-                      </span>
-                      <span v-if="device.asn || device.org" class="dev-kv">
-                        <template v-if="device.asn">{{ i18n.t.device_asn }}:
-                          <strong>{{ device.asn }}</strong></template>
-                        <template v-if="device.asn && device.org"> · </template><template v-if="device.org"><strong>{{
-                            device.org }}</strong></template>
-                      </span>
-                      <span class="dev-kv dev-kv-ua">
-                        {{ i18n.t.device_user_agent }}:
-                        <strong>{{ device.userAgent || i18n.t.device_unknown }}</strong>
                       </span>
                     </div>
                   </div>
@@ -1179,57 +1096,31 @@
                 </div>
               </div>
 
-              <!-- ─── LOGIN HISTORY (audit trail) ─── -->
-              <div class="dev-hist">
-                <div class="dev-hist-h">
-                  <span>{{ i18n.t.login_history || "Login history" }}</span>
-                  <button class="ic ic-sm" :title="i18n.t.refresh || 'Refresh'"
-                    :aria-label="i18n.t.refresh || 'Refresh'" @click="fetchLoginHistory">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                      stroke-width="1.5">
-                      <polyline points="23 4 23 10 17 10" />
-                      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
-                    </svg>
-                  </button>
+              <div class="dev-auto-terminate">
+                <div class="dev-auto-title">
+                  {{ i18n.t.auto_terminate_old_sessions }}
                 </div>
-                <div v-if="historyLoading" class="qr-saved-loading">
-                  <div class="spinner"></div>
+                <div class="dev-auto-setting">
+                  <span>{{ i18n.t.inactive_for }}</span>
+                  <AppSelect
+                    class="dev-auto-select"
+                    :model-value="inactiveSessionDays"
+                    :options="inactiveSessionOptions"
+                    make-room-below
+                    wrap-text
+                    variant="teal"
+                    tone="plain"
+                    size="md"
+                    radius="10px"
+                    :label="i18n.t.inactive_for"
+                    :disabled="deviceSettingsLoading || deviceSettingsSaving"
+                    @update:model-value="updateInactiveSessionDays"
+                  />
                 </div>
-                <div v-else-if="historyError" class="msg msg-e">
-                  {{ historyError }}
-                </div>
-                <div v-else-if="!loginHistory.length" class="qr-saved-empty">
-                  {{ i18n.t.history_empty || "No login events recorded yet" }}
-                </div>
-                <div v-else class="dev-hist-list">
-                  <div v-for="h in loginHistory" :key="h.id" class="dev-hist-i">
-                    <span class="dev-hist-dot" :class="'m-' + (h.method || 'email')"></span>
-                    <div class="dev-hist-b">
-                      <span class="dev-hist-l1">
-                        <strong>{{
-                          h.deviceName || i18n.t.device_unknown
-                          }}</strong>
-                        · {{ deviceMethodLabel(h.method) }}
-                      </span>
-                      <span class="dev-hist-l2">
-                        {{ i18n.t.device_ip }}:
-                        <strong>{{
-                          h.ipAddress || i18n.t.device_unknown
-                          }}</strong>
-                        <template v-if="h.city || h.country">
-                          ·
-                          {{
-                            [h.city, h.region, h.country]
-                              .filter(Boolean)
-                              .join(", ")
-                          }}
-                        </template>
-                      </span>
-                      <span class="dev-hist-l3">{{ h.browser || "" }}{{ h.os ? " · " + h.os : "" }} ·
-                        {{ formatDate(h.at) }}</span>
-                    </div>
-                  </div>
-                </div>
+                <span v-if="deviceSettingsSaving" class="dev-auto-saving" role="status">
+                  <span class="dev-auto-spinner" aria-hidden="true"></span>
+                  {{ i18n.t.device_settings_saving }}
+                </span>
               </div>
             </div>
           </div>
@@ -1577,7 +1468,7 @@ const { showCatForm, editingCat, catSubmitting, catSuccess, catErrors, catLabelK
 const { orders, ordersLoading, fetchOrders, updateOrderStatus, expandedDays, toggleDay, orderSections, dayLabel, searchDate, searchActive, searchDateOrders, clearDateSearch, scheduleNewDayCheck, stopNewDayCheck } = useAdminOrders();
 const { stats, statsLoading, fetchStats } = useAdminStats();
 const { showQR, qrTableNumber, qrCodeDataUrl, qrLoading, qrError, qrInfo, savedQrs, qrSearch, qrListLoading, qrListError, selectedSavedNo, deletingQr, filteredSavedQrs, openQR, generateQR, previewSavedQr, downloadSavedQr, formatQrDate, confirmDelQr, doDeleteQr, downloadQR } = useAdminQr();
-const { showDevices, devicesList, devicesLoading, devicesError, devicesMsg, deletingDevice, revokingDeviceId, expandedDeviceId, loginHistory, historyLoading, historyError, activeDevicesCount, openDevices, confirmRevokeDevice, doRevokeDevice, revokeAllOthers, fetchLoginHistory, toggleDeviceDetails, deviceMethodLabel } = useAdminDevices();
+const { showDevices, devicesList, devicesLoading, devicesError, devicesMsg, deletingDevice, revokingDeviceId, inactiveSessionDays, deviceSettingsLoading, deviceSettingsSaving, activeDevicesCount, openDevices, confirmRevokeDevice, doRevokeDevice, revokeAllOthers, updateInactiveSessionDays } = useAdminDevices();
 const { report, reportLoading, reportError, reportGroup, reportPreset, reportStartDate, reportEndDate, reportDataset, reportFormat, reportExporting, reportExportMsg, reportExportError, reportPresets, reportGroups, reportDatasets, reportFormats, applyReportPreset, openReports, fetchReport, exportReport, reportSeriesPoints, reportHourPoints, chartColor, fmtAxis, topItemWidth, tableBarWidth, statusBarWidth } = useAdminReports();
 const { connectOrderStream, disconnectOrderStream } = useAdminStream();
 const { showAddRestaurant, addRestaurantName, addRestaurantSubmitting, addRestaurantMsg, addRestaurantError, openAddRestaurant, submitAddRestaurant, onSwitchRestaurant, initForRestaurant, ensureDefaultMenu, refreshCurrentMenuSelection, loadCategories, syncRestaurantTheme, showDeleteRestaurant, deleteRestaurantConfirm, deleteRestaurantSubmitting, deleteRestaurantMsg, deleteRestaurantError, openDeleteRestaurant, submitDeleteRestaurant } = useAdminRestaurant();
@@ -1619,9 +1510,9 @@ function resetSingletonState() {
   devicesMsg.value = "";
   deletingDevice.value = null;
   revokingDeviceId.value = null;
-  expandedDeviceId.value = null;
-  historyLoading.value = false;
-  historyError.value = "";
+  inactiveSessionDays.value = 180;
+  deviceSettingsLoading.value = false;
+  deviceSettingsSaving.value = false;
 
   showAddRestaurant.value = false;
   addRestaurantSubmitting.value = false;
@@ -1643,7 +1534,6 @@ function resetSingletonState() {
   report.value = {};
   reportLoading.value = false;
   devicesList.value = [];
-  loginHistory.value = [];
   stats.value = { totalRevenue: 0, totalOrders: 0, daily: [] };
 }
 resetSingletonState();
@@ -1738,6 +1628,12 @@ const shareImage = computed(() => restaurantLogo.value || "");
 const currencyOptions = computed(() => [
   { value: "KHR", label: i18n.t.currency_khr || "៛ KHR" },
   { value: "USD", label: i18n.t.currency_usd || "$ USD" },
+]);
+const inactiveSessionOptions = computed(() => [
+  { value: 7, label: i18n.t.one_week },
+  { value: 30, label: i18n.t.one_month },
+  { value: 90, label: i18n.t.three_months },
+  { value: 180, label: i18n.t.six_months },
 ]);
 
 function openProfile() {
@@ -2120,7 +2016,8 @@ async function submitProfile() {
   try {
     const formData = new FormData();
     formData.append("name", profileName.value.trim());
-    if (profileLogoFile.value) formData.append("logo", profileLogoFile.value);
+  formData.append("restaurant_id", String(auth.restaurantId));
+  if (profileLogoFile.value) formData.append("logo", profileLogoFile.value);
     const res = await axios.patch(`${API_BASE}/api/auth/restaurant`, formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
@@ -5538,6 +5435,99 @@ onUnmounted(() => {
   justify-content: space-between;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+.dev-auto-terminate {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.dev-auto-title {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.dev-auto-setting {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(140px, 42%);
+  align-items: center;
+  gap: 14px;
+  min-height: 44px;
+  padding: 6px 12px 6px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.dev-auto-setting > span {
+  min-width: 0;
+}
+
+.dev-auto-select {
+  --as-border: var(--border-line);
+  --as-ink: var(--text);
+  --surface: var(--bg-card);
+  justify-self: end;
+  width: max-content;
+  max-width: min(200px, 60vw);
+}
+
+.dev-auto-select :deep(.as-root) {
+  width: max-content;
+  min-width: 0 !important;
+  max-width: inherit;
+}
+
+.dev-auto-select :deep(.as-control) {
+  justify-content: flex-start;
+  gap: 10px;
+  height: 38px;
+  min-height: 38px;
+  padding-block: 0;
+  font-weight: 600;
+}
+
+.dev-auto-select :deep(.as-value) {
+  flex: 0 1 auto;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dev-auto-saving {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.dev-auto-spinner {
+  width: 12px;
+  height: 12px;
+  border: 2px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: dev-auto-spin 0.7s linear infinite;
+}
+
+@keyframes dev-auto-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 420px) {
+  .dev-auto-setting {
+    grid-template-columns: minmax(0, 1fr) minmax(118px, 48%);
+    gap: 8px;
+    padding-right: 8px;
+  }
 }
 
 .dev-count {

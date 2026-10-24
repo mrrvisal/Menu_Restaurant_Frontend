@@ -26,14 +26,6 @@
           }}</span>
       </button>
 
-      <!-- QR -->
-      <button type="button" class="sg-tile sg-tile-act" :class="{ done: showQr }" :title="i18n.t.share_qr"
-        @click="toggleQr">
-        <span class="sg-ic">
-          <AppIcon name="qr" :size="20" />
-        </span>
-        <span class="sg-label">{{ i18n.t.share_qr }}</span>
-      </button>
     </div>
 
     <!-- Platform-specific guidance (Instagram / WeChat / Messenger / Viber) -->
@@ -147,13 +139,6 @@ async function copyLink() {
   } else {
     hint.value = i18n.t.share_copy_failed;
   }
-}
-
-function toggleQr() {
-  showQr.value = !showQr.value;
-  qrFailed.value = false;
-  qrIndex.value = 0;
-  if (showQr.value) hint.value = "";
 }
 
 async function pick(target) {

@@ -436,6 +436,83 @@
               </span>
               <span class="row-muted">{{ formatDateTime(h.createdAt) }}</span>
             </div>
+            <details class="login-details">
+              <summary>{{ t.device_more_details || "Full device details" }}</summary>
+              <dl class="login-detail-grid">
+                <div v-if="h.deviceType">
+                  <dt>{{ t.device_type || "Device type" }}</dt>
+                  <dd>{{ h.deviceType }}</dd>
+                </div>
+                <div v-if="h.browser || h.browserVersion">
+                  <dt>{{ t.device_browser || "Browser" }}</dt>
+                  <dd>{{ h.browser || "—" }}{{ h.browserVersion ? ` ${h.browserVersion}` : "" }}</dd>
+                </div>
+                <div v-if="h.os || h.osVersion">
+                  <dt>{{ t.device_os }}</dt>
+                  <dd>{{ h.os || "—" }}{{ h.osVersion ? ` ${h.osVersion}` : "" }}</dd>
+                </div>
+                <div v-if="h.screen">
+                  <dt>{{ t.device_screen || "Screen" }}</dt>
+                  <dd>{{ h.screen }}</dd>
+                </div>
+                <div v-if="h.ipAddress">
+                  <dt>{{ t.device_ip }}</dt>
+                  <dd>{{ h.ipAddress }}</dd>
+                </div>
+                <div v-if="h.city || h.region || h.country">
+                  <dt>{{ t.device_location }}</dt>
+                  <dd>{{ placeOf(h, ["city", "region", "country"]) }}</dd>
+                </div>
+                <div v-if="h.isp">
+                  <dt>{{ t.device_isp || "Internet provider" }}</dt>
+                  <dd>{{ h.isp }}</dd>
+                </div>
+                <div v-if="h.platform">
+                  <dt>{{ t.device_platform }}</dt>
+                  <dd>{{ h.platform }}</dd>
+                </div>
+                <div v-if="h.hardware">
+                  <dt>{{ t.device_hardware }}</dt>
+                  <dd>{{ h.hardware }}</dd>
+                </div>
+                <div v-if="h.timezone">
+                  <dt>{{ t.device_timezone }}</dt>
+                  <dd>{{ h.timezone }}</dd>
+                </div>
+                <div v-if="h.language">
+                  <dt>{{ t.device_language }}</dt>
+                  <dd>{{ h.language }}</dd>
+                </div>
+                <div v-if="h.latitude != null && h.longitude != null">
+                  <dt>{{ t.device_coords }}</dt>
+                  <dd>{{ Number(h.latitude).toFixed(4) }}, {{ Number(h.longitude).toFixed(4) }}</dd>
+                </div>
+                <div v-if="h.asn || h.org">
+                  <dt>{{ t.device_asn }}</dt>
+                  <dd>{{ [h.asn, h.org].filter(Boolean).join(" · ") }}</dd>
+                </div>
+                <div v-if="h.isProxy || h.isHosting">
+                  <dt>{{ t.device_network_flags || "Network flags" }}</dt>
+                  <dd>{{ [h.isProxy && (t.device_vpn_flag || "VPN / Proxy"), h.isHosting && (t.device_hosting_flag || "Server / Hosting IP")].filter(Boolean).join(" · ") }}</dd>
+                </div>
+                <div v-if="h.loginCount">
+                  <dt>{{ t.device_logins }}</dt>
+                  <dd>{{ h.loginCount }}</dd>
+                </div>
+                <div v-if="h.lastActiveAt">
+                  <dt>{{ t.device_last_active }}</dt>
+                  <dd>{{ formatDateTime(h.lastActiveAt) }}</dd>
+                </div>
+                <div v-if="h.revokedAt">
+                  <dt>{{ t.device_revoked_note }}</dt>
+                  <dd>{{ formatDateTime(h.revokedAt) }}</dd>
+                </div>
+                <div v-if="h.userAgent" class="login-detail-full">
+                  <dt>{{ t.device_user_agent }}</dt>
+                  <dd>{{ h.userAgent }}</dd>
+                </div>
+              </dl>
+            </details>
           </div>
         </div>
         <div v-else class="logins-empty">{{ t.no_logins_yet }}</div>
@@ -2575,6 +2652,45 @@ function listEmptyText(kind) {
   flex-wrap: wrap;
   gap: 6px 8px;
   min-width: 0;
+}
+
+.login-details {
+  border-top: 1px solid var(--sa-line);
+  padding-top: 7px;
+  color: var(--text-mid);
+  font-size: 12px;
+}
+
+.login-details summary {
+  cursor: pointer;
+  color: var(--green-mid);
+  font-weight: 600;
+}
+
+.login-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px 12px;
+  margin: 10px 0 0;
+}
+
+.login-detail-grid > div {
+  min-width: 0;
+}
+
+.login-detail-grid dt {
+  color: var(--text-light);
+  font-size: 11px;
+}
+
+.login-detail-grid dd {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  color: var(--text-dark);
+}
+
+.login-detail-full {
+  grid-column: 1 / -1;
 }
 
 /* Inside a drawer row the meta may wrap (nowrap is for list rows only) */

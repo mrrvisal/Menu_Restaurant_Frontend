@@ -7,6 +7,38 @@ export function parseReportCsv(csv) {
   return result.data;
 }
 
+const CURRENCY_COLUMN_BY_DATASET = {
+  series: 2,
+  orders: 7,
+  items: 3,
+  tables: 2,
+  hours: 2,
+  status: 2,
+};
+const SUMMARY_CURRENCY_METRICS = new Set([
+  "Revenue (excl. cancelled)",
+  "Cancelled amount",
+  "ចំណូលសុទ្ធ (មិនរាប់បោះបង់)",
+  "ទឹកប្រាក់កម្មង់បោះបង់",
+]);
+
+export function formatReportCsvCurrency(csv, dataset, formatMoney) {
+  const rows = parseReportCsv(csv);
+  const currencyColumn = CURRENCY_COLUMN_BY_DATASET[dataset];
+
+  for (const row of rows.slice(1)) {
+    if (dataset === "summary") {
+      if (SUMMARY_CURRENCY_METRICS.has(row[0])) {
+        row[1] = formatMoney(row[1]);
+      }
+    } else if (currencyColumn !== undefined && row[currencyColumn] !== "") {
+      row[currencyColumn] = formatMoney(row[currencyColumn]);
+    }
+  }
+
+  return "\uFEFF" + Papa.unparse(rows);
+}
+
 function xmlEscape(value) {
   return String(value ?? "")
     .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")

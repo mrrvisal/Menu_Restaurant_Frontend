@@ -3,7 +3,13 @@
     `as-var-${variant}`,
     `as-tone-${tone}`,
     `as-size-${size}`,
-    { 'is-open': opened, 'as-block': block, 'as-ghost': ghost, 'as-disabled': disabled },
+    {
+      'is-open': opened,
+      'as-block': block,
+      'as-ghost': ghost,
+      'as-disabled': disabled,
+      'as-wrap-text': wrapText,
+    },
   ]" :style="{ '--as-radius': radius || (size === 'sm' ? '8px' : '10px'), minWidth: minWidth || undefined }">
     <button type="button" :id="controlId" class="as-control" :disabled="disabled" :aria-label="label || undefined"
       aria-haspopup="listbox" :aria-controls="menuId" :aria-expanded="opened"
@@ -19,7 +25,8 @@
 
     <Teleport to="body">
       <Transition name="as-pop">
-        <ul v-if="opened" :id="menuId" ref="menuEl" class="as-menu" :class="[`as-var-${variant}`, `as-tone-${tone}`]"
+        <ul v-if="opened" :id="menuId" ref="menuEl" class="as-menu"
+          :class="[`as-var-${variant}`, `as-tone-${tone}`, { 'as-wrap-text': wrapText }]"
           role="listbox" :aria-label="label || 'Select'" :style="menuStyle" @pointerdown.stop>
           <li v-for="(opt, i) in options" :key="keyOf(opt, i)" class="as-option"
             :class="{ 'is-active': i === activeIndex, 'is-selected': isSelected(opt) }" role="option"
@@ -56,6 +63,8 @@ const props = defineProps({
   block: { type: Boolean, default: false },
   ghost: { type: Boolean, default: false },
   disabled: { type: Boolean, default: false },
+  makeRoomBelow: { type: Boolean, default: false },
+  wrapText: { type: Boolean, default: false },
   label: { type: String, default: "" },
   emptyText: { type: String, default: "No options" },
   minWidth: { type: String, default: "" },
@@ -108,10 +117,11 @@ function measure() {
   if (!el) return;
   const r = el.getBoundingClientRect();
   const estH = Math.min(props.options.length * 40 + 14, 260);
+  const menuHeight = menuEl.value?.getBoundingClientRect().height || estH;
   const spaceBelow = window.innerHeight - r.bottom - 10;
-  const openUp = spaceBelow < estH && r.top > estH + 10;
+  const openUp = spaceBelow < menuHeight && r.top > menuHeight + 10;
   menuPos.value = {
-    top: openUp ? Math.max(8, r.top - estH - 6) : r.bottom + 6,
+    top: openUp ? Math.max(8, r.top - menuHeight - 6) : r.bottom + 6,
     left: Math.max(8, r.left),
     width: Math.max(r.width, 180),
     maxHeight: openUp
@@ -134,6 +144,25 @@ function stopReposition() {
 }
 
 function openMenu() {
+  if (props.makeRoomBelow) {
+    const rect = rootEl.value?.getBoundingClientRect();
+    let parent = rootEl.value?.parentElement;
+    while (rect && parent && parent !== document.body) {
+      const style = window.getComputedStyle(parent);
+      if (
+        /(auto|scroll)/.test(style.overflowY) &&
+        parent.scrollHeight > parent.clientHeight
+      ) {
+        const menuHeight = Math.min(props.options.length * 40 + 14, 260);
+        const spaceBelow = window.innerHeight - rect.bottom - 10;
+        if (spaceBelow < menuHeight) {
+          parent.scrollTop += menuHeight - spaceBelow;
+        }
+        break;
+      }
+      parent = parent.parentElement;
+    }
+  }
   measure();
   opened.value = true;
   activeIndex.value = Math.max(
@@ -366,6 +395,13 @@ onBeforeUnmount(() => {
   color: var(--muted-light, #9ca3af);
 }
 
+.as-wrap-text .as-value {
+  white-space: normal;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+}
+
 .as-chevron {
   flex-shrink: 0;
   color: var(--as-accent);
@@ -427,6 +463,13 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.as-menu.as-wrap-text .as-option-label {
+  overflow: visible;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  white-space: normal;
 }
 
 .as-check {

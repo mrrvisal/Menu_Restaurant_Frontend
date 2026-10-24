@@ -41,10 +41,8 @@ export function buildMenuUrl({ rid, restaurantId, table, origin } = {}) {
 
 // Generates both direct SPA URL and Open Graph preview share URL
 export function buildShareLinks({ rid, restaurantId, table } = {}) {
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
   const spaUrl = buildMenuUrl({ rid, restaurantId, table });
   const params = menuParams({ rid, restaurantId, table });
-  if (origin) params.set("to", origin);
   const qs = params.toString();
   return {
     spaUrl,

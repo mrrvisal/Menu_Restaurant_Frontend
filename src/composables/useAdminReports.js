@@ -1,7 +1,8 @@
 // ─── SALES REPORTS (Reports tab) ─────────────────────────────
-// Backed by the same /orders/stats endpoint as the metric cards, but with a
-// selectable range + day/week/month grouping and CSV export. `summary`
-// numbers exclude cancelled orders; cancelled totals are shown apart.
+// Full sales report for the Reports tab (summary + breakdowns), served by
+// GET /api/orders/report — kept separate from the lightweight /api/orders/stats
+// the dashboard metric cards use. `summary` numbers exclude cancelled orders;
+// cancelled totals are shown apart.
 //
 // Moved verbatim out of AdminView.vue — singleton state (same pattern as
 // useInstallUi): AdminView, the SSE stream and AdminReportsTab share it.
@@ -9,6 +10,7 @@ import { ref, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useI18nStore } from "@/stores/i18n";
 import { useThemeStore } from "@/stores/theme";
+import { useCurrencyStore } from "@/stores/currency";
 import { adminTab } from "@/composables/useAdminTab";
 import axios from "axios";
 
@@ -16,6 +18,7 @@ const API_BASE = import.meta.env.VITE_API_URL;
 const auth = useAuthStore();
 const i18n = useI18nStore();
 const theme = useThemeStore();
+const currencyStore = useCurrencyStore();
 
 const report = ref({});
 const reportLoading = ref(false);
@@ -111,7 +114,7 @@ export async function fetchReport() {
   reportLoading.value = true;
   reportError.value = "";
   try {
-    const res = await axios.get(`${API_BASE}/api/orders/stats`, {
+    const res = await axios.get(`${API_BASE}/api/orders/report`, {
       params: {
         restaurant_id: auth.restaurantId,
         start_date: reportStartDate.value,
@@ -179,15 +182,24 @@ async function exportReport() {
       res.headers["content-disposition"] || "",
     );
     const csvFilename = match ? match[1] : `sales-${reportDataset.value}.csv`;
+    const { formatReportCsvCurrency } = await import("@/utils/reportExport");
+    const formattedCsv = formatReportCsvCurrency(
+      await res.data.text(),
+      reportDataset.value,
+      (value) => currencyStore.fmt(value),
+    );
 
     if (reportFormat.value === "xlsx") {
       const { buildXlsx } = await import("@/utils/reportExport");
       downloadBlob(
-        buildXlsx(await res.data.text()),
+        buildXlsx(formattedCsv),
         csvFilename.replace(/\.csv$/i, ".xlsx"),
       );
     } else {
-      downloadBlob(res.data, csvFilename);
+      downloadBlob(
+        new Blob([formattedCsv], { type: "text/csv;charset=utf-8" }),
+        csvFilename,
+      );
     }
     reportExportMsg.value = i18n.t.report_export_ok || "Export ready!";
     setTimeout(() => {

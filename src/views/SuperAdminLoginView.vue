@@ -1,5 +1,8 @@
 <template>
   <div class="page">
+    <button class="lang-toggle" @click="i18n.toggleLocale">
+      {{ i18n.locale === "km" ? "English" : "ភាសាខ្មែរ" }}
+    </button>
     <div class="card pop-in">
       <div class="badge">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -25,9 +28,6 @@
         @submit="submit"
       />
 
-      <button class="lang-toggle" @click="i18n.toggleLocale">
-        {{ i18n.locale === "km" ? "English" : "ភាសាខ្មែរ" }}
-      </button>
     </div>
   </div>
 </template>
@@ -183,7 +183,10 @@ async function onGoogleCredential(credential) {
 }
 
 .lang-toggle {
-  margin-top: 14px;
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 10;
   background: none;
   border: 1.5px solid #fcd34d;
   border-radius: 20px;

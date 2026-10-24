@@ -1,6 +1,4 @@
-// Device sessions + login history (the "access log" modal) — moved verbatim
-// out of AdminView.vue. Singleton refs so AdminView (Esc handler) and a
-// future AdminDevicesModal share the exact same state (useInstallUi pattern).
+// Compact device-session controls for the signed-in account.
 import { ref, computed } from "vue";
 import { useAuthStore } from "@/stores/auth";
 import { useI18nStore } from "@/stores/i18n";
@@ -11,11 +9,8 @@ const auth = useAuthStore();
 const i18n = useI18nStore();
 
 // ─── DEVICE SESSIONS (access log for the account) ──────────
-// Every device that logs in is recorded server-side (device_sessions
-// table): device id/name/type, browser, OS, screen, timezone, language,
-// IP + best-effort city/country, first seen, last login, last active.
-// The owner can review ALL of them here and sign out any device (or all
-// others at once) — the auth middleware then rejects that device's token.
+// The account owner can review their own active devices and sign out any
+// device; the auth middleware then rejects that device's token.
 const showDevices = ref(false);
 const devicesList = ref([]);
 const devicesLoading = ref(false);
@@ -23,10 +18,9 @@ const devicesError = ref("");
 const devicesMsg = ref("");
 const deletingDevice = ref(null);
 const revokingDeviceId = ref(null);
-const expandedDeviceId = ref(null);
-const loginHistory = ref([]);
-const historyLoading = ref(false);
-const historyError = ref("");
+const inactiveSessionDays = ref(180);
+const deviceSettingsLoading = ref(false);
+const deviceSettingsSaving = ref(false);
 const activeDevicesCount = computed(
   () => devicesList.value.filter((d) => !d.revoked).length,
 );
@@ -35,7 +29,7 @@ function openDevices() {
   devicesMsg.value = "";
   showDevices.value = true;
   fetchDevices();
-  fetchLoginHistory();
+  fetchDeviceSettings();
 }
 async function fetchDevices() {
   devicesLoading.value = true;
@@ -47,6 +41,42 @@ async function fetchDevices() {
     devicesError.value = err.response?.data?.error || i18n.t.devices_load_error;
   } finally {
     devicesLoading.value = false;
+  }
+}
+async function fetchDeviceSettings() {
+  deviceSettingsLoading.value = true;
+  try {
+    const res = await axios.get(`${API_BASE}/api/auth/devices/settings`);
+    inactiveSessionDays.value = res.data?.inactiveDays || 180;
+  } catch (err) {
+    devicesError.value =
+      err.response?.data?.error || i18n.t.device_settings_load_error;
+  } finally {
+    deviceSettingsLoading.value = false;
+  }
+}
+async function updateInactiveSessionDays(value) {
+  const days = Number(value);
+  if (![7, 30, 90, 180].includes(days) || deviceSettingsSaving.value) return;
+  const previousDays = inactiveSessionDays.value;
+  inactiveSessionDays.value = days;
+  deviceSettingsSaving.value = true;
+  devicesError.value = "";
+  try {
+    const res = await axios.patch(`${API_BASE}/api/auth/devices/settings`, {
+      inactiveDays: days,
+    });
+    inactiveSessionDays.value = res.data.inactiveDays;
+    devicesMsg.value = i18n.t.device_settings_saved;
+    setTimeout(() => {
+      devicesMsg.value = "";
+    }, 2500);
+  } catch (err) {
+    inactiveSessionDays.value = previousDays;
+    devicesError.value =
+      err.response?.data?.error || i18n.t.device_settings_save_error;
+  } finally {
+    deviceSettingsSaving.value = false;
   }
 }
 function confirmRevokeDevice(device) {
@@ -71,7 +101,6 @@ async function doRevokeDevice() {
       devicesMsg.value = "";
     }, 2500);
     await fetchDevices();
-    await fetchLoginHistory();
   } catch (err) {
     devicesError.value =
       err.response?.data?.error || i18n.t.device_revoke_error;
@@ -90,36 +119,11 @@ async function revokeAllOthers() {
       devicesMsg.value = "";
     }, 2500);
     await fetchDevices();
-    await fetchLoginHistory();
   } catch (err) {
     devicesError.value =
       err.response?.data?.error || i18n.t.devices_revoke_error;
   }
 }
-async function fetchLoginHistory() {
-  historyLoading.value = true;
-  historyError.value = "";
-  try {
-    const res = await axios.get(`${API_BASE}/api/auth/devices/history`);
-    loginHistory.value = res.data || [];
-  } catch (err) {
-    historyError.value =
-      err.response?.data?.error || i18n.t.login_history_load_error;
-  } finally {
-    historyLoading.value = false;
-  }
-}
-function toggleDeviceDetails(id) {
-  expandedDeviceId.value = expandedDeviceId.value === id ? null : id;
-}
-function deviceMethodLabel(method) {
-  const labels = {
-    password: i18n.t.method_password || "Password",
-    google: "Google",
-  };
-  return labels[method] || method || i18n.t.device_unknown;
-}
-
 export function useAdminDevices() {
   return {
     showDevices,
@@ -129,18 +133,15 @@ export function useAdminDevices() {
     devicesMsg,
     deletingDevice,
     revokingDeviceId,
-    expandedDeviceId,
-    loginHistory,
-    historyLoading,
-    historyError,
+    inactiveSessionDays,
+    deviceSettingsLoading,
+    deviceSettingsSaving,
     activeDevicesCount,
     openDevices,
     fetchDevices,
+    updateInactiveSessionDays,
     confirmRevokeDevice,
     doRevokeDevice,
     revokeAllOthers,
-    fetchLoginHistory,
-    toggleDeviceDetails,
-    deviceMethodLabel,
   };
 }
