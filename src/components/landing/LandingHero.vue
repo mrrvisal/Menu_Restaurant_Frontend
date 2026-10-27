@@ -57,7 +57,7 @@
               <div class="hero-card-body">
                 <div class="hero-order-restaurant">
                   <div class="hero-order-avatar"><img
-                      src="https://res.cloudinary.com/daji2ml3y/image/upload/v1783262055/ChatGPT_Image_Jul_5_2026_09_32_32_PM_c6ziic.png"
+                      src="../../assets/images/main-logo/digital-menu.png"
                       width="40" height="40" alt=""></div>
                   <div>
                     <strong>Digital Menu</strong>
