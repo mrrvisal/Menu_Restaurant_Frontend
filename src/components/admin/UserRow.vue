@@ -172,7 +172,7 @@ function onClick() {
 /* Mobile: rows stack, meta wraps left, actions full width */
 @media (max-width: 900px) {
   .row {
-    flex-direction: column;
+    flex-direction: column-reverse;
     align-items: stretch;
     gap: 10px;
     padding: 16px;

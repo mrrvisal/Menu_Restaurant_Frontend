@@ -57,7 +57,7 @@
               <div class="hero-card-body">
                 <div class="hero-order-restaurant">
                   <div class="hero-order-avatar"><img
-                      src="../../assets/images/main-logo/digital-menu.png"
+                      src="@/assets/images/main-logo/digital-menu.png"
                       width="40" height="40" alt=""></div>
                   <div>
                     <strong>Digital Menu</strong>

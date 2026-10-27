@@ -6,11 +6,14 @@
        #row   — one <UserRow> per item ({ item } is the slot scope) -->
 <template>
   <section class="panel" :class="`tone-${tone}`">
-    <div class="panel-head">
+    <div class="panel-head" :class="{
+      'panel-head-simple': !searchable && !statusOptions.length && !$slots.tools,
+      'panel-head-inline-tools': !searchable && !statusOptions.length && $slots.tools,
+    }">
       <span class="panel-title">
         <AppIcon :name="icon" :size="16" /> {{ title }}
       </span>
-      <div class="panel-tools">
+      <div v-if="searchable || statusOptions.length || $slots.tools" class="panel-tools">
         <div v-if="searchable" class="search-box">
           <AppIcon name="search" :size="14" />
           <input class="search-input" :value="search" :placeholder="placeholder" @input="onSearch" />
@@ -18,8 +21,8 @@
         <AppSelect v-if="statusOptions.length" size="sm" variant="teal" min-width="110px" :model-value="status"
           :options="statusOptions" @update:model-value="emit('update:status', $event)" />
         <slot name="tools" />
-        <span v-if="count !== null" class="panel-count">{{ count }}</span>
       </div>
+      <span v-if="count !== null" class="panel-count">{{ count }}</span>
     </div>
 
     <div v-if="addLabel" class="panel-actions">
@@ -118,7 +121,7 @@ const onSearch = (event) => emit("update:search", event.target.value);
 .panel-head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
   gap: 12px;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border);
@@ -140,9 +143,12 @@ const onSearch = (event) => emit("update:search", event.target.value);
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
+  margin-left: auto;
 }
 
 .panel-count {
+  flex: 0 0 auto;
   font-size: 11.5px;
   font-weight: 700;
   color: var(--teal);

@@ -43,7 +43,7 @@
           <button class="lang-seg-btn" :class="{ on: locale !== 'km' }" @click="locale !== 'en' && toggleLocale()">EN</button>
           <button class="lang-seg-btn" :class="{ on: locale === 'km' }" @click="locale === 'km' || toggleLocale()">ខ្មែរ</button>
         </div>
-        <button class="logout-link" @click="showLogoutConfirm = true">
+        <button class="logout-link" :aria-label="t.logout" :title="t.logout" @click="showLogoutConfirm = true">
           <AppIcon name="lock" :size="15" /> {{ t.logout }}
         </button>
       </div>
@@ -1746,7 +1746,8 @@ function listEmptyText(kind) {
    ════════════════════════════════════════════════════════════ */
 .shell {
   display: grid;
-  grid-template-columns: var(--sa-sidebar) 1fr;
+  grid-template-columns: var(--sa-sidebar) minmax(0, 1fr);
+  min-width: 0;
   /* Layered canvas so the sidebar reads as floating rather than glued to flat
      green: a soft green wash in the top-left + a 1px dotted grid at 3%. */
   background-color: var(--sa-canvas);
@@ -1983,7 +1984,6 @@ function listEmptyText(kind) {
 .lang-seg-btn {
   flex: 1;
   min-height: 36px;
-  padding: 8px 10px;
   border: none;
   border-radius: 9px;
   background: transparent;
@@ -2031,7 +2031,9 @@ function listEmptyText(kind) {
 .main {
   width: 100%;
   max-width: 1240px;
+  min-width: 0;
   padding: 32px 40px 72px;
+  overflow-x: clip;
 }
 
 .topbar {
@@ -2960,14 +2962,15 @@ function listEmptyText(kind) {
    ════════════════════════════════════════════════════════════ */
 @media (max-width: 900px) {
   .shell {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
   }
 
   .mobile-bar {
     display: flex;
     align-items: center;
     gap: 12px;
-    height: 68px;
+    min-height: 68px;
     padding: 0 16px;
     background: var(--green-dark);
     color: var(--white);
@@ -2988,8 +2991,9 @@ function listEmptyText(kind) {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 38px;
-    height: 38px;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
     border: 1px solid rgba(200, 230, 201, 0.3);
     border-radius: 12px;
     background: rgba(200, 230, 201, 0.1);
@@ -3000,14 +3004,16 @@ function listEmptyText(kind) {
   .sidebar {
     position: fixed;
     top: 0;
-    left: -280px;
-    width: 252px;
+    left: 0;
+    width: min(280px, calc(100vw - 48px));
     height: 100vh;
-    transition: left 0.24s var(--sa-ease);
+    height: 100dvh;
+    transform: translateX(-100%);
+    transition: transform 0.24s var(--sa-ease);
   }
 
   .nav-open .sidebar {
-    left: 0;
+    transform: translateX(0);
     box-shadow: 8px 0 32px rgba(0, 0, 0, 0.28);
   }
 
@@ -3021,17 +3027,29 @@ function listEmptyText(kind) {
   }
 
   .main {
-    padding: 20px 16px 56px;
+    min-width: 0;
+    padding: 20px clamp(12px, 3.5vw, 24px) 56px;
   }
 
   .topbar {
-    align-items: stretch;
+    align-items: flex-start;
     gap: 12px;
+    margin-bottom: 22px;
+  }
+
+  .topbar-id {
+    flex: 1 1 auto;
+  }
+
+  .topbar > .tab-bar {
+    flex: 0 0 auto;
+    min-height: 44px;
+    margin: 0;
   }
 
   /* Summary wraps under the title; the refresh keeps its 44px hit area */
   .tab-bar {
-    /* flex-wrap: wrap; */
+    min-width: 0;
     justify-content: space-between;
     gap: 10px;
   }
@@ -3060,9 +3078,79 @@ function listEmptyText(kind) {
     flex: 0 0 auto;
   }
 
+  .main :deep(.stats-grid) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .main :deep(.stat-card) {
+    min-width: 0;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .main :deep(.stat-body) {
+    min-width: 0;
+  }
+
+  .main :deep(.stat-num) {
+    overflow-wrap: anywhere;
+    font-size: clamp(16px, 2.4vw, 20px);
+  }
+
+  .main :deep(.stat-label) {
+    overflow-wrap: anywhere;
+    font-size: 12px;
+  }
+
   .dash-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
     gap: 14px;
+  }
+
+  .main :deep(.panel-head) {
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .main :deep(.panel-title) {
+    min-width: 0;
+  }
+
+  .main :deep(.panel-tools) {
+    min-width: 0;
+  }
+
+  .main :deep(.search-box) {
+    min-width: 0;
+  }
+
+  .main :deep(.search-input) {
+    min-width: 0;
+  }
+
+  .main :deep(.rows) {
+    max-height: min(60vh, 480px);
+  }
+
+  .main :deep(.rows > .row) {
+    flex-shrink: 0;
+    min-width: 0;
+  }
+
+  .main :deep(.row-main),
+  .main :deep(.row-meta),
+  .main :deep(.row-actions) {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .main :deep(.row-meta) {
+    flex: none;
+  }
+
+  .stack {
+    grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
   }
 }
 
@@ -3073,7 +3161,7 @@ function listEmptyText(kind) {
    ════════════════════════════════════════════════════════════ */
 @media (min-width: 901px) and (max-width: 1100px) {
   .shell {
-    grid-template-columns: var(--sa-rail) 1fr;
+    grid-template-columns: var(--sa-rail) minmax(0, 1fr);
   }
 
   .brand-area {
@@ -3109,6 +3197,20 @@ function listEmptyText(kind) {
   .lang-seg {
     flex-direction: column;
   }
+
+  .logout-link {
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    margin-inline: auto;
+    padding: 0;
+    gap: 0;
+    font-size: 0;
+  }
+
+  .logout-link :deep(svg) {
+    flex-shrink: 0;
+  }
 }
 
 /* ≤600px: the one-line summary strip stops wrapping and becomes a snap-scrolled
@@ -3136,16 +3238,229 @@ function listEmptyText(kind) {
   .tab-bar :deep(.summary-item) {
     scroll-snap-align: start;
   }
+
+  .topbar {
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .topbar > .tab-bar {
+    display: flex;
+  }
+
+  .main :deep(.panel-head) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .main :deep(.panel-head.panel-head-simple) {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .main :deep(.panel-head.panel-head-inline-tools) {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+  }
+
+  .main :deep(.panel-head > .panel-title) {
+    grid-column: 1;
+  }
+
+  .main :deep(.panel-head > .panel-count) {
+    grid-column: 2;
+    grid-row: 1;
+    margin: 0;
+  }
+
+  .main :deep(.panel-head > .panel-tools) {
+    grid-column: 1 / -1;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .main :deep(.panel-head-inline-tools > .panel-tools) {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+    width: auto;
+  }
+
+  .main :deep(.panel-head-inline-tools > .panel-count) {
+    grid-column: 3;
+  }
+
+  .main :deep(.panel-head-inline-tools .link-btn) {
+    padding-right: 4px;
+    padding-left: 4px;
+    white-space: nowrap;
+  }
+
+  .main :deep(.panel-title) {
+    white-space: normal;
+  }
+
+  .main :deep(.panel-tools) {
+    width: 100%;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .main :deep(.search-box) {
+    flex: 1 1 100%;
+  }
+
+  .main :deep(.panel-count) {
+    justify-self: end;
+  }
+
+  .main :deep(.panel-actions),
+  .main :deep(.chips) {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .main :deep(.row) {
+    gap: 8px;
+    padding: 12px;
+  }
+
+  .main :deep(.row-main) {
+    gap: 10px;
+  }
+
+  .main :deep(.row-title),
+  .main :deep(.row-sub) {
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .main :deep(.row-meta) {
+    gap: 6px;
+  }
+
+  .main :deep(.rows) {
+    max-height: min(58vh, 420px);
+  }
+
+  .main :deep(.stat-card) {
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .main :deep(.stat-icon-wrap) {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+  }
+
+  .main :deep(.stat-label) {
+    font-size: 11.5px;
+  }
+
+  .dash-grid,
+  .stack {
+    gap: 12px;
+  }
 }
 
 @media (max-width: 480px) {
+  .mobile-bar {
+    gap: 10px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .mobile-bar .mark {
+    width: 36px;
+    height: 36px;
+  }
+
+  .mobile-bar-title {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 14px;
+  }
+
+  .main {
+    padding-top: 16px;
+    padding-bottom: 40px;
+  }
+
   .page-title {
     font-size: 21px;
+    line-height: 1.45;
+  }
+
+  .page-sub {
+    font-size: 12.5px;
+  }
+
+  .breadcrumb {
+    flex-wrap: wrap;
+  }
+
+  .main :deep(.panel-head) {
+    padding: 12px;
+  }
+
+  .main :deep(.panel-tools > *) {
+    max-width: 100%;
+  }
+
+  .main :deep(.panel-actions),
+  .main :deep(.chips) {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .main :deep(.btn-add) {
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .main :deep(.row) {
+    padding: 11px 12px;
+  }
+
+  .main :deep(.row-meta) {
+    flex-wrap: wrap;
+  }
+
+  .main :deep(.stats-grid) {
+    gap: 8px;
+  }
+
+  .main :deep(.stat-card) {
+    align-items: flex-start;
+    min-height: 76px;
+  }
+
+  .main :deep(.stat-num) {
+    font-size: 17px;
   }
 
   /* Log rows: keep the timestamp on the same line as the badge */
   .row-time {
     font-size: 12.5px;
+  }
+}
+
+@media (max-width: 360px) {
+  .main :deep(.stats-grid) {
+    grid-template-columns: 1fr;
+  }
+
+  .topbar {
+    gap: 6px;
+  }
+
+  .page-title {
+    font-size: 19px;
   }
 }
 
