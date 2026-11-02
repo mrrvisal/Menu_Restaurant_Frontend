@@ -13,6 +13,12 @@ export const searchQ = ref("");
 const showForm = ref(false);
 const editingFood = ref(null);
 const deletingFood = ref(null);
+export const selectedFoodIds = ref([]);
+export const selectingFoods = ref(false);
+export const transferringFoods = ref(false);
+export const transferAction = ref("move");
+export const transferRestaurantId = ref(null);
+export const transferMenuId = ref(null);
 
 // ─── MENU HANDLING (one menu per restaurant) ───────────────
 export const menuCreating = ref(false);
@@ -33,13 +39,12 @@ function confirmDel(food) {
   deletingFood.value = food;
 }
 async function doDelete() {
-  if (!deletingFood.value) return;
+  const ids = deletingFood.value?.ids || (deletingFood.value ? [deletingFood.value.id] : []);
+  if (!ids.length) return;
   try {
-    await foods.deleteFood(deletingFood.value.id);
+    await (ids.length === 1 ? foods.deleteFood(ids[0]) : foods.deleteFoods(ids));
+    selectedFoodIds.value = [];
   } catch (err) {
-    // Ownership failures (e.g. a stale row from another account/restaurant)
-    // come back as 404 — surface it instead of an unhandled rejection, and
-    // keep the row until the list is refetched.
     console.error(
       "Delete food failed:",
       err?.response?.data?.error || err.message,
@@ -47,6 +52,48 @@ async function doDelete() {
   } finally {
     deletingFood.value = null;
   }
+}
+
+function toggleFoodSelection(id) {
+  const numericId = Number(id);
+  const index = selectedFoodIds.value.indexOf(numericId);
+  if (index >= 0) selectedFoodIds.value.splice(index, 1);
+  else selectedFoodIds.value.push(numericId);
+}
+
+function toggleSelectAll() {
+  const visibleIds = foods.foods.map((food) => Number(food.id));
+  selectedFoodIds.value = selectedFoodIds.value.length === visibleIds.length
+    ? []
+    : visibleIds;
+}
+
+function openTransfer(action) {
+  if (!selectedFoodIds.value.length) return;
+  transferAction.value = action;
+  transferRestaurantId.value = auth.restaurants.find((restaurant) => restaurant.id !== auth.restaurantId)?.id || null;
+  transferMenuId.value = null;
+  transferringFoods.value = true;
+  destinationChanged();
+}
+
+async function destinationChanged() {
+  transferMenuId.value = null;
+  if (!transferRestaurantId.value) return;
+  await foods.fetchMenus(transferRestaurantId.value);
+}
+
+async function doTransfer() {
+  if (!selectedFoodIds.value.length || !transferRestaurantId.value) return;
+  await foods.transferFoods(
+    [...selectedFoodIds.value],
+    transferAction.value,
+    transferRestaurantId.value,
+    transferMenuId.value,
+  );
+  selectedFoodIds.value = [];
+  selectingFoods.value = false;
+  transferringFoods.value = false;
 }
 
 export function useAdminFoods() {
@@ -57,9 +104,20 @@ export function useAdminFoods() {
     editingFood,
     deletingFood,
     menuCreating,
+    selectedFoodIds,
+    selectingFoods,
+    transferringFoods,
+    transferAction,
+    transferRestaurantId,
+    transferMenuId,
     load,
     openAdd,
     confirmDel,
     doDelete,
+    toggleFoodSelection,
+    toggleSelectAll,
+    openTransfer,
+    destinationChanged,
+    doTransfer,
   };
 }

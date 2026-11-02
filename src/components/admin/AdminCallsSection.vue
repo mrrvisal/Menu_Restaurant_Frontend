@@ -1,7 +1,7 @@
 <!-- Pending guest "call the owner" requests, shown at the top of the Orders
      tab. Each row can be marked handled (or reopened) with one tap. -->
 <template>
-  <section class="calls-strip">
+  <section ref="callsEl" class="calls-strip">
     <header class="calls-head">
       <span class="calls-title">
         <AppIcon name="bell" :size="15" />
@@ -71,7 +71,7 @@
 </template>
 
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import AppIcon from "@/components/AppIcon.vue";
 import { useI18nStore } from "@/stores/i18n";
 import { useAuthStore } from "@/stores/auth";
@@ -94,7 +94,15 @@ const list = computed(() =>
 const pending = computed(() => pendingCalls.value);
 const loading = computed(() => callsLoading.value);
 const expanded = ref(true);
+const callsEl = ref(null);
+let callsResizeObserver = null;
 
+function syncCallsHeight() {
+  const el = callsEl.value;
+  if (!el) return;
+  const parent = el.closest(".main") || document.documentElement;
+  parent.style.setProperty("--orders-calls-h", `${el.offsetHeight + 10}px`);
+}
 async function mark(id) {
   try {
     await updateCallStatus(id, "handled");
@@ -121,6 +129,15 @@ function timeAgo(dateStr) {
 
 onMounted(() => {
   fetchCalls();
+  syncCallsHeight();
+  if (typeof ResizeObserver !== "undefined" && callsEl.value) {
+    callsResizeObserver = new ResizeObserver(syncCallsHeight);
+    callsResizeObserver.observe(callsEl.value);
+  }
+});
+
+onUnmounted(() => {
+  callsResizeObserver?.disconnect();
 });
 
 // Multi-restaurant owners: switching restaurant in the sidebar must swap
@@ -137,7 +154,7 @@ watch(
   border: 1px solid var(--border, #e2e8f0);
   border-radius: 14px;
   padding: 14px 16px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   box-shadow: 0 1px 2px rgba(16, 24, 20, 0.04);
 }
 
@@ -213,10 +230,16 @@ watch(
 .calls-empty {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   font-size: 12.5px;
   color: var(--muted, #6b7280);
-  padding: 6px 0px;
+  min-height: 48px;
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px dashed var(--border, #e2e8f0);
+  border-radius: 10px;
+  text-align: center;
 }
 
 .calls-list {
@@ -227,6 +250,8 @@ watch(
   flex-direction: column;
   gap: 8px;
   margin-top: 10px;
+  max-height: 280px;
+  overflow-y: auto;
 }
 
 .call-row {
@@ -332,6 +357,20 @@ watch(
 }
 
 @media (max-width: 560px) {
+  .calls-strip {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .calls-head {
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .calls-list {
+    max-height: none;
+  }
+
   .call-msg {
     flex-basis: 100%;
     order: 5;

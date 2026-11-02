@@ -9,8 +9,8 @@
 import { ref, watch } from "vue";
 import router from "@/router";
 
-export const VALID_TABS = ["foods", "categories", "orders", "reports"];
-export const adminTab = ref("foods");
+export const VALID_TABS = ["dashboard", "foods", "categories", "orders", "reports"];
+export const adminTab = ref("dashboard");
 
 watch(adminTab, (tab) => {
   router
@@ -23,7 +23,7 @@ export function useAdminTab() {
   // (a remount after navigating away restores ?tab=… again).
   adminTab.value = VALID_TABS.includes(router.currentRoute.value.query.tab)
     ? router.currentRoute.value.query.tab
-    : "foods";
+    : "dashboard";
   return { VALID_TABS, adminTab };
 }
 

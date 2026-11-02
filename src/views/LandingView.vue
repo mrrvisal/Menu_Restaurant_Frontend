@@ -1,4 +1,6 @@
 <template>
+  <AppLoader :visible="showLoader" logo-only />
+
   <div class="landing">
     <!-- 3D WebGL stage (fixed full-viewport background) -->
     <Hero3D />
@@ -53,6 +55,7 @@ import LandingFaq from "@/components/landing/LandingFaq.vue";
 import LandingCta from "@/components/landing/LandingCta.vue";
 import LandingFooter from "@/components/landing/LandingFooter.vue";
 import ScrollToTopButton from "@/components/landing/ScrollToTopButton.vue";
+import AppLoader from "@/components/AppLoader.vue";
 import { useScrollSpy } from "@/composables/useScrollSpy";
 import { useScrollToTop } from "@/composables/useScrollToTop";
 import { useTopFade } from "@/composables/useTopFade";
@@ -63,6 +66,8 @@ const Hero3D = defineAsyncComponent(() => import("@/components/Hero3D.vue"));
 
 const mobileOpen = ref(false);
 const scrolled = ref(false);
+const showLoader = ref(true);
+let loaderTimer = null;
 
 // ─── SCROLL-SPY: navbar "stands on" the section being viewed ──
 // Logic lives in @/composables/useScrollSpy (URL-hash restore + link highlight).
@@ -84,6 +89,11 @@ let screenHandler = null;
 let scrollHandler = null;
 
 onMounted(() => {
+  document.documentElement.classList.add("landing-scrollbar");
+  loaderTimer = window.setTimeout(() => {
+    showLoader.value = false;
+  }, 1000);
+
   collectFadeTargets();
   applyFade();
   scrollHandler = () => {
@@ -108,6 +118,8 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  document.documentElement.classList.remove("landing-scrollbar");
+  window.clearTimeout(loaderTimer);
   destroyFade(); // cancels a pending fade frame (was cancelAnimationFrame(fadeRaf))
   if (scrollHandler) window.removeEventListener("scroll", scrollHandler);
   if (screenHandler) window.removeEventListener("resize", screenHandler);
@@ -115,6 +127,36 @@ onUnmounted(() => {
 </script>
 
 <style>
+/* Landing page scrollbar — keep it green, regardless of the restaurant theme. */
+html.landing-scrollbar,
+html.landing-scrollbar body {
+  scrollbar-color: #22c55e #eaf7ee !important;
+  scrollbar-width: auto !important;
+}
+
+html.landing-scrollbar::-webkit-scrollbar,
+html.landing-scrollbar body::-webkit-scrollbar {
+  width: 8px !important;
+  height: 8px !important;
+}
+
+html.landing-scrollbar::-webkit-scrollbar-track,
+html.landing-scrollbar body::-webkit-scrollbar-track {
+  background: #eaf7ee !important;
+}
+
+html.landing-scrollbar::-webkit-scrollbar-thumb,
+html.landing-scrollbar body::-webkit-scrollbar-thumb {
+  background-color: #22c55e !important;
+  border-radius: 999px !important;
+  border: 2px solid #eaf7ee !important;
+}
+
+html.landing-scrollbar::-webkit-scrollbar-thumb:hover,
+html.landing-scrollbar body::-webkit-scrollbar-thumb:hover {
+  background-color: #16a34a !important;
+}
+
 /* ============================================================
    CROSS-CUTTING BASE — intentionally UNSCOPED.
    These rules must reach INTO the child components (navbar, sections…).

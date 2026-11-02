@@ -8,7 +8,6 @@ import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
 
-// Restore user session on app load
 onMounted(() => {
   auth.restoreToken();
 });

@@ -14,14 +14,23 @@ export const useFoodsStore = defineStore("foods", () => {
   const categoriesLoading = ref(false);
   const loading = ref(false);
   const error = ref(null);
+  let menusRequestId = 0;
+  let categoriesRequestId = 0;
+  let foodsRequestId = 0;
 
   // Clear in-memory food & category data when switching user or restaurant
   watch(
     () => [auth.user?.id, auth.restaurantId],
     () => {
+      menusRequestId++;
+      categoriesRequestId++;
+      foodsRequestId++;
       foods.value = [];
       categories.value = [];
       menus.value = [];
+      menusLoading.value = false;
+      categoriesLoading.value = false;
+      loading.value = false;
       error.value = null;
     },
   );
@@ -33,8 +42,10 @@ export const useFoodsStore = defineStore("foods", () => {
   // ─── MENUS ────────────────────────────────────────────────
   async function fetchMenus(restaurantId = null) {
     const id = restaurantId || activeRestaurantId();
+    const requestId = ++menusRequestId;
     if (!id) {
       menus.value = [];
+      menusLoading.value = false;
       return;
     }
     menusLoading.value = true;
@@ -42,9 +53,14 @@ export const useFoodsStore = defineStore("foods", () => {
       const res = await axios.get(`${API_BASE_URL}/api/menus`, {
         params: { restaurant_id: id },
       });
-      menus.value = res.data;
+      if (
+        requestId === menusRequestId &&
+        Number(activeRestaurantId()) === Number(id)
+      ) {
+        menus.value = res.data;
+      }
     } finally {
-      menusLoading.value = false;
+      if (requestId === menusRequestId) menusLoading.value = false;
     }
   }
 
@@ -75,8 +91,10 @@ export const useFoodsStore = defineStore("foods", () => {
   // ─── CATEGORIES ───────────────────────────────────────────
   async function fetchCategories(params = {}, restaurantId = null) {
     const id = restaurantId || activeRestaurantId();
+    const requestId = ++categoriesRequestId;
     if (!id) {
       categories.value = [];
+      categoriesLoading.value = false;
       return;
     }
     categoriesLoading.value = true;
@@ -84,26 +102,33 @@ export const useFoodsStore = defineStore("foods", () => {
       const res = await axios.get(`${API_BASE_URL}/api/categories`, {
         params: { restaurant_id: id, ...params },
       });
-      // Deduplicate categories by normalized name/label
-      const seen = new Set();
-      categories.value = (res.data || []).filter((cat) => {
-        const key = String(cat.label_km || cat.label || cat.name || "")
-          .trim()
-          .toLowerCase();
-        if (!key || seen.has(key)) return false;
-        seen.add(key);
-        return true;
-      });
+      if (
+        requestId === categoriesRequestId &&
+        Number(activeRestaurantId()) === Number(id)
+      ) {
+        // Deduplicate categories by normalized name/label
+        const seen = new Set();
+        categories.value = (res.data || []).filter((cat) => {
+          const key = String(cat.label_km || cat.label || cat.name || "")
+            .trim()
+            .toLowerCase();
+          if (!key || seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      }
     } finally {
-      categoriesLoading.value = false;
+      if (requestId === categoriesRequestId) categoriesLoading.value = false;
     }
   }
 
   // ─── FOODS ────────────────────────────────────────────────
   async function fetchFoods(params = {}, restaurantId = null) {
     const id = restaurantId || activeRestaurantId();
+    const requestId = ++foodsRequestId;
     if (!id) {
       foods.value = [];
+      loading.value = false;
       return;
     }
     loading.value = true;
@@ -112,15 +137,20 @@ export const useFoodsStore = defineStore("foods", () => {
       const res = await axios.get(`${API_BASE_URL}/api/foods`, {
         params: { restaurant_id: id, ...params },
       });
-      // Map img to img_url for frontend compatibility
-      foods.value = res.data.map((food) => ({
-        ...food,
-        img_url: food.img,
-      }));
+      if (
+        requestId === foodsRequestId &&
+        Number(activeRestaurantId()) === Number(id)
+      ) {
+        // Map img to img_url for frontend compatibility
+        foods.value = res.data.map((food) => ({
+          ...food,
+          img_url: food.img,
+        }));
+      }
     } catch (e) {
-      error.value = e.message;
+      if (requestId === foodsRequestId) error.value = e.message;
     } finally {
-      loading.value = false;
+      if (requestId === foodsRequestId) loading.value = false;
     }
   }
 
@@ -180,6 +210,26 @@ export const useFoodsStore = defineStore("foods", () => {
     foods.value = foods.value.filter((f) => f.id !== id);
   }
 
+  async function deleteFoods(ids) {
+    await axios.post(`${API_BASE_URL}/api/foods/bulk-delete`, { ids });
+    const selected = new Set(ids.map(Number));
+    foods.value = foods.value.filter((f) => !selected.has(Number(f.id)));
+  }
+
+  async function transferFoods(ids, action, restaurantId, menuId = null) {
+    const res = await axios.post(`${API_BASE_URL}/api/foods/bulk-transfer`, {
+      ids,
+      action,
+      restaurant_id: restaurantId,
+      menu_id: menuId,
+    });
+    if (action === "move") {
+      const selected = new Set(ids.map(Number));
+      foods.value = foods.value.filter((f) => !selected.has(Number(f.id)));
+    }
+    return res.data;
+  }
+
   return {
     foods,
     categories,
@@ -198,6 +248,8 @@ export const useFoodsStore = defineStore("foods", () => {
     updateFood,
     toggleStatus,
     deleteFood,
+    deleteFoods,
+    transferFoods,
     addCategory,
     updateCategory,
     deleteCategory,

@@ -42,6 +42,13 @@
       </div>
 
       <nav class="side-nav">
+        <button class="nav-i" :class="{ active: adminTab === 'dashboard' }" @click="
+          adminTab = 'dashboard';
+        showMobile = false;
+        ">
+          <AppIcon name="chart" :size="18" />
+          <span>{{ i18n.t.dashboard }}</span>
+        </button>
         <button class="nav-i" :class="{ active: adminTab === 'foods' }" @click="
           adminTab = 'foods';
         showMobile = false;
@@ -114,7 +121,9 @@
           <h1 class="hdr-title">
             <AppIcon name="sparkle" :size="18" class="hdr-title-i" />
             {{
-              adminTab === "foods"
+              adminTab === "dashboard"
+                ? i18n.t.dashboard
+                : adminTab === "foods"
                 ? i18n.t.foods
                 : adminTab === "categories"
                   ? i18n.t.categories
@@ -246,7 +255,8 @@
         </div>
       </div>
 
-      <!-- Metrics -->
+      <!-- Dashboard overview -->
+      <template v-if="adminTab === 'dashboard'">
       <div class="metrics">
         <div class="metric metric-teal">
           <div class="metric-icon mi-teal">
@@ -296,8 +306,30 @@
         </div>
       </div>
 
+      <section class="dashboard-chart-panel">
+        <div class="dashboard-chart-head">
+          <div>
+            <h2>{{ i18n.t.revenue_overview }}</h2>
+            <span>{{ i18n.t.last_7_days }}</span>
+          </div>
+          <strong>{{ currencyStore.fmt(stats.totalRevenue) }}</strong>
+        </div>
+        <div class="dashboard-chart" :class="{ 'is-loading': statsLoading }">
+          <div v-for="day in dashboardChartDays" :key="day.day" class="dashboard-chart-col">
+            <div class="dashboard-chart-track">
+              <div class="dashboard-chart-bar" :style="{ height: `${day.height}%` }" :title="`${currencyStore.fmt(day.revenue)} · ${day.orders} ${i18n.t.orders}`"></div>
+            </div>
+            <span>{{ dashboardDayLabel(day.day) }}</span>
+          </div>
+          <div v-if="!stats.daily?.length && !statsLoading" class="dashboard-chart-empty">
+            {{ i18n.t.no_data }}
+          </div>
+        </div>
+      </section>
+      </template>
+
       <!-- Menu (one menu per restaurant) + gating -->
-      <div class="menustrip">
+      <div v-if="adminTab !== 'dashboard'" class="menustrip">
         <div class="menustrip-label">{{ i18n.t.menu }}</div>
         <div v-if="!auth.restaurantId" class="menustrip-empty">
           <span>{{ i18n.t.need_restaurant || "សូមបង្កើតភោជនីយដ្ឋានជាមុន" }}</span>
@@ -323,6 +355,7 @@
 
       <!-- ──────── FOODS ──────── -->
       <template v-if="adminTab === 'foods'">
+        <div class="food-control-stack">
         <div class="bar">
           <div class="bar-scroll">
             <button class="chip" :class="{ active: !curCat }" @click="curCat = ''; load();">
@@ -354,6 +387,13 @@
                 </svg>
               </button>
             </div>
+            <button class="ac food-select-toggle" @click="selectingFoods = !selectingFoods; selectedFoodIds = []">
+              <svg v-if="!selectingFoods" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" aria-hidden="true">
+                <rect x="4" y="4" width="16" height="16" rx="3" /><path d="m8 12 2.5 2.5L16 9" />
+              </svg>
+              {{ selectingFoods ? i18n.t.cancel_selection : i18n.t.select }}
+            </button>
             <button class="ac ac-primary" @click="openAdd">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
                 <circle cx="12" cy="12" r="10" />
@@ -363,6 +403,41 @@
               <span class="btn-text">{{ i18n.t.add_food }}</span>
             </button>
           </div>
+        </div>
+
+        <div v-if="selectingFoods" class="food-selection-toolbar" role="toolbar" :aria-label="i18n.t.select">
+          <button class="ac food-selection-select-all" @click="toggleSelectAll">
+            <svg v-if="selectedFoodIds.length && selectedFoodIds.length === foods.foods.length" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="4" /><path d="m7.5 12 3 3L17 8.5" />
+            </svg>
+            <svg v-else-if="selectedFoodIds.length" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="4" /><path d="M8 12h8" />
+            </svg>
+            <svg v-else width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <rect x="3" y="3" width="18" height="18" rx="4" />
+            </svg>
+            {{ selectedFoodIds.length === foods.foods.length && foods.foods.length ? i18n.t.clear_all : i18n.t.select_all }}
+          </button>
+          <span class="food-selection-count">{{ selectedFoodIds.length }} {{ i18n.t.selected_foods }}</span>
+          <div class="food-selection-actions">
+            <button class="ac" :disabled="!selectedFoodIds.length" @click="openTransfer('copy')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <rect x="8" y="8" width="11" height="11" rx="2" /><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" />
+              </svg>
+              {{ i18n.t.copy }}
+            </button>
+            <button class="ac" :disabled="!selectedFoodIds.length" @click="openTransfer('move')">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                <path d="M5 12h14" /><path d="m14 7 5 5-5 5" />
+              </svg>
+              {{ i18n.t.move }}
+            </button>
+            <button class="ac ac-danger" :disabled="!selectedFoodIds.length"
+              @click="confirmDel({ ids: [...selectedFoodIds], name: `${selectedFoodIds.length} ${i18n.t.selected_foods}` })">
+              {{ i18n.t.delete }}
+            </button>
+          </div>
+        </div>
         </div>
 
         <div v-if="foods.loading" class="grid food-skeleton-grid" role="status" :aria-label="i18n.t.loading">
@@ -386,17 +461,16 @@
           </button>
         </div>
         <div v-else class="grid">
-          <FoodCard v-for="food in foods.foods" :key="food.id" :food="food" is-admin @delete="confirmDel($event)"
-            @toggle-status="foods.toggleStatus($event)" @detail="
-              editingFood = $event;
-            showForm = true;
-            " />
+          <FoodCard v-for="food in foods.foods" :key="food.id" :food="food" is-admin
+            :selectable="selectingFoods" :selected="selectedFoodIds.includes(Number(food.id))"
+            @select="toggleFoodSelection" @delete="confirmDel($event)" @toggle-status="foods.toggleStatus($event)"
+            @detail="openFoodDetail($event)" />
         </div>
       </template>
 
       <!-- ──────── CATEGORIES ──────── -->
       <template v-if="adminTab === 'categories'">
-        <div class="bar">
+        <div class="bar sticky-bar">
           <div class="bar-acts">
             <button class="ac ac-primary" @click="openCatForm()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
@@ -451,22 +525,22 @@
         v-if="adminTab === 'orders'"
         :orders="orders"
         :orders-loading="ordersLoading"
-        :fetch-orders="fetchOrders"
-        :update-order-status="updateOrderStatus"
-        :expanded-days="expandedDays"
-        :toggle-day="toggleDay"
-        :order-sections="orderSections"
-        :day-label="dayLabel"
-        v-model:search-date="searchDate"
-        :search-active="searchActive"
-        :search-date-orders="searchDateOrders"
-        :i18n="i18n"
-        :currency-store="currencyStore"
-        :status-icon="statusIcon"
-        :status-label="statusLabel"
-        :get-status-options="getStatusOptions"
-        :format-date="formatDate"
-        :parse-items="parseItems"
+          :fetch-orders="fetchOrders"
+          :update-order-status="updateOrderStatus"
+          :expanded-days="expandedDays"
+          :toggle-day="toggleDay"
+          :order-sections="orderSections"
+          :day-label="dayLabel"
+          v-model:search-date="searchDate"
+          :search-active="searchActive"
+          :search-date-orders="searchDateOrders"
+          :i18n="i18n"
+          :currency-store="currencyStore"
+          :status-icon="statusIcon"
+          :status-label="statusLabel"
+          :get-status-options="getStatusOptions"
+          :format-date="formatDate"
+          :parse-items="parseItems"
       />
       <AdminReportsSection
         v-if="adminTab === 'reports'"
@@ -594,6 +668,44 @@
       </Transition>
     </Teleport>
 
+    <!-- Copy or move selected foods -->
+    <Teleport to="body">
+      <Transition name="fade">
+        <div v-if="transferringFoods" class="overlay" @click.self="transferringFoods = false">
+          <div class="dlg transfer-dlg">
+            <div class="transfer-dlg-heading">
+              <div class="transfer-dlg-icon" aria-hidden="true">
+                <svg v-if="transferAction === 'copy'" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                  <rect x="8" y="8" width="11" height="11" rx="2" />
+                  <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" />
+                </svg>
+                <svg v-else viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M5 12h14" /><path d="m14 7 5 5-5 5" />
+                  <path d="M5 5v14" />
+                </svg>
+              </div>
+              <div class="transfer-dlg-title">
+                {{ transferAction === 'copy' ? i18n.t.copy_selected_foods : i18n.t.move_selected_foods }}
+                <span>{{ selectedFoodIds.length }} {{ i18n.t.selected_foods }}</span>
+              </div>
+            </div>
+            <div class="transfer-destination">
+              <label class="field-label" for="transfer-restaurant">{{ i18n.t.restaurant_name }}</label>
+              <AppSelect id="transfer-restaurant" v-model="transferRestaurantId"
+                :options="auth.restaurants.filter(r => r.id !== auth.restaurantId).map(r => ({ value: r.id, label: r.name }))"
+                :placeholder="i18n.t.choose_restaurant" :empty-text="i18n.t.no_data" size="md" tone="soft" block wrap-text />
+            </div>
+            <div class="dlg-acts">
+              <button class="btn btn-g" @click="transferringFoods = false">{{ i18n.t.cancel }}</button>
+              <button class="btn btn-primary" :disabled="!transferRestaurantId" @click="doTransfer">
+                {{ transferAction === 'copy' ? i18n.t.copy : i18n.t.move }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </Transition>
+    </Teleport>
+
     <!-- Delete Food -->
     <Teleport to="body">
       <Transition name="fade">
@@ -606,7 +718,7 @@
               </svg>
             </div>
             <div class="dlg-t">{{ i18n.t.confirm_delete_food }}</div>
-            <div class="dlg-d">{{ deletingFood.name }}</div>
+            <div class="dlg-d">{{ deletingFood.ids ? `${deletingFood.ids.length} ${i18n.t.selected_foods}` : deletingFood.name }}</div>
             <div class="dlg-acts">
               <button class="btn btn-g" @click="deletingFood = null">
                 {{ i18n.t.cancel }}</button><button class="btn btn-r" @click="doDelete">
@@ -1463,10 +1575,30 @@ const currencyStore = useCurrencyStore();
 // State + actions live in @/composables/useAdmin* (verbatim extracts).
 // Singleton refs: the sidebar, the SSE stream and every tab share one source.
 const { adminTab } = useAdminTab();
-const { curCat, searchQ, showForm, editingFood, deletingFood, menuCreating, load, openAdd, confirmDel, doDelete } = useAdminFoods();
+const { curCat, searchQ, showForm, editingFood, deletingFood, menuCreating, selectedFoodIds, selectingFoods, transferringFoods, transferAction, transferRestaurantId, transferMenuId, load, openAdd, confirmDel, doDelete, toggleFoodSelection, toggleSelectAll, openTransfer, destinationChanged, doTransfer } = useAdminFoods();
 const { showCatForm, editingCat, catSubmitting, catSuccess, catErrors, catLabelKm, deletingCat, openCatForm, submitCategory, confirmDelCat, doDeleteCat } = useAdminCategories();
 const { orders, ordersLoading, fetchOrders, updateOrderStatus, expandedDays, toggleDay, orderSections, dayLabel, searchDate, searchActive, searchDateOrders, clearDateSearch, scheduleNewDayCheck, stopNewDayCheck } = useAdminOrders();
 const { stats, statsLoading, fetchStats } = useAdminStats();
+
+const dashboardChartDays = computed(() => {
+  const days = [...(stats.value.daily || [])]
+    .filter((day) => day?.day)
+    .sort((a, b) => String(a.day).localeCompare(String(b.day)))
+    .slice(-7);
+  const maxRevenue = Math.max(1, ...days.map((day) => Number(day.revenue) || 0));
+  return days.map((day) => ({
+    ...day,
+    revenue: Number(day.revenue) || 0,
+    orders: Number(day.orders) || 0,
+    height: Math.max(6, ((Number(day.revenue) || 0) / maxRevenue) * 100),
+  }));
+});
+
+function dashboardDayLabel(day) {
+  const date = new Date(`${String(day).slice(0, 10)}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return String(day).slice(5);
+  return date.toLocaleDateString(i18n.locale === "km" ? "km-KH" : "en-US", { weekday: "short" });
+}
 const { showQR, qrTableNumber, qrCodeDataUrl, qrLoading, qrError, qrInfo, savedQrs, qrSearch, qrListLoading, qrListError, selectedSavedNo, deletingQr, filteredSavedQrs, openQR, generateQR, previewSavedQr, downloadSavedQr, formatQrDate, confirmDelQr, doDeleteQr, downloadQR } = useAdminQr();
 const { showDevices, devicesList, devicesLoading, devicesError, devicesMsg, deletingDevice, revokingDeviceId, inactiveSessionDays, deviceSettingsLoading, deviceSettingsSaving, activeDevicesCount, openDevices, confirmRevokeDevice, doRevokeDevice, revokeAllOthers, updateInactiveSessionDays } = useAdminDevices();
 const { report, reportLoading, reportError, reportGroup, reportPreset, reportStartDate, reportEndDate, reportDataset, reportFormat, reportExporting, reportExportMsg, reportExportError, reportPresets, reportGroups, reportDatasets, reportFormats, applyReportPreset, openReports, fetchReport, exportReport, reportSeriesPoints, reportHourPoints, chartColor, fmtAxis, topItemWidth, tableBarWidth, statusBarWidth } = useAdminReports();
@@ -2287,6 +2419,15 @@ async function onNotificationSelect(notification) {
 // Shared message builder for order notifications. The SSE payload uses
 // camelCase (tableNo); DB rows fetched from /api/orders use snake_case
 // (table_no) — accept both.
+function openFoodDetail(food) {
+  if (selectingFoods.value) {
+    toggleFoodSelection(food.id);
+    return;
+  }
+  editingFood.value = food;
+  showForm.value = true;
+}
+
 onMounted(async () => {
   // Refresh restaurants list (in case a new one was added elsewhere).
   // A failed refresh must not abort the rest of the mount work (menus,
@@ -2963,6 +3104,7 @@ onUnmounted(() => {
   flex-wrap: wrap;
   padding-top: 20px;
   gap: 10px;
+  box-shadow: 0 1px 0 var(--border);
 }
 
 .hdr::before {
@@ -3081,6 +3223,17 @@ onUnmounted(() => {
   background: var(--primary);
   color: var(--on-primary, #fff);
   border: 1px solid var(--primary-strong, var(--primary));
+}
+
+.ac-danger {
+  background: #fff1f2;
+  color: var(--red-dark, #b91c1c);
+  border: 1px solid #fecdd3;
+}
+
+.ac-danger:hover:not(:disabled) {
+  background: var(--red-dark, #b91c1c);
+  color: #fff;
 }
 
 .ac-primary:hover {
@@ -3312,12 +3465,91 @@ onUnmounted(() => {
 }
 
 /* Metrics */
+@media (min-width: 1px) {
+  .metrics {
+    position: sticky;
+    top: calc(var(--hdr-stick-top, 0px) + var(--hdr-h, 0px));
+    z-index: 50;
+    background: #f8fafc;
+  }
+}
+
 .metrics {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-  margin-top: 20px;
-  margin-bottom: 28px;
+  margin-top: 10px;
+  margin-bottom: 10px;
+  padding: 10px 0;
+}
+
+.dashboard-chart-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.dashboard-chart-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.dashboard-chart-head h2 { margin: 0 0 4px; font-size: 16px; }
+.dashboard-chart-head span { color: var(--muted); font-size: 12px; }
+.dashboard-chart-head strong { font-size: 20px; }
+
+.dashboard-chart {
+  position: relative;
+  height: 240px;
+  display: flex;
+  align-items: stretch;
+  gap: clamp(8px, 2vw, 18px);
+  padding-top: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.dashboard-chart-col {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  display: grid;
+  grid-template-rows: 1fr 24px;
+  align-items: end;
+  text-align: center;
+}
+
+.dashboard-chart-track {
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.dashboard-chart-bar {
+  width: min(34px, 68%);
+  min-height: 6px;
+  border-radius: 8px 8px 2px 2px;
+  background: linear-gradient(180deg, var(--primary), var(--primary-strong, var(--primary)));
+  box-shadow: 0 6px 16px var(--primary-glow);
+  transition: height 0.35s ease;
+}
+
+.dashboard-chart-col > span { color: var(--muted); font-size: 11px; padding-top: 8px; }
+.dashboard-chart-empty {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  color: var(--muted); font-size: 13px;
+}
+.dashboard-chart.is-loading { opacity: 0.45; }
+
+@media (max-width: 600px) {
+  .dashboard-chart-panel { padding: 16px 12px; }
+  .dashboard-chart { height: 190px; gap: 6px; }
+  .dashboard-chart-head strong { font-size: 16px; }
 }
 
 .metric {
@@ -3455,7 +3687,7 @@ onUnmounted(() => {
   align-items: center;
   flex-wrap: wrap;
   gap: 10px;
-  margin-bottom: 18px;
+  margin: 20px 0 10px;
   padding: 10px 14px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -3556,8 +3788,29 @@ onUnmounted(() => {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 18px;
+  padding: 10px 0px;
+  margin-bottom: 8px;
   flex-wrap: wrap;
+}
+
+/* Keep the food category bar and selection toolbar attached while scrolling. */
+.food-control-stack {
+  position: sticky;
+  top: calc(var(--hdr-stick-top, 0px) + var(--hdr-h, 0px));
+  z-index: 50;
+  background: #f8fafc;
+  padding-bottom: 0.1px;
+}
+
+.food-control-stack > .bar {
+  margin-bottom: 0;
+}
+
+.bar.sticky-bar {
+  position: sticky;
+  top: calc(var(--hdr-stick-top, 0px) + var(--hdr-h, 0px));
+  z-index: 50;
+  background: #f8fafc;
 }
 
 .bar-scroll {
@@ -3579,6 +3832,47 @@ onUnmounted(() => {
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
+}
+
+/* Dedicated row for multi-item food actions */
+.food-selection-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(100px, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid var(--border-green, var(--border, #e2e8f0));
+  border-radius: 12px;
+  background: var(--surface-green, #f8fafc);
+}
+
+.food-selection-select-all {
+  background: var(--surface, #fff);
+  border: 1px solid var(--border, #e2e8f0);
+}
+
+.food-selection-count {
+  min-width: 0;
+  color: var(--muted, #64748b);
+  font-size: 13px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.food-selection-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.food-selection-actions .ac {
+  min-height: 40px;
+}
+
+.food-select-toggle svg {
+  display: none;
 }
 
 .bar-count {
@@ -3927,10 +4221,6 @@ onUnmounted(() => {
    component, so it can only be reached with :deep() (scoped CSS). */
 .orders-bar {
   --ob-h: 36px;
-}
-
-.orders-bar .bar-acts {
-  width: 100%;
 }
 
 .orders-bar .bar-refresh {
@@ -4777,6 +5067,74 @@ onUnmounted(() => {
   color: var(--text);
   margin-bottom: 6px;
   line-height: 1.35;
+}
+
+.transfer-dlg {
+  width: min(92vw, 420px);
+  max-width: 420px;
+  padding: 24px;
+  text-align: left;
+  border: 1px solid var(--border, rgba(15, 23, 42, 0.08));
+}
+
+.transfer-dlg-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.transfer-dlg-icon {
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--primary, #16a34a);
+  background: var(--surface-green, #ecfdf3);
+}
+
+.transfer-dlg-icon svg {
+  width: 23px;
+  height: 23px;
+}
+
+.transfer-dlg-title {
+  min-width: 0;
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.transfer-dlg-title span {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted, #64748b);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.transfer-destination {
+  margin-bottom: 22px;
+}
+
+.transfer-destination .field-label {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 650;
+}
+
+.transfer-dlg .dlg-acts {
+  gap: 10px;
+}
+
+.transfer-dlg .dlg-acts .btn {
+  min-height: 44px;
+  font-size: 14px;
 }
 
 .dlg-d {
@@ -5805,22 +6163,32 @@ onUnmounted(() => {
   }
 }
 
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
 /* ════════════════════════════════════════════════
    RESPONSIVE BREAKPOINTS
    ════════════════════════════════════════════════ */
 
 /* Tablets and smaller desktops */
 @media (max-width: 1024px) {
-  .grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
-
   .metrics {
     gap: 10px;
   }
 
   .main {
     padding: 0px 24px 50px;
+  }
+}
+
+@media (max-width: 940px) {
+    .grid {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    /* reduced from 10px */
   }
 }
 
@@ -5903,11 +6271,33 @@ onUnmounted(() => {
     /* reduced from 18px */
   }
 
-  /* Grid - 3 columns */
-  .grid {
-    grid-template-columns: repeat(3, 1fr);
+    .food-selection-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
     gap: 8px;
-    /* reduced from 10px */
+    padding: 8px;
+  }
+
+  .food-selection-select-all {
+    justify-self: start;
+    width: auto;
+    min-height: 38px;
+  }
+
+  .food-selection-count {
+    grid-column: 2;
+    grid-row: 1;
+    text-align: right;
+  }
+
+  .food-selection-actions {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .food-selection-actions .ac {
+    width: 100%;
   }
 
   /* Toolbar - stack with tighter gaps */
@@ -5918,12 +6308,6 @@ onUnmounted(() => {
     /* reduced from 8px */
     margin-bottom: 12px;
     /* reduced from 18px */
-  }
-
-  .bar-acts {
-    width: 100%;
-    min-width: 0;
-    flex-wrap: nowrap;
   }
 
   .bar-acts .srch {
@@ -6021,8 +6405,8 @@ onUnmounted(() => {
   .hdr {
     padding: 12px 0 16px;
     /* reduced from 14px 0px 40px */
-    margin-bottom: 12px;
-    /* reduced from 16px */
+    margin-bottom: 0;
+    /* the toolbar sits directly below the pink rule */
     align-items: flex-start;
     /* changed from stretch for better alignment */
     gap: 6px;
@@ -6049,8 +6433,49 @@ onUnmounted(() => {
   }
 }
 
+@media (max-width: 550px) {
+  /* Grid - 2 columns */
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+    /* reduced from 8px */
+  }
+}
+
 /* Small phones */
 @media (max-width: 480px) {
+  .food-selection-toolbar {
+    gap: 6px;
+    padding: 6px;
+    border-radius: 10px;
+  }
+
+  .food-selection-select-all {
+    padding-inline: 10px;
+    min-height: 36px;
+    font-size: 11px;
+  }
+
+  .food-selection-count {
+    font-size: 11px;
+  }
+
+  .food-selection-actions {
+    gap: 6px;
+  }
+
+  .food-selection-actions .ac {
+    min-height: 38px;
+    padding: 6px 4px;
+    gap: 4px;
+    font-size: 11px;
+  }
+
+  .food-selection-actions .ac svg {
+    width: 14px;
+    height: 14px;
+  }
+
   .main {
     padding: 10px 10px 24px;
     /* reduced from 12px 10px 32px */
@@ -6085,13 +6510,6 @@ onUnmounted(() => {
   .metric-v {
     font-size: 16px;
     /* reduced from 17px */
-  }
-
-  /* Grid - 2 columns */
-  .grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px;
-    /* reduced from 8px */
   }
 
   /* Categories - 1 column */
@@ -6236,6 +6654,37 @@ onUnmounted(() => {
 
 /* Very small phones */
 @media (max-width: 380px) {
+  .transfer-dlg {
+    padding: 20px 16px;
+  }
+
+  .transfer-dlg-heading {
+    gap: 10px;
+    margin-bottom: 18px;
+  }
+
+  .transfer-dlg-icon {
+    width: 40px;
+    height: 40px;
+    flex-basis: 40px;
+  }
+
+  .transfer-dlg-title {
+    font-size: 17px;
+  }
+
+  .transfer-dlg-title span {
+    font-size: 13px;
+  }
+
+  .transfer-destination .field-label {
+    font-size: 13px;
+  }
+
+  .transfer-dlg .dlg-acts .btn {
+    font-size: 13px;
+  }
+
   .main {
     padding: 8px 6px 20px;
     /* reduced from 10px 10px 24px */
@@ -6309,7 +6758,7 @@ onUnmounted(() => {
   .metrics {
     gap: 4px;
     /* reduced from 6px */
-    margin-bottom: 10px;
+    /* margin-bottom: 10px; */
     /* reduced from 16px */
   }
 

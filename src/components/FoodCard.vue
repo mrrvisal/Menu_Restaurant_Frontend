@@ -1,5 +1,11 @@
 <template>
-  <div class="food-card" @click="$emit('detail', food)">
+  <div class="food-card" :class="{ 'is-selected': selected }" @click="$emit('detail', food)">
+    <!-- Admin selection checkbox -->
+    <button v-if="isAdmin && selectable" class="card-select-btn" :class="{ checked: selected }"
+      :aria-label="selected ? i18n.t.cancel_selection : i18n.t.select" @click.stop="$emit('select', food.id)">
+      <span v-if="selected">✓</span>
+    </button>
+
     <!-- Admin delete button -->
     <button v-if="isAdmin" class="card-delete-btn" @click.stop="$emit('delete', food)">
       <AppIcon name="x" :size="14" />
@@ -68,9 +74,11 @@ const props = defineProps({
   food: { type: Object, required: true },
   isAdmin: { type: Boolean, default: false },
   cartQty: { type: Number, default: 0 },
+  selectable: { type: Boolean, default: false },
+  selected: { type: Boolean, default: false },
 });
 
-defineEmits(['detail', 'delete', 'toggle-status', 'add-cart']);
+defineEmits(['detail', 'delete', 'toggle-status', 'add-cart', 'select']);
 
 const currencyStore = useCurrencyStore();
 const i18n = useI18nStore();
@@ -222,12 +230,15 @@ function getCategoryEmoji(category) {
   font-family: 'Hanuman', serif;
   font-size: 14px;
   font-weight: 700;
-  line-height: 1.3;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 @media (max-width: 480px) {
   .food-card-name {
     font-size: 12px;
+    line-height: 1.35;
   }
 }
 
@@ -262,7 +273,10 @@ function getCategoryEmoji(category) {
 
   .status-toggle-btn {
     font-size: 9px;
-    padding: 2px 6px;
+    line-height: 1.25;
+    padding: 3px 7px;
+    white-space: normal;
+    text-align: center;
   }
 }
 
@@ -276,11 +290,10 @@ function getCategoryEmoji(category) {
 }
 
 @media (max-width: 480px) {
-
-  /* .food-card-footer { flex-direction: column; align-items: stretch; gap: 6px; } */
   .food-card-footer .add-cart-btn,
   .food-card-footer .status-toggle-btn {
-    width: 100%;
+    width: auto;
+    max-width: 100%;
     justify-content: center;
   }
 }
@@ -359,5 +372,33 @@ function getCategoryEmoji(category) {
 .card-delete-btn:hover {
   background: #b71c1c;
   transform: scale(1.15);
+}
+
+.food-card.is-selected {
+  outline: 3px solid var(--primary, #16a34a);
+  outline-offset: -1px;
+}
+
+.card-select-btn {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 2px solid rgba(255,255,255,.95);
+  background: rgba(255,255,255,.92);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 11;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,.18);
+}
+
+.card-select-btn.checked {
+  background: var(--primary, #16a34a);
+  border-color: var(--primary, #16a34a);
 }
 </style>
