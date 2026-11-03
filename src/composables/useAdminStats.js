@@ -14,24 +14,24 @@ const i18n = useI18nStore();
 const stats = ref({ totalRevenue: 0, totalOrders: 0, daily: [] });
 const statsLoading = ref(false);
 const statsError = ref("");
-const statsStartDate = ref(
-  new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
-);
-const statsEndDate = ref(new Date().toISOString().slice(0, 10));
+const statsStartDate = ref("");
+const statsEndDate = ref("");
 
 export async function fetchStats() {
   if (!auth.restaurantId) return;
   statsLoading.value = true;
   statsError.value = "";
   try {
-    const res = await axios.get(`${API_BASE}/api/orders/stats`, {
-      params: {
+    const params = {
         // Revenue / order metrics must belong to the SELECTED restaurant —
         // without restaurant_id the backend reports the account's first one.
         restaurant_id: auth.restaurantId,
-        start_date: statsStartDate.value,
-        end_date: statsEndDate.value,
-      },
+    };
+    if (statsStartDate.value) params.start_date = statsStartDate.value;
+    if (statsEndDate.value) params.end_date = statsEndDate.value;
+
+    const res = await axios.get(`${API_BASE}/api/orders/stats`, {
+      params,
     });
     stats.value = res.data;
   } catch (err) {

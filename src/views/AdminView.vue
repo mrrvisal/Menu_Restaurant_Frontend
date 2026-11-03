@@ -306,18 +306,51 @@
         </div>
       </div>
 
+      <div class="dashboard-filter">
+        <div class="dashboard-filter-presets" aria-label="Dashboard date range">
+          <button class="dashboard-filter-btn" :class="{ active: dashboardPreset === 'all' }" @click="setDashboardPreset('all')">{{ i18n.t.all }}</button>
+          <button class="dashboard-filter-btn" :class="{ active: dashboardPreset === 'today' }" @click="setDashboardPreset('today')">{{ i18n.t.report_today }}</button>
+          <button class="dashboard-filter-btn" :class="{ active: dashboardPreset === '7days' }" @click="setDashboardPreset('7days')">{{ i18n.t.report_7d }}</button>
+          <button class="dashboard-filter-btn" :class="{ active: dashboardPreset === '30days' }" @click="setDashboardPreset('30days')">{{ i18n.t.report_30d }}</button>
+        </div>
+        <div class="dashboard-filter-dates">
+          <label>
+            <span>{{ i18n.t.report_from }}</span>
+            <AppDatePicker
+              v-model="statsStartDate"
+              :max="statsEndDate"
+              @change="applyDashboardDates"
+            />
+          </label>
+          <label>
+            <span>{{ i18n.t.report_to }}</span>
+            <AppDatePicker
+              v-model="statsEndDate"
+              :min="statsStartDate"
+              @change="applyDashboardDates"
+            />
+          </label>
+        </div>
+      </div>
+
       <section class="dashboard-chart-panel">
         <div class="dashboard-chart-head">
           <div>
             <h2>{{ i18n.t.revenue_overview }}</h2>
-            <span>{{ i18n.t.last_7_days }}</span>
+            <span>{{ dashboardRangeLabel }}</span>
           </div>
           <strong>{{ currencyStore.fmt(stats.totalRevenue) }}</strong>
         </div>
         <div class="dashboard-chart" :class="{ 'is-loading': statsLoading }">
           <div v-for="day in dashboardChartDays" :key="day.day" class="dashboard-chart-col">
             <div class="dashboard-chart-track">
-              <div class="dashboard-chart-bar" :style="{ height: `${day.height}%` }" :title="`${currencyStore.fmt(day.revenue)} · ${day.orders} ${i18n.t.orders}`"></div>
+              <div class="dashboard-chart-bar-wrap" :style="{ '--chart-bar-height': `${day.height}%` }">
+                <div class="dashboard-chart-tooltip">
+                  <strong>{{ currencyStore.fmt(day.revenue) }}</strong>
+                  <span>{{ day.orders }} {{ i18n.t.orders }}</span>
+                </div>
+                <div class="dashboard-chart-bar" :style="{ height: `${day.height}%` }"></div>
+              </div>
             </div>
             <span>{{ dashboardDayLabel(day.day) }}</span>
           </div>
@@ -1365,7 +1398,8 @@
               </div>
 
               <button class="btn btn-primary btn-b" :disabled="profileSubmitting" @click="submitProfile">
-                {{ profileSubmitting ? i18n.t.loading : i18n.t.save }}
+                <ButtonLoader v-if="profileSubmitting" :text="i18n.t.saving" />
+                <span v-else>{{ i18n.t.save }}</span>
               </button>
             </div>
           </div>
@@ -1536,6 +1570,8 @@ import ShareGrid from "@/components/ShareGrid.vue";
 import AdminMobileBar from "@/components/admin/AdminMobileBar.vue";
 import AdminOrdersSection from "@/components/admin/AdminOrdersSection.vue";
 import AdminCallsSection from "@/components/admin/AdminCallsSection.vue";
+import AppDatePicker from "@/components/AppDatePicker.vue";
+import ButtonLoader from "@/components/ButtonLoader.vue";
 import { fetchCalls } from "@/composables/useAdminCalls";
 import AdminReportsSection from "@/components/admin/AdminReportsSection.vue";
 import AdminSettingsModal from "@/components/admin/AdminSettingsModal.vue";
@@ -1578,26 +1614,82 @@ const { adminTab } = useAdminTab();
 const { curCat, searchQ, showForm, editingFood, deletingFood, menuCreating, selectedFoodIds, selectingFoods, transferringFoods, transferAction, transferRestaurantId, transferMenuId, load, openAdd, confirmDel, doDelete, toggleFoodSelection, toggleSelectAll, openTransfer, destinationChanged, doTransfer } = useAdminFoods();
 const { showCatForm, editingCat, catSubmitting, catSuccess, catErrors, catLabelKm, deletingCat, openCatForm, submitCategory, confirmDelCat, doDeleteCat } = useAdminCategories();
 const { orders, ordersLoading, fetchOrders, updateOrderStatus, expandedDays, toggleDay, orderSections, dayLabel, searchDate, searchActive, searchDateOrders, clearDateSearch, scheduleNewDayCheck, stopNewDayCheck } = useAdminOrders();
-const { stats, statsLoading, fetchStats } = useAdminStats();
+const { stats, statsLoading, statsStartDate, statsEndDate, fetchStats } = useAdminStats();
+const dashboardPreset = ref("all");
+
+const dashboardRangeLabel = computed(() => {
+  if (!statsStartDate.value && !statsEndDate.value) return i18n.t.dashboard_all_time;
+  if (statsStartDate.value === statsEndDate.value) return statsStartDate.value || i18n.t.dashboard_selected_date;
+  return `${statsStartDate.value || "..."} - ${statsEndDate.value || "..."}`;
+});
+
+function toLocalDateString(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function setDashboardPreset(preset) {
+  dashboardPreset.value = preset;
+  const end = new Date();
+  if (preset === "all") {
+    statsStartDate.value = "";
+    statsEndDate.value = "";
+  } else {
+    statsEndDate.value = toLocalDateString(end);
+    const start = new Date(end);
+    const days = preset === "today" ? 0 : preset === "30days" ? 29 : 6;
+    start.setDate(start.getDate() - days);
+    statsStartDate.value = toLocalDateString(start);
+  }
+  fetchStats();
+}
+
+function applyDashboardDates() {
+  dashboardPreset.value = "custom";
+  if (statsStartDate.value && statsEndDate.value && statsStartDate.value > statsEndDate.value) {
+    statsEndDate.value = statsStartDate.value;
+  }
+  fetchStats();
+}
 
 const dashboardChartDays = computed(() => {
   const days = [...(stats.value.daily || [])]
     .filter((day) => day?.day)
-    .sort((a, b) => String(a.day).localeCompare(String(b.day)))
-    .slice(-7);
-  const maxRevenue = Math.max(1, ...days.map((day) => Number(day.revenue) || 0));
-  return days.map((day) => ({
+    .sort((a, b) => String(a.day).localeCompare(String(b.day)));
+
+  const weeklyTotals = Array.from({ length: 7 }, () => ({
+    day: null,
+    revenue: 0,
+    orders: 0,
+  }));
+
+  days.forEach((day) => {
+    const date = new Date(`${String(day.day).slice(0, 10)}T00:00:00`);
+    if (Number.isNaN(date.getTime())) return;
+    const weekday = (date.getDay() + 6) % 7;
+    weeklyTotals[weekday].day ??= day.day;
+    weeklyTotals[weekday].revenue += Number(day.revenue) || 0;
+    weeklyTotals[weekday].orders += Number(day.orders) || 0;
+  });
+
+  const maxRevenue = Math.max(1, ...weeklyTotals.map((day) => day.revenue));
+  return weeklyTotals.map((day, index) => ({
     ...day,
-    revenue: Number(day.revenue) || 0,
-    orders: Number(day.orders) || 0,
-    height: Math.max(6, ((Number(day.revenue) || 0) / maxRevenue) * 100),
+    day: day.day || `weekday-${index}`,
+    height: day.revenue > 0 ? Math.max(6, (day.revenue / maxRevenue) * 100) : 0,
   }));
 });
 
 function dashboardDayLabel(day) {
+  if (String(day).startsWith("weekday-")) {
+    const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+    return labels[Number(String(day).slice(-1))] || "";
+  }
   const date = new Date(`${String(day).slice(0, 10)}T00:00:00`);
   if (Number.isNaN(date.getTime())) return String(day).slice(5);
-  return date.toLocaleDateString(i18n.locale === "km" ? "km-KH" : "en-US", { weekday: "short" });
+  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][(date.getDay() + 7) % 7];
 }
 const { showQR, qrTableNumber, qrCodeDataUrl, qrLoading, qrError, qrInfo, savedQrs, qrSearch, qrListLoading, qrListError, selectedSavedNo, deletingQr, filteredSavedQrs, openQR, generateQR, previewSavedQr, downloadSavedQr, formatQrDate, confirmDelQr, doDeleteQr, downloadQR } = useAdminQr();
 const { showDevices, devicesList, devicesLoading, devicesError, devicesMsg, deletingDevice, revokingDeviceId, inactiveSessionDays, deviceSettingsLoading, deviceSettingsSaving, activeDevicesCount, openDevices, confirmRevokeDevice, doRevokeDevice, revokeAllOthers, updateInactiveSessionDays } = useAdminDevices();
@@ -1667,6 +1759,9 @@ function resetSingletonState() {
   reportLoading.value = false;
   devicesList.value = [];
   stats.value = { totalRevenue: 0, totalOrders: 0, daily: [] };
+  statsStartDate.value = "";
+  statsEndDate.value = "";
+  dashboardPreset.value = "all";
 }
 resetSingletonState();
 
@@ -3483,73 +3578,291 @@ onUnmounted(() => {
   padding: 10px 0;
 }
 
-.dashboard-chart-panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  padding: 20px;
-  margin-bottom: 24px;
-}
-
-.dashboard-chart-head {
+.dashboard-filter {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
+  gap: 12px;
+  margin: 0 0 10px;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
 }
 
-.dashboard-chart-head h2 { margin: 0 0 4px; font-size: 16px; }
-.dashboard-chart-head span { color: var(--muted); font-size: 12px; }
-.dashboard-chart-head strong { font-size: 20px; }
+.dashboard-filter-presets,
+.dashboard-filter-dates {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
+.dashboard-filter-presets {
+  flex-shrink: 0;
+}
+
+.dashboard-filter-btn {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  min-width: 80px;
+  height: 38px;
+  padding: 7px 14px;
+  cursor: pointer;
+  white-space: nowrap;
+  font-family: inherit;
+  font-size: 15px;
+  outline: none;
+}
+
+.dashboard-filter-dates {
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.dashboard-filter-btn.active {
+  border-color: var(--primary);
+  background: var(--surface);
+  color: var(--primary);
+}
+
+.dashboard-filter-dates label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 230px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.dashboard-filter-dates label > :deep(.dp) {
+  flex: 1;
+  width: 230px;
+  min-width: 140px;
+}
+
+.dashboard-chart-panel {
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+  padding: 24px 28px 16px;
+  margin-bottom: 24px;
+  color: #0f172a;
+}
+
+/* header */
+.dashboard-chart-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.dashboard-chart-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.dashboard-chart-head span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: #6b7280;
+}
+.dashboard-chart-head strong {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  white-space: nowrap;
+}
+
+/* chart area */
 .dashboard-chart {
   position: relative;
-  height: 240px;
   display: flex;
-  align-items: stretch;
-  gap: clamp(8px, 2vw, 18px);
-  padding-top: 12px;
-  border-bottom: 1px solid var(--border);
+  height: 200px;
+  margin-top: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  transition: opacity 0.2s ease;
+}
+.dashboard-chart.is-loading {
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 .dashboard-chart-col {
   flex: 1;
   min-width: 0;
-  height: 100%;
-  display: grid;
-  grid-template-rows: 1fr 24px;
-  align-items: end;
-  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .dashboard-chart-track {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.dashboard-chart-bar-wrap {
+  position: relative;
+  width: 100%;
   height: 100%;
   display: flex;
   align-items: flex-end;
   justify-content: center;
 }
 
-.dashboard-chart-bar {
-  width: min(34px, 68%);
-  min-height: 6px;
-  border-radius: 8px 8px 2px 2px;
-  background: linear-gradient(180deg, var(--primary), var(--primary-strong, var(--primary)));
-  box-shadow: 0 6px 16px var(--primary-glow);
-  transition: height 0.35s ease;
+.dashboard-chart-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(var(--chart-bar-height, 0%) + 10px);
+  z-index: 5;
+  min-width: 92px;
+  padding: 7px 10px;
+  border-radius: 8px;
+  background: #111827;
+  color: #fff;
+  text-align: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translate(-50%, 5px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+  pointer-events: none;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
 }
 
-.dashboard-chart-col > span { color: var(--muted); font-size: 11px; padding-top: 8px; }
-.dashboard-chart-empty {
-  position: absolute; inset: 0; display: grid; place-items: center;
-  color: var(--muted); font-size: 13px;
+.dashboard-chart-tooltip strong,
+.dashboard-chart-tooltip span {
+  display: block;
+  white-space: nowrap;
 }
-.dashboard-chart.is-loading { opacity: 0.45; }
+
+.dashboard-chart-tooltip strong {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.dashboard-chart-tooltip span {
+  margin-top: 2px;
+  font-size: 10px;
+  color: #d1d5db;
+}
+
+.dashboard-chart-bar-wrap:hover .dashboard-chart-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.dashboard-chart-bar {
+  width: min(34px, 70%);
+  min-height: 4px;
+  background: #e11d48;
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.25);
+  transition: height 0.4s ease;
+}
+.dashboard-chart-bar:hover {
+  background: #be123c;
+}
+
+/* day label */
+.dashboard-chart-col > span {
+  max-width: 100%;
+  padding: 8px 2px 6px;
+  font-size: 12px;
+  color: #6b7280;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* empty state */
+.dashboard-chart-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  color: #9ca3af;
+}
+
+@media (max-width: 1200px) {
+  .dashboard-filter {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .dashboard-filter-presets {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 2px;
+  }
+
+  .dashboard-filter-dates {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .dashboard-filter-dates label {
+    flex: 1 1 220px;
+    max-width: 230px;
+  }
+}
 
 @media (max-width: 600px) {
-  .dashboard-chart-panel { padding: 16px 12px; }
-  .dashboard-chart { height: 190px; gap: 6px; }
-  .dashboard-chart-head strong { font-size: 16px; }
+  .dashboard-filter {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .dashboard-filter-presets {
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .dashboard-filter-presets::-webkit-scrollbar { display: none; }
+  .dashboard-filter-btn {
+    flex: 1;
+    min-width: 0;
+    padding-inline: 8px;
+  }
+  .dashboard-filter-dates {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    width: 100%;
+  }
+  .dashboard-filter-dates label {
+    width: 100%;
+    max-width: none;
+    align-items: stretch;
+    flex-direction: column;
+    flex-basis: auto;
+    min-width: 0;
+  }
+  .dashboard-filter-dates label > :deep(.dp) {
+    width: 100%;
+    min-width: 0;
+  }
+  .dashboard-chart-panel { padding: 18px 16px 12px; border-radius: 20px; }
+  .dashboard-chart-head h2 { font-size: 17px; }
+  .dashboard-chart-head span { font-size: 11px; }
+  .dashboard-chart-head strong { font-size: 20px; }
+  .dashboard-chart { height: 160px; }
+  .dashboard-chart-col > span { font-size: 11px; }
+}
+
+@media (max-width: 360px) {
+  .dashboard-filter-dates {
+    grid-template-columns: 1fr;
+  }
 }
 
 .metric {

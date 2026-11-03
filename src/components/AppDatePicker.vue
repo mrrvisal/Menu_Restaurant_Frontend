@@ -51,7 +51,7 @@
               'is-sel': isSelected(d),
               'is-dis': isDisabled(d),
             }" :disabled="isDisabled(d)" @click="select(d)">
-              {{ d }}
+              {{ formatNumber(d) }}
             </button>
           </div>
 
@@ -96,6 +96,13 @@ const viewMonth = ref(now.getMonth()); // 0-based
 const todayYmd = ymd(now.getFullYear(), now.getMonth(), now.getDate());
 
 const locale = computed(() => (i18n.locale === "km" ? "km-KH" : "en-GB"));
+const isKhmer = computed(() => i18n.locale === "km");
+const khmerDigits = ["០", "១", "២", "៣", "៤", "៥", "៦", "៧", "៨", "៩"];
+const khmerMonths = [
+  "មករា", "កុម្ភៈ", "មិនា", "មេសា", "ឧសភា", "មិថុនា",
+  "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ",
+];
+const khmerWeekdays = ["អា", "ច", "អ", "ពុ", "ព្រ", "សុ", "ស"];
 
 // ─── date helpers (local time, no UTC shifting) ──────────────
 function parseYmd(s) {
@@ -108,10 +115,19 @@ function ymd(y, m, d) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
+function formatNumber(value) {
+  const text = String(value);
+  if (!isKhmer.value) return text;
+  return text.replace(/\d/g, (digit) => khmerDigits[Number(digit)]);
+}
+
 // ─── labels ──────────────────────────────────────────────────
 const display = computed(() => {
   const dt = parseYmd(props.modelValue);
   if (!dt) return "";
+  if (isKhmer.value) {
+    return `${formatNumber(dt.getDate())} ${khmerMonths[dt.getMonth()]} ${formatNumber(dt.getFullYear())}`;
+  }
   try {
     return new Intl.DateTimeFormat(locale.value, {
       day: "numeric",
@@ -124,6 +140,9 @@ const display = computed(() => {
 });
 
 const monthTitle = computed(() => {
+  if (isKhmer.value) {
+    return `${khmerMonths[viewMonth.value]} ${formatNumber(viewYear.value)}`;
+  }
   try {
     return new Intl.DateTimeFormat(locale.value, {
       month: "long",
@@ -136,6 +155,7 @@ const monthTitle = computed(() => {
 
 // Oct 1 2023 is a Sunday → stable 7-label Sunday-first row
 const weekdayLabels = computed(() => {
+  if (isKhmer.value) return khmerWeekdays;
   const out = [];
   try {
     const fmt = new Intl.DateTimeFormat(locale.value, { weekday: "narrow" });
