@@ -456,7 +456,8 @@
               :aria-label="i18n.t.ms_design_name_ph || 'Design name'" @keyup.enter="saveDesign" />
             <button class="ms-btn ms-btn-primary" :disabled="savingDesign || !designName.trim()"
               :title="'Ctrl+S'" @click="saveDesign">
-              {{ savingDesign ? i18n.t.loading : activeDesignId ? i18n.t.save : i18n.t.ms_save_as }}
+              <ButtonLoader v-if="savingDesign" :text="i18n.t.loading" />
+              <span v-else>{{ activeDesignId ? i18n.t.save : i18n.t.ms_save_as }}</span>
             </button>
           </div>
           <button v-if="activeDesignId" class="ms-mini ms-mini-block" :disabled="savingDesign || !designName.trim()"
@@ -680,6 +681,7 @@ import { ref, computed, watch, onMounted, onUnmounted, nextTick } from "vue";
 import { useRouter } from "vue-router";
 import AppIcon from "@/components/AppIcon.vue";
 import AppSelect from "@/components/AppSelect.vue";
+import ButtonLoader from "@/components/ButtonLoader.vue";
 import { useAuthStore } from "@/stores/auth";
 import { useFoodsStore } from "@/stores/foods";
 import { useI18nStore } from "@/stores/i18n";

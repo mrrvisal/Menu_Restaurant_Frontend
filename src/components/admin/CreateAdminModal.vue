@@ -75,8 +75,10 @@
                 {{ i18n.t.cancel }}
               </button>
               <button type="submit" class="btn-teal" :disabled="loading">
-                <span v-if="loading" class="spinner" aria-hidden="true"></span>
-                <AppIcon v-else name="check" :size="14" /> {{ i18n.t.save }}
+                <ButtonLoader v-if="loading" :text="i18n.t.loading" />
+                <template v-else>
+                  <AppIcon name="check" :size="14" /> {{ i18n.t.save }}
+                </template>
               </button>
             </div>
           </form>
@@ -90,6 +92,7 @@
 import { computed, nextTick, onBeforeUnmount, reactive, ref, watch } from "vue";
 import AppIcon from "@/components/AppIcon.vue";
 import AppSelect from "@/components/AppSelect.vue";
+import ButtonLoader from "@/components/ButtonLoader.vue";
 import { useI18nStore } from "@/stores/i18n";
 
 const props = defineProps({

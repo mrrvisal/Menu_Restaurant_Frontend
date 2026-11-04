@@ -43,8 +43,10 @@
                   <div class="cart-actions">
                     <button class="ghost-btn" @click="$emit('clear')">{{ i18n.t.demo_clear }}</button>
                     <button class="add-cart-big" :disabled="placing" @click="$emit('place')">
-                      <span v-if="placing" class="spinner"></span>
-                      {{ placing ? i18n.t.demo_placing : i18n.t.demo_place_order }}
+                      <ButtonLoader v-if="placing" :text="i18n.t.demo_placing" />
+                      <template v-else>
+                        {{ i18n.t.demo_place_order }}
+                      </template>
                     </button>
                   </div>
                 </template>
@@ -56,6 +58,7 @@
 <script setup>
 import { useI18nStore } from "@/stores/i18n";
 import AppIcon from "@/components/AppIcon.vue";
+import ButtonLoader from "@/components/ButtonLoader.vue";
 
 const i18n = useI18nStore();
 

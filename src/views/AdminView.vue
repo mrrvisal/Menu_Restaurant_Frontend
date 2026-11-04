@@ -648,11 +648,8 @@
                   @keyup.enter="submitAddRestaurant" />
               </div>
               <button class="btn btn-primary btn-b" :disabled="addRestaurantSubmitting" @click="submitAddRestaurant">
-                {{
-                  addRestaurantSubmitting
-                    ? i18n.t.loading
-                    : i18n.t.add_restaurant
-                }}
+                <ButtonLoader v-if="addRestaurantSubmitting" :text="i18n.t.loading" />
+                <span v-else>{{ i18n.t.add_restaurant }}</span>
               </button>
             </div>
           </div>
@@ -693,7 +690,8 @@
               <button class="btn btn-r btn-b"
                 :disabled="deleteRestaurantSubmitting || !deleteRestaurantConfirmMatches"
                 @click="submitDeleteRestaurant">
-                {{ deleteRestaurantSubmitting ? i18n.t.loading : i18n.t.delete_restaurant }}
+                <ButtonLoader v-if="deleteRestaurantSubmitting" :text="i18n.t.loading" />
+                <span v-else>{{ i18n.t.delete_restaurant }}</span>
               </button>
             </div>
           </div>
@@ -730,8 +728,9 @@
             </div>
             <div class="dlg-acts">
               <button class="btn btn-g" @click="transferringFoods = false">{{ i18n.t.cancel }}</button>
-              <button class="btn btn-primary" :disabled="!transferRestaurantId" @click="doTransfer">
-                {{ transferAction === 'copy' ? i18n.t.copy : i18n.t.move }}
+              <button class="btn btn-primary" :disabled="!transferRestaurantId || transferSubmitting" @click="doTransfer">
+                <ButtonLoader v-if="transferSubmitting" :text="i18n.t.loading" />
+                <span v-else>{{ transferAction === 'copy' ? i18n.t.copy : i18n.t.move }}</span>
               </button>
             </div>
           </div>
@@ -753,9 +752,10 @@
             <div class="dlg-t">{{ i18n.t.confirm_delete_food }}</div>
             <div class="dlg-d">{{ deletingFood.ids ? `${deletingFood.ids.length} ${i18n.t.selected_foods}` : deletingFood.name }}</div>
             <div class="dlg-acts">
-              <button class="btn btn-g" @click="deletingFood = null">
-                {{ i18n.t.cancel }}</button><button class="btn btn-r" @click="doDelete">
-                {{ i18n.t.delete }}
+              <button class="btn btn-g" :disabled="deletingFoodSubmitting" @click="deletingFood = null">
+                {{ i18n.t.cancel }}</button><button class="btn btn-r" :disabled="deletingFoodSubmitting" @click="doDelete">
+                <ButtonLoader v-if="deletingFoodSubmitting" :text="i18n.t.loading" />
+                <span v-else>{{ i18n.t.delete }}</span>
               </button>
             </div>
           </div>
@@ -777,9 +777,10 @@
             <div class="dlg-t">{{ i18n.t.confirm_delete_category }}</div>
             <div class="dlg-d">{{ deletingCat.label_km }}</div>
             <div class="dlg-acts">
-              <button class="btn btn-g" @click="deletingCat = null">
-                {{ i18n.t.cancel }}</button><button class="btn btn-r" @click="doDeleteCat">
-                {{ i18n.t.delete }}
+              <button class="btn btn-g" :disabled="deletingCatSubmitting" @click="deletingCat = null">
+                {{ i18n.t.cancel }}</button><button class="btn btn-r" :disabled="deletingCatSubmitting" @click="doDeleteCat">
+                <ButtonLoader v-if="deletingCatSubmitting" :text="i18n.t.loading" />
+                <span v-else>{{ i18n.t.delete }}</span>
               </button>
             </div>
           </div>
@@ -835,7 +836,8 @@
               <div class="qr-r">
                 <input v-model="qrTableNumber" type="number" min="1" :placeholder="i18n.t.table_no" class="qr-inp"
                   @keyup.enter="generateQR" /><button class="btn btn-primary" :disabled="qrLoading" @click="generateQR">
-                  {{ qrLoading ? i18n.t.generating : i18n.t.generate || "Generate" }}
+                  <ButtonLoader v-if="qrLoading" :text="i18n.t.generating" />
+                  <span v-else>{{ i18n.t.generate || "Generate" }}</span>
                 </button>
               </div>
               <div v-if="qrError" class="msg msg-e">
@@ -987,9 +989,10 @@
               {{ i18n.t.table }} {{ deletingQr.table_no }}
             </div>
             <div class="dlg-acts">
-              <button class="btn btn-g" @click="deletingQr = null">
-                {{ i18n.t.cancel }}</button><button class="btn btn-r" @click="doDeleteQr">
-                {{ i18n.t.delete }}
+              <button class="btn btn-g" :disabled="deletingQrSubmitting" @click="deletingQr = null">
+                {{ i18n.t.cancel }}</button><button class="btn btn-r" :disabled="deletingQrSubmitting" @click="doDeleteQr">
+                <ButtonLoader v-if="deletingQrSubmitting" :text="i18n.t.loading" />
+                <span v-else>{{ i18n.t.delete }}</span>
               </button>
             </div>
           </div>
@@ -1114,7 +1117,8 @@
             <div class="dlg-acts">
               <button class="btn btn-g" :disabled="tgSubmitting" @click="tgUnlinkConfirm = false">
                 {{ i18n.t.cancel }}</button><button class="btn btn-r" :disabled="tgSubmitting" @click="unlinkTelegram">
-                {{ tgSubmitting ? i18n.t.loading : i18n.t.unlink }}
+                <ButtonLoader v-if="tgSubmitting" :text="i18n.t.loading" />
+                <span v-else>{{ i18n.t.unlink }}</span>
               </button>
             </div>
           </div>
@@ -1335,13 +1339,8 @@
                 <div v-if="catErrors" class="fld-e">{{ catErrors }}</div>
               </div>
               <button class="btn btn-primary btn-b" :disabled="catSubmitting" @click="submitCategory">
-                {{
-                  catSubmitting
-                    ? i18n.t.loading
-                    : editingCat
-                      ? i18n.t.save
-                      : i18n.t.add
-                }}
+                <ButtonLoader v-if="catSubmitting" :text="i18n.t.loading" />
+                <span v-else>{{ editingCat ? i18n.t.save : i18n.t.add }}</span>
               </button>
             </div>
           </div>
@@ -1611,8 +1610,8 @@ const currencyStore = useCurrencyStore();
 // State + actions live in @/composables/useAdmin* (verbatim extracts).
 // Singleton refs: the sidebar, the SSE stream and every tab share one source.
 const { adminTab } = useAdminTab();
-const { curCat, searchQ, showForm, editingFood, deletingFood, menuCreating, selectedFoodIds, selectingFoods, transferringFoods, transferAction, transferRestaurantId, transferMenuId, load, openAdd, confirmDel, doDelete, toggleFoodSelection, toggleSelectAll, openTransfer, destinationChanged, doTransfer } = useAdminFoods();
-const { showCatForm, editingCat, catSubmitting, catSuccess, catErrors, catLabelKm, deletingCat, openCatForm, submitCategory, confirmDelCat, doDeleteCat } = useAdminCategories();
+const { curCat, searchQ, showForm, editingFood, deletingFood, deletingFoodSubmitting, menuCreating, selectedFoodIds, selectingFoods, transferringFoods, transferAction, transferRestaurantId, transferMenuId, transferSubmitting, load, openAdd, confirmDel, doDelete, toggleFoodSelection, toggleSelectAll, openTransfer, destinationChanged, doTransfer } = useAdminFoods();
+const { showCatForm, editingCat, catSubmitting, catSuccess, catErrors, catLabelKm, deletingCat, deletingCatSubmitting, openCatForm, submitCategory, confirmDelCat, doDeleteCat } = useAdminCategories();
 const { orders, ordersLoading, fetchOrders, updateOrderStatus, expandedDays, toggleDay, orderSections, dayLabel, searchDate, searchActive, searchDateOrders, clearDateSearch, scheduleNewDayCheck, stopNewDayCheck } = useAdminOrders();
 const { stats, statsLoading, statsStartDate, statsEndDate, fetchStats } = useAdminStats();
 const dashboardPreset = ref("all");
@@ -1683,15 +1682,19 @@ const dashboardChartDays = computed(() => {
 });
 
 function dashboardDayLabel(day) {
+  const englishLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  const khmerLabels = ["ចន្ទ", "អង្គារ", "ពុធ", "ព្រហស្បតិ៍", "សុក្រ", "សៅរ៍", "អាទិត្យ"];
+  const labels = i18n.locale === "km" ? khmerLabels : englishLabels;
+
   if (String(day).startsWith("weekday-")) {
-    const labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     return labels[Number(String(day).slice(-1))] || "";
   }
   const date = new Date(`${String(day).slice(0, 10)}T00:00:00`);
   if (Number.isNaN(date.getTime())) return String(day).slice(5);
-  return ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"][(date.getDay() + 7) % 7];
+  const weekday = (date.getDay() + 6) % 7;
+  return labels[weekday];
 }
-const { showQR, qrTableNumber, qrCodeDataUrl, qrLoading, qrError, qrInfo, savedQrs, qrSearch, qrListLoading, qrListError, selectedSavedNo, deletingQr, filteredSavedQrs, openQR, generateQR, previewSavedQr, downloadSavedQr, formatQrDate, confirmDelQr, doDeleteQr, downloadQR } = useAdminQr();
+const { showQR, qrTableNumber, qrCodeDataUrl, qrLoading, qrError, qrInfo, savedQrs, qrSearch, qrListLoading, qrListError, selectedSavedNo, deletingQr, deletingQrSubmitting, filteredSavedQrs, openQR, generateQR, previewSavedQr, downloadSavedQr, formatQrDate, confirmDelQr, doDeleteQr, downloadQR } = useAdminQr();
 const { showDevices, devicesList, devicesLoading, devicesError, devicesMsg, deletingDevice, revokingDeviceId, inactiveSessionDays, deviceSettingsLoading, deviceSettingsSaving, activeDevicesCount, openDevices, confirmRevokeDevice, doRevokeDevice, revokeAllOthers, updateInactiveSessionDays } = useAdminDevices();
 const { report, reportLoading, reportError, reportGroup, reportPreset, reportStartDate, reportEndDate, reportDataset, reportFormat, reportExporting, reportExportMsg, reportExportError, reportPresets, reportGroups, reportDatasets, reportFormats, applyReportPreset, openReports, fetchReport, exportReport, reportSeriesPoints, reportHourPoints, chartColor, fmtAxis, topItemWidth, tableBarWidth, statusBarWidth } = useAdminReports();
 const { connectOrderStream, disconnectOrderStream } = useAdminStream();
@@ -3642,12 +3645,12 @@ onUnmounted(() => {
 }
 
 .dashboard-chart-panel {
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--surface);
+  border: 1px solid var(--border);
   border-radius: 24px;
   padding: 24px 28px 16px;
   margin-bottom: 24px;
-  color: #0f172a;
+  color: var(--text);
 }
 
 /* header */
@@ -3668,10 +3671,10 @@ onUnmounted(() => {
   display: block;
   margin-top: 4px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--muted);
 }
 .dashboard-chart-head strong {
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 700;
   letter-spacing: -0.02em;
   white-space: nowrap;
@@ -3683,7 +3686,7 @@ onUnmounted(() => {
   display: flex;
   height: 200px;
   margin-top: 24px;
-  border-bottom: 1px solid #e5e7eb;
+  border-bottom: 1px solid var(--border);
   transition: opacity 0.2s ease;
 }
 .dashboard-chart.is-loading {
@@ -3724,15 +3727,15 @@ onUnmounted(() => {
   min-width: 92px;
   padding: 7px 10px;
   border-radius: 8px;
-  background: #111827;
-  color: #fff;
+  background: var(--primary-strong, var(--primary));
+  color: var(--on-primary, #fff);
   text-align: center;
   opacity: 0;
   visibility: hidden;
   transform: translate(-50%, 5px);
   transition: opacity 0.15s ease, transform 0.15s ease;
   pointer-events: none;
-  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 8px 20px var(--primary-glow-strong, rgba(15, 23, 42, 0.18));
 }
 
 .dashboard-chart-tooltip strong,
@@ -3749,7 +3752,8 @@ onUnmounted(() => {
 .dashboard-chart-tooltip span {
   margin-top: 2px;
   font-size: 10px;
-  color: #d1d5db;
+  color: var(--on-primary, #fff);
+  opacity: 0.78;
 }
 
 .dashboard-chart-bar-wrap:hover .dashboard-chart-tooltip {
@@ -3761,13 +3765,13 @@ onUnmounted(() => {
 .dashboard-chart-bar {
   width: min(34px, 70%);
   min-height: 4px;
-  background: #e11d48;
+  background: var(--primary);
   border-radius: 10px 10px 0 0;
-  box-shadow: 0 6px 18px rgba(225, 29, 72, 0.25);
+  box-shadow: 0 6px 18px var(--primary-glow-strong, rgba(225, 29, 72, 0.25));
   transition: height 0.4s ease;
 }
 .dashboard-chart-bar:hover {
-  background: #be123c;
+  background: var(--primary-strong, var(--primary));
 }
 
 /* day label */
@@ -3775,7 +3779,7 @@ onUnmounted(() => {
   max-width: 100%;
   padding: 8px 2px 6px;
   font-size: 12px;
-  color: #6b7280;
+  color: var(--muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -3789,7 +3793,7 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   font-size: 14px;
-  color: #9ca3af;
+  color: var(--muted-light, var(--muted));
 }
 
 @media (max-width: 1200px) {
@@ -3852,9 +3856,9 @@ onUnmounted(() => {
     min-width: 0;
   }
   .dashboard-chart-panel { padding: 18px 16px 12px; border-radius: 20px; }
-  .dashboard-chart-head h2 { font-size: 17px; }
+  .dashboard-chart-head h2 { font-size: 16px; }
   .dashboard-chart-head span { font-size: 11px; }
-  .dashboard-chart-head strong { font-size: 20px; }
+  .dashboard-chart-head strong { font-size: 16px; }
   .dashboard-chart { height: 160px; }
   .dashboard-chart-col > span { font-size: 11px; }
 }

@@ -30,12 +30,15 @@
     </div>
 
     <button type="submit" class="btn" :disabled="submitting">
-      {{ submitting ? i18n.t.loading : i18n.t.super_admin_login }}
+      <ButtonLoader v-if="submitting" :text="i18n.t.loading" />
+      <span v-else>{{ i18n.t.super_admin_login }}</span>
     </button>
   </form>
 </template>
 
 <script setup>
+import ButtonLoader from "@/components/ButtonLoader.vue";
+
 const props = defineProps(["form", "errorMsg", "showPassword", "submitting", "i18n"]);
 const emit = defineEmits(["submit", "update:showPassword"]);
 

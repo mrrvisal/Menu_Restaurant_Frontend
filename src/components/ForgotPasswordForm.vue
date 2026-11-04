@@ -8,12 +8,15 @@
         @input="emit('update:email', $event.target.value)" />
     </div>
     <button type="submit" class="btn" :disabled="submitting">
-      {{ submitting ? i18n.t.loading : i18n.t.send_reset_link }}
+      <ButtonLoader v-if="submitting" :text="i18n.t.loading" />
+      <span v-else>{{ i18n.t.send_reset_link }}</span>
     </button>
   </form>
 </template>
 
 <script setup>
+import ButtonLoader from "@/components/ButtonLoader.vue";
+
 defineProps([
   "email",
   "errorMsg",

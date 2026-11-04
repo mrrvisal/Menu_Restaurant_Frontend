@@ -13,10 +13,10 @@
         <div class="nav-links">
           <a href="#features" class="nav-link" :class="{ active: activeSection === 'features' }"
             @click="$emit('update:activeSection', 'features')">{{ i18n.t.features }}</a>
-          <a href="#how-it-works" class="nav-link" :class="{ active: activeSection === 'how-it-works' }"
-            @click="$emit('update:activeSection', 'how-it-works')">{{ i18n.t.how_it_works }}</a>
           <a href="#demo-menu" class="nav-link" :class="{ active: activeSection === 'demo-menu' }"
             @click="$emit('update:activeSection', 'demo-menu')">{{ i18n.t.menu }}</a>
+          <a href="#how-it-works" class="nav-link" :class="{ active: activeSection === 'how-it-works' }"
+            @click="$emit('update:activeSection', 'how-it-works')">{{ i18n.t.how_it_works }}</a>
         </div>
 
         <div class="nav-links">
@@ -57,10 +57,10 @@
         <div v-if="mobileOpen" class="mobile-nav">
           <a href="#features" class="mobile-link" :class="{ active: activeSection === 'features' }"
             @click="$emit('update:activeSection', 'features'); $emit('update:mobileOpen', false)">{{ i18n.t.features }}</a>
-          <a href="#how-it-works" class="mobile-link" :class="{ active: activeSection === 'how-it-works' }"
-            @click="$emit('update:activeSection', 'how-it-works'); $emit('update:mobileOpen', false)">{{ i18n.t.how_it_works }}</a>
           <a href="#demo-menu" class="mobile-link" :class="{ active: activeSection === 'demo-menu' }"
             @click="$emit('update:activeSection', 'demo-menu'); $emit('update:mobileOpen', false)">{{ i18n.t.menu }}</a>
+          <a href="#how-it-works" class="mobile-link" :class="{ active: activeSection === 'how-it-works' }"
+            @click="$emit('update:activeSection', 'how-it-works'); $emit('update:mobileOpen', false)">{{ i18n.t.how_it_works }}</a>
           <router-link to="/login" class="mobile-btn" @click="$emit('update:mobileOpen', false)">{{ i18n.t.login }}</router-link>
           <router-link to="/register" class="mobile-btn mobile-btn-solid btn-show-register-reverse"
             @click="$emit('update:mobileOpen', false)">{{ i18n.t.get_started }}</router-link>

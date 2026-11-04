@@ -71,14 +71,11 @@
 
               <!-- SEND -->
               <button class="order-btn" :disabled="sending" @click="submitCall">
-                <span v-if="sending" class="spinner">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                    stroke-linecap="round">
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56" />
-                  </svg>
-                </span>
-                <AppIcon v-else name="bell" :size="17" />
-                {{ sending ? i18n.t.call_sending : i18n.t.call_send }}
+                <ButtonLoader v-if="sending" :text="i18n.t.call_sending" />
+                <template v-else>
+                  <AppIcon name="bell" :size="17" />
+                  {{ i18n.t.call_send }}
+                </template>
               </button>
             </template>
           </div>
@@ -92,6 +89,7 @@
 import { ref, reactive, watch } from "vue";
 import { useI18nStore } from "@/stores/i18n";
 import AppIcon from "@/components/AppIcon.vue";
+import ButtonLoader from "@/components/ButtonLoader.vue";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;

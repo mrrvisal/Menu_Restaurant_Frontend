@@ -30,6 +30,7 @@ const qrListLoading = ref(false);
 const qrListError = ref("");
 const selectedSavedNo = ref(null);
 const deletingQr = ref(null);
+const deletingQrSubmitting = ref(false);
 const filteredSavedQrs = computed(() => {
   const q = qrSearch.value.trim();
   if (!q) return savedQrs.value;
@@ -151,7 +152,8 @@ function confirmDelQr(qr) {
 }
 async function doDeleteQr() {
   const qr = deletingQr.value;
-  if (!qr) return;
+  if (!qr || deletingQrSubmitting.value) return;
+  deletingQrSubmitting.value = true;
   try {
     let url = `${API_BASE}/api/qr/codes/${qr.table_no}`;
     if (auth.restaurantId) url += `?restaurant_id=${auth.restaurantId}`;
@@ -166,10 +168,11 @@ async function doDeleteQr() {
     }
     qrError.value = "";
     qrInfo.value = i18n.t.qr_deleted || "លុប QR រួចរាល់!";
+    deletingQr.value = null;
   } catch (err) {
     qrError.value = err.response?.data?.error || i18n.t.qr_delete_error;
   } finally {
-    deletingQr.value = null;
+    deletingQrSubmitting.value = false;
   }
 }
 function downloadQR() {
@@ -196,6 +199,7 @@ export function useAdminQr() {
     qrListError,
     selectedSavedNo,
     deletingQr,
+    deletingQrSubmitting,
     filteredSavedQrs,
     openQR,
     generateQR,

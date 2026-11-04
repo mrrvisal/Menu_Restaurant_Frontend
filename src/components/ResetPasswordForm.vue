@@ -41,13 +41,15 @@
       </transition>
     </div>
     <button type="submit" class="btn" :disabled="submitting || tokenMissing">
-      {{ submitting ? i18n.t.loading : i18n.t.reset_password }}
+      <ButtonLoader v-if="submitting" :text="i18n.t.loading" />
+      <span v-else>{{ i18n.t.reset_password }}</span>
     </button>
   </form>
 </template>
 
 <script setup>
 import { computed } from "vue";
+import ButtonLoader from "@/components/ButtonLoader.vue";
 
 const props = defineProps([
   "password",

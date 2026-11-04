@@ -50,12 +50,15 @@
     <p class="hint">{{ i18n.t.register_restaurant_hint || "After verifying your email, you can create your restaurant." }}</p>
 
     <button type="submit" class="btn" :disabled="submitting">
-      {{ submitting ? i18n.t.loading : i18n.t.register }}
+      <ButtonLoader v-if="submitting" :text="i18n.t.loading" />
+      <span v-else>{{ i18n.t.register }}</span>
     </button>
   </form>
 </template>
 
 <script setup>
+import ButtonLoader from "@/components/ButtonLoader.vue";
+
 const props = defineProps([
   "form",
   "errorMsg",

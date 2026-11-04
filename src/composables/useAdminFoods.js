@@ -13,6 +13,8 @@ export const searchQ = ref("");
 const showForm = ref(false);
 const editingFood = ref(null);
 const deletingFood = ref(null);
+const deletingFoodSubmitting = ref(false);
+export const transferSubmitting = ref(false);
 export const selectedFoodIds = ref([]);
 export const selectingFoods = ref(false);
 export const transferringFoods = ref(false);
@@ -40,17 +42,19 @@ function confirmDel(food) {
 }
 async function doDelete() {
   const ids = deletingFood.value?.ids || (deletingFood.value ? [deletingFood.value.id] : []);
-  if (!ids.length) return;
+  if (!ids.length || deletingFoodSubmitting.value) return;
+  deletingFoodSubmitting.value = true;
   try {
     await (ids.length === 1 ? foods.deleteFood(ids[0]) : foods.deleteFoods(ids));
     selectedFoodIds.value = [];
+    deletingFood.value = null;
   } catch (err) {
     console.error(
       "Delete food failed:",
       err?.response?.data?.error || err.message,
     );
   } finally {
-    deletingFood.value = null;
+    deletingFoodSubmitting.value = false;
   }
 }
 
@@ -84,16 +88,21 @@ async function destinationChanged() {
 }
 
 async function doTransfer() {
-  if (!selectedFoodIds.value.length || !transferRestaurantId.value) return;
-  await foods.transferFoods(
-    [...selectedFoodIds.value],
-    transferAction.value,
-    transferRestaurantId.value,
-    transferMenuId.value,
-  );
-  selectedFoodIds.value = [];
-  selectingFoods.value = false;
-  transferringFoods.value = false;
+  if (!selectedFoodIds.value.length || !transferRestaurantId.value || transferSubmitting.value) return;
+  transferSubmitting.value = true;
+  try {
+    await foods.transferFoods(
+      [...selectedFoodIds.value],
+      transferAction.value,
+      transferRestaurantId.value,
+      transferMenuId.value,
+    );
+    selectedFoodIds.value = [];
+    selectingFoods.value = false;
+    transferringFoods.value = false;
+  } finally {
+    transferSubmitting.value = false;
+  }
 }
 
 export function useAdminFoods() {
@@ -103,6 +112,7 @@ export function useAdminFoods() {
     showForm,
     editingFood,
     deletingFood,
+    deletingFoodSubmitting,
     menuCreating,
     selectedFoodIds,
     selectingFoods,
@@ -110,6 +120,7 @@ export function useAdminFoods() {
     transferAction,
     transferRestaurantId,
     transferMenuId,
+    transferSubmitting,
     load,
     openAdd,
     confirmDel,

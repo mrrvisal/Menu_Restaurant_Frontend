@@ -124,7 +124,8 @@
                   placeholder="4000" />
               </div>
               <button class="btn btn-primary btn-b" :disabled="currencySubmitting" @click="saveCurrency">
-                {{ currencySubmitting ? i18n.t.loading : i18n.t.save }}
+                <ButtonLoader v-if="currencySubmitting" :text="i18n.t.loading" />
+                <span v-else>{{ i18n.t.save }}</span>
               </button>
             </template>
 
@@ -255,7 +256,8 @@
                 </div>
               </div>
               <button class="btn btn-primary btn-b" :disabled="accountSubmitting" @click="saveAccount">
-                {{ accountSubmitting ? i18n.t.loading : i18n.t.update_account || "Update email / password" }}
+                <ButtonLoader v-if="accountSubmitting" :text="i18n.t.loading" />
+                <span v-else>{{ i18n.t.update_account || "Update email / password" }}</span>
               </button>
             </template>
           </div>
@@ -269,6 +271,7 @@
 import { computed, ref, toRefs, watch } from "vue";
 import AppIcon from "@/components/AppIcon.vue";
 import AppSelect from "@/components/AppSelect.vue";
+import ButtonLoader from "@/components/ButtonLoader.vue";
 
 const props = defineProps([
   "show",

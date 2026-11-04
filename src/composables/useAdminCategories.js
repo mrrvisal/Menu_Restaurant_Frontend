@@ -15,6 +15,7 @@ const catSuccess = ref("");
 const catErrors = ref("");
 const catLabelKm = ref("");
 const deletingCat = ref(null);
+const deletingCatSubmitting = ref(false);
 
 function openCatForm(cat = null) {
   editingCat.value = cat;
@@ -62,13 +63,16 @@ function confirmDelCat(cat) {
   deletingCat.value = cat;
 }
 async function doDeleteCat() {
-  if (!deletingCat.value) return;
+  if (!deletingCat.value || deletingCatSubmitting.value) return;
+  deletingCatSubmitting.value = true;
   try {
     await foods.deleteCategory(deletingCat.value.id);
+    deletingCat.value = null;
   } catch (err) {
     alert(err.response?.data?.error || i18n.t.category_delete_failed);
+  } finally {
+    deletingCatSubmitting.value = false;
   }
-  deletingCat.value = null;
 }
 
 export function useAdminCategories() {
@@ -80,6 +84,7 @@ export function useAdminCategories() {
     catErrors,
     catLabelKm,
     deletingCat,
+    deletingCatSubmitting,
     openCatForm,
     submitCategory,
     confirmDelCat,

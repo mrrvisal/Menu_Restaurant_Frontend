@@ -1,13 +1,17 @@
 <template>
   <span class="button-loader" role="status" :aria-label="text">
-    <span class="button-loader-ring"></span>
-    <img class="button-loader-logo" :src="logoUrl" alt="" aria-hidden="true" />
+    <span class="button-loader-mark" aria-hidden="true">
+      <span class="button-loader-ring"></span>
+      <span class="button-loader-badge">
+        <img class="button-loader-logo" :src="logoUrl" alt="" />
+      </span>
+    </span>
     <span class="button-loader-text">{{ text }}</span>
   </span>
 </template>
 
 <script setup>
-import logoUrl from "@/assets/digital-menu-logo.svg";
+import logoUrl from "@/assets/images/main-logo/digital-menu.png";
 
 defineProps({
   text: {
@@ -19,28 +23,31 @@ defineProps({
 
 <style scoped>
 .button-loader {
-  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 10px;
+  flex-shrink: 0;
+  color: inherit; /* ring follows the button's text color */
+}
+
+.button-loader-mark {
+  position: relative;
+  width: 34px;
   height: 34px;
   flex-shrink: 0;
 }
 
+/* spinning arc */
 .button-loader-ring {
   position: absolute;
-  left: 0;
-  width: 34px;
-  height: 34px;
+  inset: 0;
   border-radius: 50%;
   background: conic-gradient(
     from 0deg,
     transparent 0deg,
-    rgba(255, 112, 67, 0.08) 55deg,
-    rgba(255, 112, 67, 0.5) 150deg,
-    #ff7043 270deg,
-    #ff7043 310deg,
+    color-mix(in srgb, currentColor 15%, transparent) 60deg,
+    currentColor 300deg,
     transparent 360deg
   );
   -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
@@ -48,21 +55,28 @@ defineProps({
   animation: button-loader-spin 900ms linear infinite;
 }
 
+/* white disc keeps the logo readable on any button color */
+.button-loader-badge {
+  position: absolute;
+  inset: 5px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+}
+
 .button-loader-logo {
-  position: relative;
-  width: 77px;
-  height: 22px;
-  object-fit: contain;
-  object-position: left center;
-  clip-path: inset(0 71% 0 0);
-  filter: drop-shadow(0 1px 2px rgba(45, 122, 45, 0.18));
+  width: 17px;
+  height: 17px;
+  object-fit: contain; /* use a square logo/icon file */
 }
 
 .button-loader-text {
-  font-size: 1em;
+  font-size: inherit;
   font-weight: 700;
   line-height: 1;
   white-space: nowrap;
+  color: inherit;
 }
 
 @keyframes button-loader-spin {
@@ -71,7 +85,7 @@ defineProps({
 
 @media (prefers-reduced-motion: reduce) {
   .button-loader-ring {
-    animation: none;
+    animation-duration: 2.5s; /* slower, but still shows it is working */
   }
 }
 </style>

@@ -63,7 +63,8 @@
             </div>
 
             <button class="submit-btn" :disabled="submitting" @click="submit">
-              {{ submitting ? i18n.t.saving : (editFood ? i18n.t.save : i18n.t.add) }}
+              <ButtonLoader v-if="submitting" :text="i18n.t.saving" />
+              <span v-else>{{ editFood ? i18n.t.save : i18n.t.add }}</span>
             </button>
           </div>
         </div>
@@ -78,6 +79,7 @@ import { useFoodsStore } from '@/stores/foods';
 import { useI18nStore } from '@/stores/i18n';
 import AppSelect from '@/components/AppSelect.vue';
 import AppIcon from '@/components/AppIcon.vue';
+import ButtonLoader from '@/components/ButtonLoader.vue';
 
 const props = defineProps({
   show: { type: Boolean, default: false },

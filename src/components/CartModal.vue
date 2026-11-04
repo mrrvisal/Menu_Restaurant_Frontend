@@ -93,18 +93,15 @@
                   <AppIcon name="trash" :size="14" /> {{ i18n.t.clear_cart }}
                 </button>
                 <button class="order-btn" :disabled="sending" @click="submitOrder">
-                  <span v-if="sending" class="spinner">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                      stroke-linecap="round">
-                      <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+                  <ButtonLoader v-if="sending" :text="i18n.t.sending" />
+                  <template v-else>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                      stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="22" y1="2" x2="11" y2="13" />
+                      <polygon points="22 2 15 22 11 13 2 9 22 2" />
                     </svg>
-                  </span>
-                  <svg v-else width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="22" y1="2" x2="11" y2="13" />
-                    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-                  </svg>
-                  {{ sending ? i18n.t.sending : i18n.t.order_now }}
+                    {{ i18n.t.order_now }}
+                  </template>
                 </button>
               </div>
             </div>
@@ -122,6 +119,7 @@ import { useCartStore } from "@/stores/cart";
 import { useCurrencyStore } from "@/stores/currency";
 import { useI18nStore } from "@/stores/i18n";
 import AppIcon from "@/components/AppIcon.vue";
+import ButtonLoader from "@/components/ButtonLoader.vue";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL;
