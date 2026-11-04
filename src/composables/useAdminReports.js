@@ -28,7 +28,7 @@ const reportPreset = ref("7d");
 const reportStartDate = ref("");
 const reportEndDate = ref("");
 const reportDataset = ref("series");
-const reportFormat = ref("csv");
+const reportFormat = ref("xlsx");
 const reportExporting = ref(false);
 const reportExportMsg = ref("");
 const reportExportError = ref(false);
@@ -75,8 +75,8 @@ const reportDatasets = computed(() => [
 ]);
 
 const reportFormats = computed(() => [
-  { value: "csv", label: i18n.t.report_format_csv },
   { value: "xlsx", label: i18n.t.report_format_excel },
+  { value: "csv", label: i18n.t.report_format_csv },
 ]);
 
 // Local-time YYYY-MM-DD (toISOString() would shift by the UTC offset)

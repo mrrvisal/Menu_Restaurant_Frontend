@@ -33,8 +33,8 @@ defineProps({
 
 .button-loader-mark {
   position: relative;
-  width: 34px;
-  height: 34px;
+  width: 1.5em;
+  height: 1.5em;
   flex-shrink: 0;
 }
 
@@ -50,15 +50,15 @@ defineProps({
     currentColor 300deg,
     transparent 360deg
   );
-  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
-  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 2px));
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 2px), #000 calc(100% - 1px));
   animation: button-loader-spin 900ms linear infinite;
 }
 
 /* white disc keeps the logo readable on any button color */
 .button-loader-badge {
   position: absolute;
-  inset: 5px;
+  inset: 3px;
   display: grid;
   place-items: center;
   border-radius: 50%;
@@ -66,8 +66,8 @@ defineProps({
 }
 
 .button-loader-logo {
-  width: 17px;
-  height: 17px;
+  width: 0.85em;
+  height: 0.85em;
   object-fit: contain; /* use a square logo/icon file */
 }
 

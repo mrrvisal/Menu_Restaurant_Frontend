@@ -100,3 +100,6 @@ button {
 .pop-in {
   animation: popIn 0.2s ease;
 }
+/* ButtonLoader overlay anchor */
+button { position: relative; overflow: hidden; }
+/* Keep height stable when ButtonLoader swaps in (width may grow) */

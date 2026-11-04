@@ -113,13 +113,27 @@ const orderSections = computed(() => {
 });
 function dayLabel(dayStr) {
   const [y, m, d] = dayStr.split("-").map(Number);
+
+  if (i18n.locale === "km") {
+    const khmerMonths = [
+      "មករា", "កុម្ភៈ", "មិនា", "មេសា", "ឧសភា", "មិថុនា",
+      "កក្កដា", "សីហា", "កញ្ញា", "តុលា", "វិច្ឆិកា", "ធ្នូ",
+    ];
+    const khmerDigits = ["០", "១", "២", "៣", "៤", "៥", "៦", "៧", "៨", "៩"];
+    const formatKhmerNumber = (value) =>
+      String(value).replace(/\d/g, (digit) => khmerDigits[Number(digit)]);
+
+    return `${formatKhmerNumber(d)} ${khmerMonths[m - 1]} ${formatKhmerNumber(y)}`;
+  }
+
   return new Date(y, m - 1, d).toLocaleDateString(
-    i18n.locale === "km" ? "km-KH" : "en-US",
+    "en-US",
     {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    },
+  );
 }
 
 // ─── DATE SEARCH (frontend only) ───────────────────────────
